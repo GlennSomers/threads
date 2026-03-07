@@ -254,3 +254,36 @@ unlock, leverage, optimize, elevate, amplify, accelerate, transform, revolutioni
 - You might be wondering
 - Don't get me wrong / Make no mistake
 - The reality is / The bottom line is
+
+---
+
+## Pre-Output Voice Checklist
+
+Run this before handing over any draft. Every item is a pass/fail.
+
+**Opener**
+- [ ] Does it open inside a concrete moment, observation, or detail — not a topic announcement or thesis?
+- [ ] Does the subject of the post surface two or three sentences in, not in the first line?
+
+**Sentences**
+- [ ] Does every sentence sound like it was said, not written? (Test: could it exist in speech, or only on a page?)
+- [ ] Do sentences follow the thought as it moves — drifting, connecting, doubling back — rather than building cleanly to a mini-lesson?
+- [ ] Are there any "not X but Y" antithetical constructions? If yes, rewrite.
+- [ ] Are there any deliberate metaphors (an image chosen because it's clever or precise)? If yes, cut and say the thing directly.
+
+**Closer**
+- [ ] Does the post end with a delivered takeaway or resolved moral? If yes, cut or leave it open.
+- [ ] Does the closing tone stay uncertain, partial, or observational where appropriate?
+
+**Voice**
+- [ ] Is the default address first person, with "you" appearing only when the reader needs to apply something directly?
+- [ ] Could this post have been written by any photography creator? If yes, it needs Glenn's specific angle, moment, or weirdness.
+- [ ] Any em dashes? Remove all of them.
+- [ ] Any words or phrases from the blacklist? Remove them.
+- [ ] Any AI writing tells from the banned list? Remove them.
+
+**Format**
+- [ ] No title, header, or category label at the top?
+- [ ] Character count within 250–450 (hard ceiling 500) for standalone posts?
+- [ ] For threads: each post under 500 characters, with a linking sentence that teases what's next?
+- [ ] No hashtags?
