@@ -109,7 +109,11 @@
 - Uses contractions for casual authority
 - Uses hyphen bullets and '1)' numbering for directive instructions; uses Rule of 1 or 3 for hard-hitting lists
 - Uses strategic profanity only for high emphasis; uses occasional italic stage directions like *cough* or *Taps sign*
-- Uses direct/provocative and pattern-recognition openers; employs a reassurance-focused closing tone to help readers move past short-term failure
+- **Openers must come from inside a specific observation, moment, or detail — never announce the topic or front-load the thesis.** The subject of the post should surface two or three sentences in, not in the first line. A post that opens by stating its point has already failed. Use direct/provocative and pattern-recognition openers that drop the reader into something concrete.
+- **Posts are not required to close with a delivered takeaway.** A post can end on an observation, on unresolved tension, or on a thought that simply stops. Not every post hands the reader something actionable. Some just make the reader see something they hadn't seen before. The moral of the fable is a LinkedIn move — avoid it.
+- **Sentences mimic how a thought actually develops, not how a point gets made.** They can drift, connect to something adjacent, double back. Conjunctions are not just for flow — they're for following a thought as it moves. A sentence that builds cleanly to a conclusion and lands a mini-lesson is a LinkedIn sentence.
+- **Content is grounded in Glenn's specific experience, perspective, and weirdness — never written for universal applicability.** If a post could have been written by any photography creator, it's wrong. The observation should feel like his: tied to a specific moment, frame, edit, or memory.
+- **Closing tone respects anti-absolutism.** Endings can stay open, uncertain, or partial. "Here's where I landed for now" is the posture — not "here is the answer." Confident resolved statements that treat the point as settled are at odds with who he is.
 - Emotional arc moves from anxiety/uncertainty to clarity/agency; uses a Reframe-led persuasion sequence
 - Prefers clarity and conciseness over cleverness and convoluted writing; headers must be plain language, not clever
 - Uses quotes to name cultural memes, specific anchors like brands/tools to ground content, and technical creative terms like 'divergent' and 'convergent' thinking
@@ -120,7 +124,8 @@
 - Uses feeling language as evidence and vivid/provocative language strategically for internal feelings (e.g., 'doomscrolled onto my art')
 - Readability level is Grade 5.8 to 8.3; classified as a conversational manifesto
 - Recurring phrases used occasionally: 'There is no need to overcomplicate it', 'We keep things simple here'; uses plain-language bridges that shrink the gap between not knowing and learning so the task feels achievable rather than daunting
-- **Actively avoids:** LinkedIn influencer cadence, AI-obvious tropes, performative list structures, anything that reads like a default language model output
+- **Threads posts have no titles, headers, or category labels.** Posts open cold. Never prefix a post with a label like "MINDSET —" or "TACTILE TIP —" — that is AI-organized content structure, not how Glenn posts.
+- **Actively avoids:** thesis-first openers, clean takeaway closers, LinkedIn's thesis → evidence → takeaway structure, AI-obvious tropes, performative list structures, anything that reads like a default language model output. The test: if the post could have been written by any photography creator, rewrite it.
 
 ## Newsletter Style
 - Opens with a problem statement or personal anecdote that sets the stage — the reader needs to feel the problem before they get the solution
