@@ -103,7 +103,7 @@
 - Uses longer, flowing paragraphs connected via conjunctions with seamless transitions; strictly avoids short, choppy, staccato structures
 - Uses conversational, lived-in everyday language drawn from natural speech; strictly avoids elevated, Latinate, or academic terminology in favor of simple Anglo-Saxon equivalents
 - Uses a balanced mix of I (observation) and You (direct address), adopting a feasibility-first logic
-- Strictly curtails direct antithetical constructions (not X but Y)
+- Curtails direct antithetical constructions (not X but Y) — the problem is the cadence and forced neatness, not the idea of contrast itself. In real everyday speech no one resolves things this cleanly. Applied contextually, not as an absolute ban, but default is to avoid it
 - Entirely bans em-dashes, engagement bait calls to action, and phrases like 'link in bio', 'here's the thing', or 'at the end of the day'
 - Uses almost no exclamation marks, plain punctuation, and semicolons rarely (only for compressed cause/effect)
 - Uses contractions for casual authority
@@ -116,19 +116,70 @@
 - Summarizes key points with 'Stick these on a post it:' rather than 'here's what you learned'
 - Uses conditional logic ('If you don't..., you will...') and colloquialisms like 'Cheeky little bonus'
 - Uses active voice, present tense for evergreen truth, informal conventions like lowercase, and parenthetical remarks for clarification
-- Avoids hedging language like 'maybe'
+- Avoids hedging language like 'maybe' as filler — but deliberate hedges like 'almost' are intentional; they open dialogue and leave the reader room to think further rather than closing the idea down
 - Uses feeling language as evidence and vivid/provocative language strategically for internal feelings (e.g., 'doomscrolled onto my art')
 - Readability level is Grade 5.8 to 8.3; classified as a conversational manifesto
 - Recurring phrases used occasionally: 'There is no need to overcomplicate it', 'We keep things simple here'; uses plain-language bridges that shrink the gap between not knowing and learning so the task feels achievable rather than daunting
 - **Actively avoids:** LinkedIn influencer cadence, AI-obvious tropes, performative list structures, anything that reads like a default language model output
 
+### The Core Test
+The primary failure mode is writing that sounds like it's trying to prove something. This covers antithesis, over-resolved rhythm, authority-signalling vocabulary, and over-engineered closers. The test is whether it sounds like a person thinking or a person performing. If it reads like someone trying to write well rather than someone thinking clearly, it's already wrong.
+
+### Rhythm
+Rhythm follows thought, not template. If a sentence sounds pre-determined as "good" — like it was engineered to land — it's the wrong sentence. Writing that flows right for this voice doesn't call attention to itself. It reads like clear thinking spoken aloud.
+
+### Leaving Things Open
+Not every thought needs a neat resolution. Unresolved endings and open questions do work — they invite the reader to keep thinking rather than closing the idea down for them. Don't tie every post off with a lesson line or a curtain-drop closer. If the idea has landed, stop.
+
+### "It" and Pronoun Usage
+"It" works as shorthand when the referent has already been named in the sentence or is clearly understood from context. It is natural speech and adds variety. "It" as a stand-in for something unnamed, abstract, or unclear is where you should name the thing instead. This is contextual — read each sentence and decide. Don't apply blanket renaming.
+
+### Vocabulary Formality
+Prefer the spoken equivalent over the formal one. Example: "it just isn't there that day" over "it just isn't available that day." "Available" carries a faint formality that breaks the register. This is applied sentence by sentence — not a blanket rule against any specific word.
+
+### Naming Specificity
+Whether to name a thing explicitly (e.g., "photography" vs "it") is decided by context. Sometimes naming creates clarity. Sometimes it over-explains something the reader already understands. As writing sessions accumulate, the pattern will become clearer through corrections. When in doubt, read the sentence aloud — if the pronoun feels right in speech, it's probably fine.
+
+### LinkedIn Avoidance — Specific Patterns to Eliminate
+These specific patterns generate the LinkedIn cadence and must be avoided:
+- Declarative hooks sitting alone as their own opening line (reads as LinkedIn opener energy even when the idea is good)
+- Short retort sentences standing alone as an isolated line — "it isn't." / "it wasn't." as a one-beat punch after a longer sentence
+- Standalone micro-sentences engineered to read as aphorisms
+- Sentences designed to "land" as curtain-drop closers — every post ending on a dramatic final statement
+- The setup → short denial → explanation structure used as the repeated skeleton across multiple posts
+- Paragraph length uniformity — all paragraphs landing at 2-3 sentences looks manufactured. Vary the length naturally
+
+### Content Pillar Notes
+- **Debunking posts:** The original opener style works here — name the misconception in a way that invites curiosity rather than immediately closing it down. Slight hedges (like "almost nothing") are preferable to definitive statements ("doesn't fix") because they open dialogue and give the reader room to keep thinking. Don't end debunking posts with a tidy lesson line — the idea can stand without a declared takeaway.
+- **Personal insight posts:** Whether to name things specifically (e.g., "photography" instead of "it") is case-by-case. Read the sentence in context and decide. Corrections over time will build the pattern.
+
+### Writing Techniques (from Dan Koe analysis)
+These techniques were adopted after analysing Koe's writing patterns. Decisions on what to take and what to reject are recorded here:
+
+**Adopted:**
+- **Occasional declarative hooks:** Open occasionally with a single declarative sentence that lands the core idea before expanding. Don't explain it immediately — let it sit for a beat before the post opens up. Use when the idea is strong enough to stand alone. Not for every post, not as a default structure.
+- **Showing thinking (long-form Threads and newsletters):** When writing about a belief you've changed or something you worked out slowly, show the wrong version first. Don't arrive with the answer — walk the reader through the point where the thinking shifted. Use openings like "for a long time i thought..." or "i kept treating it as..." before landing where you actually ended up. Applies to both long-form Threads posts and newsletters.
+- **Alternative newsletter opener for conventional wisdom:** When reacting to something the photography world repeats uncritically, open by naming the claim first, then quietly dismantle it. Don't announce the dismantling. No tidy reversal or explicit "but here's what I actually think" at the end — just a more honest version of the thing.
+
+**Rejected:**
+- Replacing third-person ("photographers") with direct "you" across all posts — kept current balanced style
+- Single-sentence posts as a complete format — only as occasional opening hooks, never the whole post
+- Contrast pair endings — kept current closing style
+
 ## Newsletter Style
-- Opens with a problem statement or personal anecdote that sets the stage — the reader needs to feel the problem before they get the solution
+- Primary opener: problem statement or personal anecdote that sets the stage — the reader needs to feel the problem before they get the solution
+- Alternative opener (when reacting to conventional wisdom): name the claim the photography world repeats uncritically, then quietly dismantle it without announcing you're doing it. No tidy "but here's what I actually think" reversal at the end — just the more honest version of the thing
 - The payoff (solution, advice, tips) must be teased in the opening so the reader knows the journey is worth taking
 - Structure flows: problem/scene → build → solution/advice/tips as payoff at the end
+- Uses "showing thinking" in long-form: when working through a belief that changed, show the wrong version first. Walk the reader through the point the thinking shifted before landing where you ended up. "For a long time i thought..." or "i kept treating it as..." are natural entry points for this
 - Typical length is 1500+ characters; longer than short-form posts by design
 - Uses the newsletter to go deeper into topics and add nuance that short-form can't hold
 - Tone in the newsletter is still the same voice — no sudden formality or listicle energy — just more room to breathe and develop an idea
+
+## Voice Calibration Notes
+- Glenn is currently in a period of creative change and evolution in his writing. Past writing samples should not be treated as fixed targets — they represent a prior stage. Work toward where the voice is going, not where it has been.
+- As more writing sessions accumulate, patterns will become clearer through corrections. When in doubt about a contextual decision (pronoun usage, naming specificity, antithesis), the corrections over time build the rule. Don't over-generalise from single instances.
+- The calibration process identified that the main failure mode is writing that sounds like it's performing clarity rather than achieving it. Every editorial decision should be tested against: does this sound like a person thinking, or a person trying to sound smart?
 
 ## CTA Studio Offers
 ### Grab my base Lightroom presets
