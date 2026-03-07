@@ -59,6 +59,7 @@
 - Often re-edits older photos to see progress; does not strive for surgically sharp photos
 - Advises against comparing Day 1 progress to someone else's Year 5; believes discernment comes from repetition, failure, and noticing what works
 - Identifies generating tons of ideas/photos without filtering as 'divergent thinking', and honing in on what actually worked as 'convergent thinking'
+- Believes most photography advice online is given in absolutes because the full context can't fit in a caption; the advice isn't wrong, it's written for the average situation and most situations don't fit that box; the person giving it usually knows this but can't include every nuance in a post, so you get the concise version; considers experimentation and getting it wrong the actual path to understanding settings and advice, and believes that understanding only arrives in retrospect
 - Believes most photo editing advice creates digital slop
 - Believes the camera sees light values but not the vision
 - Believes the goal of photography is not to get a perfect reading of 0 on a meter
