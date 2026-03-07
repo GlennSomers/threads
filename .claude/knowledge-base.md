@@ -145,3 +145,112 @@
 
 ## Offer Facts
 _No offer facts added yet._
+
+---
+
+## Word Blacklist
+
+### Words Glenn uses naturally (permitted in moderation)
+invest, passionate, grow, expand, consistent, intentional, authentic, explore, discover, create, master, focus, inspiring, motivating
+
+### Banned single words
+unlock, leverage, optimize, elevate, amplify, accelerate, transform, revolutionize, disrupt, pivot, scale, iterate, execute, implement, deploy, cultivate, harness, ignite, empower, align, synergize, streamline, activate, navigate, embody, embrace, unpack, uncover, demystify, simplify, clarify, prioritize, maximize, minimize, supercharge, skyrocket, dominate, crush, win, thrive, flourish, succeed, excel, own, hustle, grind, deliver, achieve, accomplish, impact, fuel, drive, shape, craft, curate, generate, redefine, reimagine, rethink, reinvent, reclaim, shift, evolve, discipline, relentless, unstoppable, resilient, adaptable, agile, strategic, proactive, purposeful, meaningful, impactful, transformative, powerful, actionable, valuable, insightful, compelling, engaging, game-changing, life-changing, mind-blowing, groundbreaking, innovative, cutting-edge
+
+### Banned phrases
+- here's the thing
+- at the end of the day
+- the truth is
+- let that sink in
+- this is your sign
+- do the work
+- show up
+- lean into
+- level up
+- step into your power
+- do hard things
+- embrace the journey
+- trust the process
+- play the long game
+- stay in your lane
+- find your why
+- lead with value / add value / provide value
+- serve your audience
+- meet people where they are
+- show don't tell
+- done is better than perfect
+- progress over perfection
+- fall in love with the process
+- success leaves clues
+- invest in yourself
+- protect your energy
+- discipline equals freedom
+- consistency is king
+- volume is the answer
+- the algorithm rewards
+- stop consuming, start creating
+- your future self will thank you
+- the best time to start was yesterday
+- no one is coming to save you
+- take radical responsibility
+- it's not about the destination
+- seek discomfort
+- get comfortable being uncomfortable
+- burn the boats
+- think long term
+- work smarter not harder
+- if this resonates
+- I hope this helps
+- drop a comment below
+- save this for later
+- share this with someone who needs it
+- follow for more
+- like if you agree
+- which one are you? / which resonates most?
+- let me know your thoughts / what would you add?
+- the secret is
+- most people won't do this
+- nobody talks about this
+- unpopular opinion
+- hot take
+- real talk
+- let's be honest / I'll be honest with you
+- in today's world / in this day and age / now more than ever
+- the world is changing / the landscape is shifting
+- move the needle
+- at scale
+- high-ticket
+- pain points
+- low-hanging fruit
+- north star
+- inner circle
+- the work / the craft (used without specifics)
+- my journey / my story / I used to be X, now I'm Y
+- season of life / chapter / vessel / tribe / ecosystem / community (as buzzword)
+- holding space / creating space
+- intention (used as a noun trophy)
+
+### Banned AI writing tells
+- Moreover / Furthermore / Additionally
+- In conclusion / To summarize
+- It's worth noting / It's important to understand
+- One thing to keep in mind
+- Having said that / That being said / With that in mind
+- At its core / In essence / Simply put / To put it simply / In other words
+- In today's fast-paced world
+- In the ever-evolving landscape of
+- A multifaceted / holistic approach
+- A nuanced perspective
+- By leveraging the power of
+- The key takeaway here is
+- Let's dive in / Let's unpack this / Let's explore
+- This is where it gets interesting
+- The good news is / The bad news is
+- Think of it like this / Picture this / Imagine if
+- Here's what most people get wrong
+- Here's what I wish someone told me
+- I've been thinking a lot about
+- Something I keep coming back to
+- A question I get asked all the time
+- You might be wondering
+- Don't get me wrong / Make no mistake
+- The reality is / The bottom line is
