@@ -148,6 +148,10 @@ These specific patterns generate the LinkedIn cadence and must be avoided:
 - Sentences designed to "land" as curtain-drop closers — every post ending on a dramatic final statement
 - The setup → short denial → explanation structure used as the repeated skeleton across multiple posts
 - Paragraph length uniformity — all paragraphs landing at 2-3 sentences looks manufactured. Vary the length naturally
+- **Manufactured curiosity hooks:** phrases like "one frame I'd actually look at twice" are engineered to create a reactionary pull — they're influencer speak. Say what you mean plainly: "one photo I was actually happy with." If the thing was good, just say it was good.
+- **Performative introspection:** phrases like "I could feel the pull to start picking at it" are guru-cadence — they dress up a simple action as a meaningful inner experience. Replace with direct, plain language: "I immediately search for an issue to fix." The self-awareness is in the honesty, not in how the feeling is described.
+- **Elevated vocabulary as mood-setting:** words like "shifted" carry a faint guru register that breaks the voice. Prefer the plain spoken equivalent — "changed," "moved," "made me think differently." Applied word by word, not as a blanket ban, but the test is: would someone actually say this in conversation?
+- **Over-dressing plain truths:** if the honest explanation is simple, keep it simple. "There's nothing more interesting going on other than having been tired" is exactly right — don't reach for a more interesting-sounding reason when the real one is mundane. The mundane explanation is more credible and more human.
 
 ### Content Pillar Notes
 - **Debunking posts:** The original opener style works here — name the misconception in a way that invites curiosity rather than immediately closing it down. Slight hedges (like "almost nothing") are preferable to definitive statements ("doesn't fix") because they open dialogue and give the reader room to keep thinking. Don't end debunking posts with a tidy lesson line — the idea can stand without a declared takeaway.
