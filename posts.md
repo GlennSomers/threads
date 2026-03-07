@@ -30,6 +30,6 @@ a high megapixel count doesn't fix bad light. a technically clean shot of a bad 
 
 "just keep shooting" is the standard advice for flat sessions. push through, stay consistent, the habit is what matters. i followed that for a long time and kept showing up to sessions where nothing was working, grinding through them and telling myself the flat days were just part of the process. what i worked out much later is that i wasn't building anything useful in those sessions. mostly i was just getting slowly worse at wanting to pick the camera up.
 
-the eye doesn't disappear when a session goes flat, it just isn't working that day, and there are usually pretty ordinary reasons why. sleep, what you've been watching, what kind of week it's been — all of these feed into whether the eye is on or off. once i started treating bad sessions as weather rather than proof that something was wrong, picking the camera up stopped feeling like a test i was about to fail.
+the eye doesn't disappear when a session goes flat, it just isn't there that day, and there are usually pretty ordinary reasons why. sleep, what you've been watching, what kind of week it's been — all of these feed into whether the eye is on or off. once i started treating bad sessions as weather rather than proof that something was wrong, picking the camera up stopped feeling like a test i was about to fail.
 
 here's what i do when a session goes flat...
