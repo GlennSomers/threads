@@ -1,6 +1,6 @@
 ---
 name: social-media-trends-research
-description: "Programmatic social media and marketing research using free tools: pytrends (Google Trends), yars (Reddit without API keys), and Perplexity MCP (Twitter/TikTok/Web). Use when finding trending topics in a niche, tracking keyword velocity and volume, monitoring Reddit discussions, discovering what's going viral, or researching content opportunities before writing. Zero-cost research stack with built-in rate limiting. Complements content-marketing-social-listening skill with executable code."
+description: "Only use when explicitly asked to use the social-media-trends-research skill by name."
 ---
 
 # Social Media Trends Research
