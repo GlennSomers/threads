@@ -5,6 +5,26 @@
       "source": "affaan-m/everything-claude-code",
       "sourceType": "github",
       "computedHash": "5edb80686af1c1f21faacd784dc782df2b628e746b1d53e4e30a585e4d7cd79d"
+    },
+    "content-creator": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "b636eb951502a21a5456adde387c0369232aa0bca4c9781b3713155d8e4b816a"
+    },
+    "writing-clearly-and-concisely": {
+      "source": "obra/the-elements-of-style",
+      "sourceType": "github",
+      "computedHash": "c702d9db967bc320da26630c1bb2b6794ec7d058bc535818f72e2d3301c2448a"
+    },
+    "social-content": {
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github",
+      "computedHash": "85ffbc05cf88939ba3ff643a315928185af16181470349dfbaad2880047c9900"
+    },
+    "social-media-trends-research": {
+      "source": "drshailesh88/integrated_content_os",
+      "sourceType": "github",
+      "computedHash": "281ccb70325481022b45e880da19d353a37e31926dfdcc5942be5a92186ad379"
     }
   }
 }
