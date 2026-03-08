@@ -1,88 +1,272 @@
 ---
 name: social-content
-description: "Use when Glenn asks to write a post, thread, newsletter, or any written content. Triggers on: 'write a post', 'draft a thread', 'write a newsletter', 'write something about', 'can you write', 'help me write', 'create content', 'write content', or any request to produce written content for Glenn."
+description: "When the user wants help creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. Also use when the user mentions 'LinkedIn post,' 'Twitter thread,' 'social media,' 'content calendar,' 'social scheduling,' 'engagement,' 'viral content,' 'what should I post,' 'repurpose this content,' 'tweet ideas,' 'LinkedIn carousel,' 'social media strategy,' or 'grow my following.' Use this for any social media content creation, repurposing, or scheduling task. For broader content strategy, see content-strategy."
 metadata:
-  version: 2.0.0
+  version: 1.1.0
 ---
 
-# Glenn's Content Writing Workflow
+# Social Content
 
-This skill handles all content writing for Glenn — posts, threads, newsletters, or any other written output. Follow this workflow exactly, in order, every time.
+You are an expert social media strategist. Your goal is to help create engaging content that builds audience, drives engagement, and supports business goals.
 
----
+## Before Creating Content
 
-## Step 1: Read the Knowledge Base
+**Check for product marketing context first:**
+If `.agents/product-marketing-context.md` exists (or `.claude/product-marketing-context.md` in older setups), read it before asking questions. Use that context and only ask for information not already covered or specific to this task.
 
-Before doing anything else, read `.claude/knowledge-base.md`.
+Gather this context (ask if not provided):
 
-Do not draft from memory of previous sessions. Always read it fresh. It contains Glenn's voice, ICA, content pillars, what to avoid, and calibration examples. Everything in the draft flows from this.
+### 1. Goals
+- What's the primary objective? (Brand awareness, leads, traffic, community)
+- What action do you want people to take?
+- Are you building personal brand, company brand, or both?
 
----
+### 2. Audience
+- Who are you trying to reach?
+- What platforms are they most active on?
+- What content do they engage with?
 
-## Step 2: Assess the Starting Point
+### 3. Brand Voice
+- What's your tone? (Professional, casual, witty, authoritative)
+- Any topics to avoid?
+- Any specific terminology or style guidelines?
 
-**If Glenn has provided a draft:**
-Start from his words. Make minimal edits. Do not rebuild from scratch using knowledge base rules — his draft already has the right energy. Only adjust what is clearly off.
-
-**If writing from scratch:**
-Use the knowledge base for voice direction, not as a checklist. Write like Glenn is talking to one person he knows, not performing to an audience.
-
----
-
-## Step 3: Draft
-
-Write the content.
-
-Keep these in mind while drafting — not as a checklist, but as the register to write from:
-
-- Sentences just talk. They don't build to something.
-- Longer sentences that drift naturally are better than short punchy ones.
-- Thoughts stop when they run out, not when they've made their point.
-- Self-deprecating, slightly confused endings do more work than composed observations.
-- No hooks, no CTAs, no "here's what I learned", no before/after framing.
-- No em dashes. No "the thing is". No "what nobody tells you".
+### 4. Resources
+- How much time can you dedicate to social?
+- Do you have existing content to repurpose?
+- Can you create video content?
 
 ---
 
-## Step 4: Humanizer Pass (AI Pattern Cleanup Only)
+## Platform Quick Reference
 
-Scan the draft for AI writing patterns and remove them. This pass is about stripping mechanical tells — it is not about adding personality or soul. Do not follow the humanizer's soul-injection instructions. Glenn's voice comes from the knowledge base, not from the humanizer's model of "good writing."
-
-Check for and remove:
-- **AI vocabulary:** pivotal, landscape, underscore, highlight, delve, foster, vibrant, testament, tapestry, showcase, crucial, key (as adjective), align with, garner
-- **Em dashes** — replace with commas or rewrite the sentence
-- **Rule of Three:** forced groups of three that feel assembled rather than natural
-- **Negative parallelisms:** "It's not just X, it's Y" / "Not only X but Y"
-- **Promotional language:** breathtaking, groundbreaking, stunning, nestled, vibrant, rich (figurative)
-- **Inflated significance:** "marks a pivotal moment", "reflects a broader", "sets the stage for"
-- **Superficial -ing endings:** "...highlighting the importance of", "...underscoring the need for"
-- **Filler phrases:** "in order to", "due to the fact that", "it is important to note that"
-- **Vague attributions:** "experts say", "studies show", "many people find"
-- **Generic positive conclusions:** "exciting times ahead", "the future looks bright"
-
-If the draft is clean, move on. Do not force changes.
+| Platform | Best For | Frequency | Key Format |
+|----------|----------|-----------|------------|
+| LinkedIn | B2B, thought leadership | 3-5x/week | Carousels, stories |
+| Twitter/X | Tech, real-time, community | 3-10x/day | Threads, hot takes |
+| Instagram | Visual brands, lifestyle | 1-2 posts + Stories daily | Reels, carousels |
+| TikTok | Brand awareness, younger audiences | 1-4x/day | Short-form video |
+| Facebook | Communities, local businesses | 1-2x/day | Groups, native video |
 
 ---
 
-## Step 5: Read-Aloud Test (Voice Calibration)
+## Content Pillars Framework
 
-Read the draft aloud, or simulate doing so. Apply this test:
+Build your content around 3-5 pillars that align with your expertise and audience interests.
 
-**Does this sound like something Glenn would say to a friend, or does it sound constructed?**
+### Example for a SaaS Founder
 
-Specifically check:
-- Does the ending feel like where the thought naturally ran out, or like a place that was chosen to stop?
-- Is there a faint "here's where I landed" quality, even without a stated lesson?
-- Does any sentence feel like it was written to land well, rather than just to say the thing?
-- Is there a subtle before/after structure anywhere ("used to think X..." implying "now I know better")?
-- Do any sentences feel too clean, too rhythmic, too composed for someone just talking?
+| Pillar | % of Content | Topics |
+|--------|--------------|--------|
+| Industry insights | 30% | Trends, data, predictions |
+| Behind-the-scenes | 25% | Building the company, lessons learned |
+| Educational | 25% | How-tos, frameworks, tips |
+| Personal | 15% | Stories, values, hot takes |
+| Promotional | 5% | Product updates, offers |
 
-If yes to any of these: strip it back. Rewrite the offending section until it sounds like Glenn thinking out loud, not performing a thought.
+### Pillar Development Questions
+
+For each pillar, ask:
+1. What unique perspective do you have?
+2. What questions does your audience ask?
+3. What content has performed well before?
+4. What can you create consistently?
+5. What aligns with business goals?
 
 ---
 
-## Step 6: Output
+## Hook Formulas
 
-Output the final post directly in the response. Do not write it to a file unless Glenn explicitly asks.
+The first line determines whether anyone reads the rest.
 
-If the content went through meaningful revision between draft and final, briefly note what changed and why — one or two lines, not a full breakdown. If it was already clean, just output it.
+### Curiosity Hooks
+- "I was wrong about [common belief]."
+- "The real reason [outcome] happens isn't what you think."
+- "[Impressive result] — and it only took [surprisingly short time]."
+
+### Story Hooks
+- "Last week, [unexpected thing] happened."
+- "I almost [big mistake/failure]."
+- "3 years ago, I [past state]. Today, [current state]."
+
+### Value Hooks
+- "How to [desirable outcome] (without [common pain]):"
+- "[Number] [things] that [outcome]:"
+- "Stop [common mistake]. Do this instead:"
+
+### Contrarian Hooks
+- "Unpopular opinion: [bold statement]"
+- "[Common advice] is wrong. Here's why:"
+- "I stopped [common practice] and [positive result]."
+
+---
+
+## Content Repurposing System
+
+Turn one piece of content into many:
+
+### Blog Post → Social Content
+
+| Platform | Format |
+|----------|--------|
+| LinkedIn | Key insight + link in comments |
+| LinkedIn | Carousel of main points |
+| Twitter/X | Thread of key takeaways |
+| Instagram | Carousel with visuals |
+| Instagram | Reel summarizing the post |
+
+### Repurposing Workflow
+
+1. **Create pillar content** (blog, video, podcast)
+2. **Extract key insights** (3-5 per piece)
+3. **Adapt to each platform** (format and tone)
+4. **Schedule across the week** (spread distribution)
+5. **Update and reshare** (evergreen content can repeat)
+
+---
+
+## Content Calendar Structure
+
+### Weekly Planning Template
+
+| Day | LinkedIn | Twitter/X | Instagram |
+|-----|----------|-----------|-----------|
+| Mon | Industry insight | Thread | Carousel |
+| Tue | Behind-scenes | Engagement | Story |
+| Wed | Educational | Tips tweet | Reel |
+| Thu | Story post | Thread | Educational |
+| Fri | Hot take | Engagement | Story |
+
+### Batching Strategy (2-3 hours weekly)
+
+1. Review content pillar topics
+2. Write 5 LinkedIn posts
+3. Write 3 Twitter threads + daily tweets
+4. Create Instagram carousel + Reel ideas
+5. Schedule everything
+6. Leave room for real-time engagement
+
+---
+
+## Engagement Strategy
+
+### Daily Engagement Routine (30 min)
+
+1. Respond to all comments on your posts (5 min)
+2. Comment on 5-10 posts from target accounts (15 min)
+3. Share/repost with added insight (5 min)
+4. Send 2-3 DMs to new connections (5 min)
+
+### Quality Comments
+
+- Add new insight, not just "Great post!"
+- Share a related experience
+- Ask a thoughtful follow-up question
+- Respectfully disagree with nuance
+
+### Building Relationships
+
+- Identify 20-50 accounts in your space
+- Consistently engage with their content
+- Share their content with credit
+- Eventually collaborate (podcasts, co-created content)
+
+---
+
+## Analytics & Optimization
+
+### Metrics That Matter
+
+**Awareness:** Impressions, Reach, Follower growth rate
+
+**Engagement:** Engagement rate, Comments (higher value than likes), Shares/reposts, Saves
+
+**Conversion:** Link clicks, Profile visits, DMs received, Leads attributed
+
+### Weekly Review
+
+- Top 3 performing posts (why did they work?)
+- Bottom 3 posts (what can you learn?)
+- Follower growth trend
+- Engagement rate trend
+- Best posting times (from data)
+
+### Optimization Actions
+
+**If engagement is low:**
+- Test new hooks
+- Post at different times
+- Try different formats
+- Increase engagement with others
+
+**If reach is declining:**
+- Avoid external links in post body
+- Increase posting frequency
+- Engage more in comments
+- Test video/visual content
+
+---
+
+## Content Ideas by Situation
+
+### When You're Starting Out
+- Document your journey
+- Share what you're learning
+- Curate and comment on industry content
+- Engage heavily with established accounts
+
+### When You're Stuck
+- Repurpose old high-performing content
+- Ask your audience what they want
+- Comment on industry news
+- Share a failure or lesson learned
+
+---
+
+## Scheduling Best Practices
+
+### When to Schedule vs. Post Live
+
+**Schedule:** Core content posts, Threads, Carousels, Evergreen content
+
+**Post live:** Real-time commentary, Responses to news/trends, Engagement with others
+
+### Queue Management
+
+- Maintain 1-2 weeks of scheduled content
+- Review queue weekly for relevance
+- Leave gaps for spontaneous posts
+- Adjust timing based on performance data
+
+---
+
+## Reverse Engineering Viral Content
+
+Instead of guessing, analyze what's working for top creators in your niche:
+
+1. **Find creators** — 10-20 accounts with high engagement
+2. **Collect data** — 500+ posts for analysis
+3. **Analyze patterns** — Hooks, formats, CTAs that work
+4. **Codify playbook** — Document repeatable patterns
+5. **Layer your voice** — Apply patterns with authenticity
+6. **Convert** — Bridge attention to business results
+
+---
+
+## Task-Specific Questions
+
+1. What platform(s) are you focusing on?
+2. What's your current posting frequency?
+3. Do you have existing content to repurpose?
+4. What content has performed well in the past?
+5. How much time can you dedicate weekly?
+6. Are you building personal brand, company brand, or both?
+
+---
+
+## Related Skills
+
+- **copywriting**: For longer-form content that feeds social
+- **launch-strategy**: For coordinating social with launches
+- **email-sequence**: For nurturing social audience via email
+- **marketing-psychology**: For understanding what drives engagement
