@@ -197,6 +197,9 @@ These techniques were adopted after analysing Koe's writing patterns. Decisions 
 - Glenn is currently in a period of creative change and evolution in his writing. Past writing samples should not be treated as fixed targets — they represent a prior stage. Work toward where the voice is going, not where it has been.
 - As more writing sessions accumulate, patterns will become clearer through corrections. When in doubt about a contextual decision (pronoun usage, naming specificity, antithesis), the corrections over time build the rule. Don't over-generalise from single instances.
 - The calibration process identified that the main failure mode is writing that sounds like it's performing clarity rather than achieving it. Every editorial decision should be tested against: does this sound like a person thinking, or a person trying to sound smart?
+- A secondary failure mode is writing that's technically rule-compliant but still slightly guru-y. The signs: endings that are a touch too resolved, observations that feel lightly packaged, a faint "here's what I learned" quality even without stating it explicitly. The fix is more offhand phrasing, messier endings, and thoughts that stop without wrapping up. "Did it for ages though" and "I've no idea why" do more work than anything more composed would.
+- Applying the knowledge base as a sentence-by-sentence checklist produces a different kind of stiffness — rule-optimised rather than natural. Use the knowledge base for voice direction and let the writing come from that, not from ticking items off a list.
+- Read-aloud test before any post output: does this sound like something said to a friend, or does it sound constructed? If constructed, strip it back.
 
 ## CTA Studio Offers
 ### Grab my base Lightroom presets
