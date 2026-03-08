@@ -20,4 +20,4 @@ Before outputting any post, run two passes:
 
 2. **Read-aloud test** — does this sound like something Glenn would say to a friend, or does it sound constructed? Specifically: does the ending feel like where the thought ran out, or like a place that was chosen to stop? Is there a faint "here's where I landed" quality even without a stated lesson? If anything feels composed rather than just said, strip it back.
 
-The `.claude/skills/social-content/SKILL.md` file contains the full step-by-step workflow for content writing tasks.
+The `.claude/skills/glenn-skill/SKILL.md` file contains the full step-by-step workflow for content writing tasks.

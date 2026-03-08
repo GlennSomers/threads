@@ -1,5 +1,5 @@
 ---
-name: social-content
+name: glenn-skill
 description: "Use when Glenn asks to write a post, thread, newsletter, or any written content. Triggers on: 'write a post', 'draft a thread', 'write a newsletter', 'write something about', 'can you write', 'help me write', 'create content', 'write content', or any request to produce written content for Glenn."
 metadata:
   version: 2.0.0
