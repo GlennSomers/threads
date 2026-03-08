@@ -1,6 +1,11 @@
 {
   "version": 1,
   "skills": {
+    "humanizer": {
+      "source": "softaworks/agent-toolkit",
+      "sourceType": "github",
+      "computedHash": "c0c705b236c231540877bec60f6b143b260e18fd7929455a34764c89c23d0662"
+    },
     "article-writing": {
       "source": "affaan-m/everything-claude-code",
       "sourceType": "github",
