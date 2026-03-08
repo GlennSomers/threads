@@ -1,6 +1,6 @@
 ---
 name: social-content
-description: "When the user wants help creating, scheduling, or optimizing social media content for LinkedIn, Twitter/X, Instagram, TikTok, Facebook, or other platforms. Also use when the user mentions 'LinkedIn post,' 'Twitter thread,' 'social media,' 'content calendar,' 'social scheduling,' 'engagement,' 'viral content,' 'what should I post,' 'repurpose this content,' 'tweet ideas,' 'LinkedIn carousel,' 'social media strategy,' or 'grow my following.' Use this for any social media content creation, repurposing, or scheduling task. For broader content strategy, see content-strategy."
+description: "Only use when explicitly asked to use the social-content skill by name."
 metadata:
   version: 1.1.0
 ---
@@ -47,8 +47,6 @@ Gather this context (ask if not provided):
 | Instagram | Visual brands, lifestyle | 1-2 posts + Stories daily | Reels, carousels |
 | TikTok | Brand awareness, younger audiences | 1-4x/day | Short-form video |
 | Facebook | Communities, local businesses | 1-2x/day | Groups, native video |
-
-**For detailed platform strategies**: See [references/platforms.md](references/platforms.md)
 
 ---
 
@@ -100,8 +98,6 @@ The first line determines whether anyone reads the rest.
 - "Unpopular opinion: [bold statement]"
 - "[Common advice] is wrong. Here's why:"
 - "I stopped [common practice] and [positive result]."
-
-**For post templates and more hooks**: See [references/post-templates.md](references/post-templates.md)
 
 ---
 
@@ -254,8 +250,6 @@ Instead of guessing, analyze what's working for top creators in your niche:
 4. **Codify playbook** — Document repeatable patterns
 5. **Layer your voice** — Apply patterns with authenticity
 6. **Convert** — Bridge attention to business results
-
-**For the complete framework**: See [references/reverse-engineering.md](references/reverse-engineering.md)
 
 ---
 

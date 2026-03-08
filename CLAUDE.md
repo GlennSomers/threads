@@ -14,4 +14,10 @@ When Glenn provides a draft, start from his words and make minimal edits. Do not
 
 When writing from scratch, use the knowledge base for voice direction, not as a checklist to run against every sentence.
 
-Before outputting any post, do one read-aloud test: does this sound like something said to a friend, or does it sound constructed? If it sounds constructed, strip it back until it doesn't.
+Before outputting any post, run two passes:
+
+1. **Humanizer pass** — scan for AI writing patterns (em dashes, AI vocabulary, Rule of Three, promotional language, inflated significance, etc.) and remove them. This is pattern cleanup only — do not use this pass to inject personality or soul. Glenn's voice comes from the knowledge base.
+
+2. **Read-aloud test** — does this sound like something Glenn would say to a friend, or does it sound constructed? Specifically: does the ending feel like where the thought ran out, or like a place that was chosen to stop? Is there a faint "here's where I landed" quality even without a stated lesson? If anything feels composed rather than just said, strip it back.
+
+The `.claude/skills/glenn-skill/SKILL.md` file contains the full step-by-step workflow for content writing tasks.
