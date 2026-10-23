@@ -64,6 +64,14 @@ If the draft is clean, move on. Do not force changes.
 
 ---
 
+## Step 4b: Structural Pass
+
+Run the `structural-humanizer` skill on the draft. It catches discourse-level tells that survive word cleanup: stated lessons or moral-of-the-story closers, tidy single-track arcs, embodied-emotion performance ("my chest tightened"), vague allusions where a named specific belongs, and posts that all share the same shape.
+
+Fix only what it flags. Never invent details about Glenn to make something more specific; pull specifics from the knowledge base or his draft, or leave it plain. If the draft is clean, move on.
+
+---
+
 ## Step 5: Read-Aloud Test (Voice Calibration)
 
 Read the draft aloud, or simulate doing so. Apply this test:

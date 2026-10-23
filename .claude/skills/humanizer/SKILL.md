@@ -33,6 +33,8 @@ When given text to humanize:
 4. **Maintain voice** - Match the intended tone (formal, casual, technical, etc.)
 5. **Add soul** - Don't just remove bad patterns; inject actual personality
 
+**Scope note:** this skill is the SURFACE pass (words, phrasing, punctuation). Structural tells (stated lessons, tidy single-track arcs, embodied-emotion performance, vague allusions, shape convergence) survive this pass entirely - professional surface rewriting moved AI detection only 1.6 points in StoryScope (2026). For text that must read as human, run the `structural-humanizer` skill after this one.
+
 ---
 
 ## PERSONALITY AND SOUL
@@ -59,7 +61,7 @@ Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as
 
 **Let some mess in.** Perfect structure feels algorithmic. Tangents, asides, and half-formed thoughts are human.
 
-**Be specific about feelings.** Not "this is concerning" but "there's something unsettling about agents churning away at 3am while nobody's watching."
+**Name feelings plainly.** "Honestly, this worries me" beats "this is concerning." But do NOT perform the emotion through the body or atmosphere ("a knot in my stomach," "my chest tightened," "the quiet hum of dread") - embodied-emotion rendering is AI's single biggest structural tell (81% of AI text vs 38% of human, StoryScope 2026). Humans state the feeling; save imagery for one earned moment per piece.
 
 ### Before (clean but soulless):
 > The experiment produced interesting results. The agents generated 3 million lines of code. Some developers were impressed while others were skeptical. The implications remain unclear.
@@ -185,15 +187,23 @@ Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as
 
 ---
 
-### 9. Negative Parallelisms
+### 9. Negative Parallelisms (All Forms)
 
-**Problem:** Constructions like "Not only...but..." or "It's not just about..., it's..." are overused.
+**Problem:** AI overuses contrast structures that negate one thing to set up another. This includes all variations: "Not only...but...", "It's not just about..., it's...", "Isn't X, it's Y", "Not because X. Because Y", "Those aren't the goal. They're...", "was never X. You need Y." These constructions feel formulaic because AI uses them as a crutch to create false tension. State what something IS directly instead of what it isn't first.
+
+**Patterns to catch:**
+- "It's not X, it's Y" / "Isn't X, it's Y"
+- "Not because X. Because Y."
+- "Those aren't the goal. They're..."
+- "was never X. [It was] Y."
+- "Not only X, but Y"
+- "It's not just about X, it's Y"
 
 **Before:**
-> It's not just about the beat riding under the vocals; it's part of the aggression and atmosphere. It's not merely a song, it's a statement.
+> The missing link isn't AI knowledge, it's describing your own business. Not because of tech skill. Because they thought they didn't have time. Those aren't the goal. They're what happens when you start building.
 
 **After:**
-> The heavy beat adds to the aggressive tone.
+> The missing link is describing your own business. They thought they didn't have time. Those come later. They show up when you start building.
 
 ---
 
@@ -301,10 +311,10 @@ Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as
 
 ### 18. Curly Quotation Marks
 
-**Problem:** ChatGPT uses curly quotes ("...") instead of straight quotes ("...").
+**Problem:** ChatGPT uses curly quotes (“...”) instead of straight quotes ("...").
 
 **Before:**
-> He said "the project is on track" but others disagreed.
+> He said “the project is on track” but others disagreed.
 
 **After:**
 > He said "the project is on track" but others disagreed.
@@ -432,8 +442,35 @@ Provide:
 
 ---
 
+## Public-facing copy
+
+If the text is marketing copy, a landing page, product UI, or a social post, also run
+the copy-specific tells in [references/copy-tells.md](references/copy-tells.md). Those
+are ranked by a 3.2M-post analysis of what readers actually flag, and the top one (the
+em dash) outranks every vocabulary word.
+
+Deterministic scan for the mechanical subset:
+
+```bash
+python3 .claude/skills/humanizer/scripts/copy_scan.py <file>
+```
+
+## This is pass 1 of 2
+
+This skill fixes words, phrasing, and punctuation. It does not fix structure.
+
+Structural tells survive a surface pass almost entirely intact: professional span-level
+rewriting moved AI detection by only 1.6 points in the StoryScope study, while
+structure alone detects AI text at 93.2% F1. After this pass, run
+**`structural-humanizer`** for stated lessons, tidy arcs, embodied-emotion performance,
+vague reference, and shape convergence.
+
+Surface pass first, structural pass second. See `docs/PIPELINE.md`.
+
+---
+
 ## Reference
 
-This skill is based on [Wikipedia:Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing), maintained by WikiProject AI Cleanup.
+This skill is based on [Wikipedia:Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing), maintained by WikiProject AI Cleanup. The patterns documented there come from observations of thousands of instances of AI-generated text on Wikipedia.
 
 Key insight from Wikipedia: "LLMs use statistical algorithms to guess what should come next. The result tends toward the most statistically likely result that applies to the widest variety of cases."

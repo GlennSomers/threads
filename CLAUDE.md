@@ -14,10 +14,12 @@ When Glenn provides a draft, start from his words and make minimal edits. Do not
 
 When writing from scratch, use the knowledge base for voice direction, not as a checklist to run against every sentence.
 
-Before outputting any post, run two passes:
+Before outputting any post, run three passes:
 
 1. **Humanizer pass** — scan for AI writing patterns (em dashes, AI vocabulary, Rule of Three, promotional language, inflated significance, etc.) and remove them. This is pattern cleanup only — do not use this pass to inject personality or soul. Glenn's voice comes from the knowledge base.
 
-2. **Read-aloud test** — does this sound like something Glenn would say to a friend, or does it sound constructed? Specifically: does the ending feel like where the thought ran out, or like a place that was chosen to stop? Is there a faint "here's where I landed" quality even without a stated lesson? If anything feels composed rather than just said, strip it back.
+2. **Structural pass** — use the `structural-humanizer` skill to catch shape-level tells the word pass misses: stated lessons, tidy single-track arcs, embodied emotion ("my chest tightened"), vague allusions instead of named specifics. Fix only what it flags. Do not invent details about Glenn to add specificity; use only what's in the knowledge base or his draft.
+
+3. **Read-aloud test** — does this sound like something Glenn would say to a friend, or does it sound constructed? Specifically: does the ending feel like where the thought ran out, or like a place that was chosen to stop? Is there a faint "here's where I landed" quality even without a stated lesson? If anything feels composed rather than just said, strip it back.
 
 The `.claude/skills/glenn-skill/SKILL.md` file contains the full step-by-step workflow for content writing tasks.
