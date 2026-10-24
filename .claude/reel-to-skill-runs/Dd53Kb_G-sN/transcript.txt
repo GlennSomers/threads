@@ -1,0 +1,22 @@
+A big giveaway of AI is super short staccato sentences
+and contrast negation.
+Look at the transcript of how I've spoken
+over the last two minutes.
+You'll notice I probably have a long sentence
+than a short one.
+And then I go back to long sentences
+and then I have a short one.
+And it's because that's the natural speech pattern
+of how people communicate.
+So you want to mimic that as well.
+Now, if you actually want to rule,
+you could get like Claude or any of your AI models
+to just look for this and go,
+okay, in my script,
+make sure there is a consistent pattern
+of like long, long, short.
+Interactions are, it's rather than saying cannot,
+you're saying can't.
+Or instead of do not, don't.
+AI, I don't know why, will always do this by default,
+which is so robotic.

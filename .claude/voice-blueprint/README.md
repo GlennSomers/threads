@@ -15,11 +15,12 @@ This is the process for turning Glenn's brain dumps into video scripts. Follow i
 
 ## How to score a spoken script
 
-Use only these three:
+Use only these:
 
 1. **Brain-dump word check** (`.claude/skills/brain-dump/scripts/word_share.py`): how much of the script is Glenn's own words.
 2. **ig-reel timing** (`.claude/skills/ig-reel/beats.py` and `hookscore.py`): length, hook speed, the loop.
-3. **Glenn's read-aloud.** His call is final.
+3. **Rhythm and contractions check** (from the Nathan Perdriau reel, `.claude/reel-to-skill-runs/Dd53Kb_G-sN/notes.md`): flag any run of three long lines in a row with no short one, and any formal contraction ("cannot", "do not", "I am"). Flag only. Don't rewrite his lines for it; show him and let him decide.
+4. **Glenn's read-aloud.** His call is final.
 
 Don't use the ig-human score on spoken scripts. It checks written text (digits, capital letters, sentence length spread) and can't tell how a line sounds said out loud. Decided 2026-10-24.
 
