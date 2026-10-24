@@ -16,6 +16,8 @@ Patterns in how Glenn talks in brain dumps and what his choices show. Each line 
 
 ## From his choices
 
+- When he cuts or moves a line in his own edit, it was on purpose. Never put it back, even if a storytelling rule says it would score higher. (decision 14)
+
 - His own hand edit (decision 13): trims the setup of a joke so it lands faster ("especially when I never told them that. Sorry guys."), turns the self-roast up ("disgustingly stupid confidence"), adds a throwaway "though" at the end of a joke, uses the right gear words ("readjusting", "hyper directional"), and ends by talking to the viewer.
 - Wants one strong version to react to, not a menu of options per line. (decision 12)
 
