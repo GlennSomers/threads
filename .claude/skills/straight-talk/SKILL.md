@@ -1,6 +1,7 @@
 ---
 name: straight-talk
-description: Write in a plain, direct voice with none of the habits that make text read as AI. Use before any writing task (emails, posts, captions, essays, docs, replies) or when the user types /straight-talk. No em dashes, no semicolons, no hedges like "perhaps" or "arguably", no praise or agreement openers, no stock phrases; short sentences and plain words.
+description: Write in a plain, direct voice with none of the habits that make text read as AI. Runs only when the user types /straight-talk, and then applies to all writing in that request (posts, threads, newsletters, emails, captions, essays, docs, replies), overriding other style or voice guides. No em dashes, no semicolons, no hedges like "perhaps" or "arguably", no praise or agreement openers, no stock phrases; short sentences and plain words.
+disable-model-invocation: true
 ---
 
 # Straight Talk

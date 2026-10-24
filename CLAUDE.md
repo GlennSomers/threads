@@ -30,4 +30,4 @@ Skills made from a reel or video (with `reel-to-skill` or otherwise) follow the 
 
 ## Straight Talk Skill
 
-The `straight-talk` skill (from chen.media) is for general writing: emails, docs, replies, captions. Glenn's own posts, threads and newsletters follow the knowledge base and the three passes above instead, and his voice wins where the two disagree (for example, his longer drifting sentences over Straight Talk's 10-word average).
+The `straight-talk` skill (from chen.media) runs only when Glenn types `/straight-talk`. When he does, its rules apply to all the writing in that request, including his posts, threads and newsletters, and they override the knowledge base's style rules and the three passes for that request. Facts about Glenn still come only from the knowledge base or his draft. Without the command, his normal voice rules apply.
