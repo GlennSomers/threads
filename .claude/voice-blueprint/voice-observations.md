@@ -16,6 +16,9 @@ Patterns in how Glenn talks in brain dumps and what his choices show. Each line 
 
 ## From his choices
 
+- His own hand edit (decision 13): trims the setup of a joke so it lands faster ("especially when I never told them that. Sorry guys."), turns the self-roast up ("disgustingly stupid confidence"), adds a throwaway "though" at the end of a joke, uses the right gear words ("readjusting", "hyper directional"), and ends by talking to the viewer.
+- Wants one strong version to react to, not a menu of options per line. (decision 12)
+
 - Happy for his sentences to be trimmed or joined (dropping a repeat like "months", tightening "The thing that I realised") as long as the words stay his. (decision 7)
 - Keeps the joke lines whole: "Fucking diabolical, especially considering I never told them that…" stayed verbatim. (decision 7)
 - Approved moving his own payoff line up as a rehook. (decision 7)
