@@ -13,6 +13,20 @@ This is the process for turning Glenn's brain dumps into video scripts. Follow i
 7. **Update `voice-observations.md`** with patterns from the brain dump itself (his natural phrasing) and from his choices.
 8. **Commit and push** in the same turn.
 
+## How to score a spoken script
+
+Use only these three:
+
+1. **Brain-dump word check** (`.claude/skills/brain-dump/scripts/word_share.py`): how much of the script is Glenn's own words.
+2. **ig-reel timing** (`.claude/skills/ig-reel/beats.py` and `hookscore.py`): length, hook speed, the loop.
+3. **Glenn's read-aloud.** His call is final.
+
+Don't use the ig-human score on spoken scripts. It checks written text (digits, capital letters, sentence length spread) and can't tell how a line sounds said out loud. Decided 2026-10-24.
+
+## To do later
+
+Build our own spoken-script check skill once there are more scripts and picks logged. Ideas so far: lines too long for one breath, phrases that trip you up, two lines in a row starting the same way, stock phrases, share of his own words. Base it on his real picks in `decisions.md`, not guesses.
+
 ## Don't
 
 - Don't apply straight-talk to spoken scripts unless Glenn types `/straight-talk`. Rejected on 2026-10-24 as "robotic", "a doc instead of a spoken word script".
