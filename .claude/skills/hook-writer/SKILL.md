@@ -1,61 +1,88 @@
 ---
 name: hook-writer
-description: Write or fix the opening lines (the hook) of Glenn's Threads posts, threads, and reel scripts, using Kallaway's hook psychology adapted to Glenn's voice. Use whenever Glenn asks for a hook, an opener, a first line, "how should I start this", "this opening is weak", "give me hook options", or wants a post or reel to stop the scroll. Also use when a draft's opening announces the topic, buries the interesting part, or reads like a LinkedIn opener.
+description: Write or fix hooks (the opening lines) for short-form videos, reels, posts, and long-form videos using Kallaway's 3-step hook formula (context lean, scroll-stop interjection, contrarian snapback) plus his five extra tactics. Use whenever the user asks for a hook, an opener, a first line, "how should I start this", "this opening is weak", "give me hook options", or wants content to stop the scroll.
 ---
 
 # Hook Writer
 
-Write the first few lines of a post or reel so the right people stop and keep reading, without the hook sounding like a hook.
+Build hooks that open a curiosity loop so strong the viewer can't do anything except keep watching or reading.
 
-Based on Kallaway's video "How to Create Irresistible Hooks" (https://youtu.be/LmXpbP7dD48, 864k views, 476k subscribers). His formula is built for short-form video and uses moves Glenn's knowledge base bans. This skill keeps the psychology underneath and changes how it's carried out. Where his tactics and Glenn's rules disagree, Glenn's rules win.
+Source: Kallaway, "How to Create Irresistible Hooks (and blow up your content)" (https://youtu.be/LmXpbP7dD48). The method below follows the video as taught.
 
-## The psychology (Kallaway)
+## The core idea
 
-A hook builds a curiosity loop: each line makes the next one feel necessary. His three steps:
+Picture the viewer driving down the highway at 70 mph. The hook has to make them see something, stop, turn around, and come back. That happens through a curiosity loop: the first line makes them need the second, the second makes them need the third. The deeper the loop, the more hooked they are.
 
-1. **Context lean.** Make the topic clear right away so the right people opt in and the wrong ones leave, and give them a reason to lean in: common ground, a benefit or pain they have, or something so interesting it surprises them.
-2. **Scroll-stop interjection.** A turn that stops them moving on. He uses a contrast word ("but", "however", "yet").
-3. **Contrarian snapback.** Go the opposite way from where the lean was heading, still on topic. The bigger the surprise, the stronger the pull. It only works if the thing it points to is actually worth it. A snapback the post doesn't pay off makes him a fraud, in his words.
+Don't hand out lists of "proven viral hooks". Use the psychology behind why hooks work.
 
-His extra tactics:
+## Tip 1: The 3-step hook formula
 
-- **Benefit first.** People listen to new takes on things they already care about when the take solves a pain or gets them something. "If you want better sleep, you need magnesium" beats starting with what magnesium is.
-- **Borrow the known.** Wrap an unfamiliar idea in a known brand, person, or reference so it feels familiar. Unfamiliar-only openings make people feel dumb and leave.
-- **Speed to value.** Give a first real piece of value in the hook or right after it. Short-form attention lasts about 4 seconds.
-- **Visual hooks (video only).** 3 to 5 words of on-screen text that set the context, plus a shot with enough motion to hold the eye but not so much that it overwhelms.
-- **Staccato.** Short sentences in the hook. Glenn rejects this one. See below.
+### Step 1: Context lean (first line or two)
 
-## Adapted for Glenn
+Do two things:
 
-Read `.claude/knowledge-base.md` before writing. Then apply the steps this way:
+- **Topic clarity.** Make it immediately clear what the content is about, so the viewer can self-select in or out. Don't trick people who don't care about the topic into watching; they aren't the target viewer.
+- **Lean in.** Get them leaning toward the topic. The easiest ways:
+  - establish common ground
+  - reference a benefit or a pain point they have
+  - use a metaphor to simplify a complex idea
+  - tell them something so interesting it blows their mind
 
-**Context lean → open inside the moment.** Glenn's openers start from a specific observation, moment, or detail, and the subject surfaces two or three sentences in. So the topic clarity comes from what's *in* the moment, not from announcing it: name the real thing (Lightroom, the histogram, the 18-105mm, an iPhone, a street in Cork) so the right reader recognises it as theirs. Two other openers the knowledge base allows, used now and then: a single declarative line that lets the idea sit for a beat, and, for debunks, naming the claim photographers repeat before quietly taking it apart.
+Example (8M views): "The tech in the Vegas Sphere is insane. Biggest screen ever built. 20 times bigger than an IMAX."
 
-**Lean in → his audience's real pains.** Use the pains in the knowledge base's Target Audience section: gear paralysis, flat photos, creative block, feeling like they're going backwards, drowning in dials. Benefit first works, as long as it's said plainly and not sold.
+### Step 2: Scroll-stop interjection
 
-**Borrow the known → concrete anchors, not metaphors.** Naming a known brand, tool, or cultural reference is already part of his style. Building a metaphor isn't. Deliberate metaphors are banned, so skip Kallaway's "use a metaphor to simplify".
+A single line that acts like a stun gun. They were leaning in; now they run into a window. Use a contrasting word: **but**, however, yet, although, on the other hand. This line is a setup for step 3.
 
-**Interjection → the turn lives in the content.** No signpost lines. "But get this", "here's the thing", "but here's what nobody tells you" are banned or close to it. A plain "but" or "though" inside a normal sentence is fine. The surprise should come from what happened, not from a word announcing a surprise.
+Example: "But get this, the screen is actually the least impressive part of the whole thing."
 
-**Snapback → what he actually found, said plainly.** The reversal is the true thing from his experience that goes against what the reader expected. Avoid the "don't do Y, do Z" and "not X but Y" shapes; state what he did or noticed directly. Never make up a surprising result to power a hook. If the post has no real turn, don't force one: a calm, specific opening is better than a fake twist.
+### Step 3: Contrarian snapback
 
-**Speed to value → by sentence two or three.** On Threads only the first lines show before "more", so the first real thing has to arrive early. Don't bury the good part under the scene-setting.
+A sentence that goes in the opposite direction of the initial lean. It stays on topic but snaps the viewer onto a different path. The bigger the shock, the bigger the snap.
 
-**Staccato → rejected.** His knowledge base bans short, choppy sentences and lone one-line punches. Keep the first sentence clear and not too long, then let it run the way he talks.
+Example: "Because the most impressive part is the audio."
 
-**Visual hooks → reel scripts only.** Give 3 to 5 words of plain on-screen text (no clever wordplay, headers must be plain language) and a shot note with some natural motion: his hands on the camera dial, scrolling Lightroom, walking with the camera.
+Pattern: "If you want to achieve X, don't do Y, do Z." Z has to actually be compelling. If the content doesn't deliver on the snapback, people churn and you look like a fraud.
+
+The formula works in any niche, short or long form. B2B example (real estate): "There are three massive mistakes people are making with their mortgage. The average person pays an extra $X per year. Most people think it's because of high interest rates, but it turns out it has nothing to do with that, because the biggest waste of money is actually coming from..."
+
+## Tip 2: Visual hooks (video)
+
+Visual hooks are far more powerful than spoken hooks alone, because people read faster than they listen.
+
+- **Text on screen:** 3 to 5 words in a big, bold font that build the context lean. Distill the spoken first line or two into those words. Pick words that can't be misunderstood (Kallaway used "Future of Home Design" over the less clear "Life-size floor plans").
+- **The visual itself:** the most compelling shot possible, with just enough motion. Too much motion overwhelms and the context gets lost; too little bores them. Think of a deer catching movement in the corner of its eye.
+
+The combination of on-screen text, motion, and spoken words beats spoken words alone.
+
+## Tip 3: Lead with what they already care about
+
+People like hearing about things they're already interested in, and they're open to a new perspective if it unlocks a benefit or solves a pain.
+
+- Average: "You should be taking magnesium because it's one of 21 core building-block minerals."
+- Better: "If you want better sleep, you need to be taking magnesium."
+
+Always ask what the benefit or pain point is for the target viewer, and work it into the hook.
+
+## Tip 4: Culture hopping
+
+Hearing something familiar creates comfort; hearing only unfamiliar things makes people feel dumb, and they leave. For complex or niche topics, wrap the unknown idea in something known: a brand, celebrity, movement, or cultural reference used as a metaphor or comparison. Example: tax planning explained through how Taylor Swift's financial advisor would plan around her tour earnings. The content doesn't need to be about the reference; it borrows its familiarity.
+
+## Tip 5: Compress speed to value
+
+Imagine a timer counting down before attention explodes: about 4 seconds for short form, 1 to 2 minutes for YouTube. Deliver a first hit of value before it runs out, in the hook if possible, right after it if not. Anything after they click off might as well be a black screen. Then repeat: context, value, context, value.
+
+## Tip 6: Staccato hook sentences
+
+Keep the hook's sentences short. Short sentences force maximum clarity and raise the value per word when time is most precious. Vary sentence length later in the content; go short first, then expand to medium and long.
 
 ## Workflow
 
-1. **Get the post.** Hooks are written last or rewritten from a draft, because a hook has to point at what the post actually delivers. If Glenn only has an idea, ask for his draft or rough notes, or suggest the `brain-dump` skill first.
-2. **If the draft already has an opening, start there.** Per `CLAUDE.md`, his words come first. Often the best hook is a sentence already buried in the draft, so look for it before writing anything new.
-3. **Find the three parts in the post.** In one line each: the topic and who it's for, the pain or benefit, the turn (what's true here that the reader wouldn't expect). If there's no turn, say so.
-4. **Write three options**, each leaning a different way (for example: one opens inside a moment, one leads with the reader's pain, one names a claim photographers repeat). Write each as the opening two or three sentences, not a lone line.
-5. **Check each one** with the three passes from `CLAUDE.md` (humanizer, structural-humanizer, read-aloud test). The read-aloud test matters most for hooks: if it sounds engineered to make someone stop, it's wrong. Also confirm the post pays off whatever the hook promises.
-6. **Output** the options directly in the response, each with one line on which lean it uses. Recommend one. For reel scripts, add the on-screen text and shot note for each.
+1. **Get the topic** and, ideally, the script or draft, plus the format (short-form video, long-form video, or text post) and the target viewer. A snapback needs to point at something the content actually delivers, so ask what the payoff is if it isn't clear.
+2. **Map the formula:** the topic, the lean (which of the four ways), the expected direction, and the snapback (the opposite, on-topic turn).
+3. **Write three hook options** using the 3-step formula, each with a different lean type (for example: benefit, mind-blowing fact, culture hop).
+4. **Apply tips 3 to 6** to each: benefit or pain present, a familiar reference if the topic is niche, first value early, staccato sentences.
+5. **For video, add a visual hook** to each: 3 to 5 words of on-screen text and a shot idea with the right amount of motion.
+6. **Output** the options, each labelled with its lean type and its three parts. Recommend one and say why.
 
-## What not to do
-
-- Don't promise anything the post doesn't deliver.
-- Don't use curiosity bait ("you won't believe", "this changed everything", "one setting I'd actually look at twice").
-- Don't pad the hook with a claim about his credentials or numbers to borrow authority. Kallaway opens with his follower count; Glenn doesn't.
+Don't make up statistics or facts. If a hook needs a number the user didn't give, mark it as a placeholder like `[$X]`.

@@ -109,6 +109,8 @@ Then invoke the `skill-creator` skill. Give it:
 
 Let skill-creator run its own process and questions. Ground the new skill in what the reel actually says. Don't pad it with steps the reel never mentioned.
 
+Keep the skill faithful to the source. Don't tailor it to the user's voice, brand, or style guides (in Glenn's repo: not to the knowledge base or the three-pass workflow), and don't drop tactics because they clash with that style. Glenn tailors outputs to his voice later in a separate skill. Swapping a paid tool the reel promotes for plain Claude is fine.
+
 Where to write the result:
 
 - Default: `~/.claude/skills/<new-skill-name>/` (or `~/.claude/agents/<name>.md` for an agent)

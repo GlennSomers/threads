@@ -23,3 +23,7 @@ Before outputting any post, run three passes:
 3. **Read-aloud test** — does this sound like something Glenn would say to a friend, or does it sound constructed? Specifically: does the ending feel like where the thought ran out, or like a place that was chosen to stop? Is there a faint "here's where I landed" quality even without a stated lesson? If anything feels composed rather than just said, strip it back.
 
 The `.claude/skills/glenn-skill/SKILL.md` file contains the full step-by-step workflow for content writing tasks.
+
+## Skills Built From Reels and Videos
+
+Skills made from a reel or video (with `reel-to-skill` or otherwise) follow the source faithfully. Do not tailor them to Glenn's voice, the knowledge base, or the three-pass workflow, and don't drop the source's tactics because they clash with his style. Their outputs are generic; Glenn tailors them to his voice later in a separate skill. The voice rules above still apply when writing Glenn's own posts.
