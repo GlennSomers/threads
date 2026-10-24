@@ -16,6 +16,10 @@ Patterns in how Glenn talks in brain dumps and what his choices show. Each line 
 
 ## From his choices
 
+- Starts the hook with "I". Dropping it ("Shot my friends' wedding") went too far. (decision 18)
+- Happy to cut a whole list of good details to hit 60 seconds, and sum it up in one line instead. (decision 18)
+- Brings back his own phrasing from earlier dumps ("fuck ups are inevitable") to tie the end to the start. (decision 18)
+
 - Says "three quarters of an hour", not "45 minutes". (decision 16)
 - Picks trims over splits when a line runs long, but takes a split if it lands a joke or a turn ("…15 minutes to get ready. So I snuck in a whiskey"). (decision 16)
 
