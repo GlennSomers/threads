@@ -13,6 +13,15 @@ This is the process for turning Glenn's brain dumps into video scripts. Follow i
 7. **Update `voice-observations.md`** with patterns from the brain dump itself (his natural phrasing) and from his choices.
 8. **Commit and push** in the same turn.
 
+## Storytelling (from Kallaway, Vinh Giang, Will Storr)
+
+Notes: `.claude/reel-to-skill-runs/Dbs4HcUhc9p/notes.md`. Picked by Glenn on 2026-10-24.
+
+- **Stakes check, before drafting.** Check every brain dump has who it's happening to, what's at risk and why now. Ask him for any that are missing. Never fill them in yourself.
+- **Re-hooks, write toward it.** Where a section ends, close one question and open the next in the same breath. Use his own connectors ("which meant", "so", "that's before", "except") and his own facts. No dead air between sections.
+- **No vague teasers or worn-out phrases, write toward it.** When a line like "something crazy happened" or "scratch the surface" shows up, offer a swap built from one real detail in his dump. Lines he cut on purpose stay cut.
+- **Relive the peak, offer per script.** In each script's pop-ups, offer one present-tense option for the peak moment ("So I'm running between…"). His past tense stays the default.
+
 ## How to score a spoken script
 
 Use only these:
