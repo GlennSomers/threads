@@ -40,7 +40,7 @@ Run steps in order. If a step fails, report which step and why, then stop cleanl
 Extract the shortcode from the URL: the segment after `/reel/`, `/reels/`, or `/p/` (strip query strings like `?igsh=...`). Set the working folder:
 
 ```
-WORKDIR=~/reel-to-skill-runs/<shortcode>
+WORKDIR="$(git rev-parse --show-toplevel)/.claude/reel-to-skill-runs/<shortcode>"
 mkdir -p "$WORKDIR"
 ```
 
@@ -113,8 +113,8 @@ Keep the skill faithful to the source. Don't tailor it to the user's voice, bran
 
 Where to write the result:
 
-- Default: `~/.claude/skills/<new-skill-name>/` (or `~/.claude/agents/<name>.md` for an agent)
-- In a cloud or remote session, `~/.claude` is wiped when the session ends. Write to the current project's `.claude/skills/` (or `.claude/agents/`) instead so it can be committed, and tell the user.
+- Always write to the repo: `.claude/skills/<new-skill-name>/` (or `.claude/agents/<name>.md` for an agent).
+- Then commit and push, along with the run's `metadata.json` and transcript in `.claude/reel-to-skill-runs/`. Never commit the video file (step 6 deletes it, and `.gitignore` blocks it).
 
 ### 6. Clean up
 
