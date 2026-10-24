@@ -17,6 +17,11 @@ Patterns in how Glenn talks in brain dumps and what his choices show. Each line 
 
 ## From his choices
 
+- The jokes are the soul. Trim around them, never cut them for time. (decision 28)
+- Callbacks to the hook should be loose ("a bit out of practice"), not the hook repeated word for word. (decision 27)
+- Prefers plain joins ("And like all weddings", "What I didn't plan for") over clever connectors ("which got tested", "everything worked out, except") once the story already flows. (decision 27)
+- Keeps words that carry his point or his character ("even more", "everything you can", "but no,"); cuts filler ("that day", "by about", "and then"). (decision 28)
+
 - Spoken lists of items sound janky. Put lists on screen as b-roll, keep the spoken line as one flowing thought. (decision 26)
 - Each section has to lead into the next like he's telling a mate. Stitched-together beats get rejected even when each beat is right. (decision 26)
 
