@@ -27,3 +27,7 @@ The `.claude/skills/glenn-skill/SKILL.md` file contains the full step-by-step wo
 ## Skills Built From Reels and Videos
 
 Skills made from a reel or video (with `reel-to-skill` or otherwise) follow the source faithfully. Do not tailor them to Glenn's voice, the knowledge base, or the three-pass workflow, and don't drop the source's tactics because they clash with his style. Their outputs are generic; Glenn tailors them to his voice later in a separate skill. The voice rules above still apply when writing Glenn's own posts.
+
+## Straight Talk Skill
+
+The `straight-talk` skill (from chen.media) is for general writing: emails, docs, replies, captions. Glenn's own posts, threads and newsletters follow the knowledge base and the three passes above instead, and his voice wins where the two disagree (for example, his longer drifting sentences over Straight Talk's 10-word average).
