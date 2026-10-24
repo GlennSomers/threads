@@ -32,6 +32,10 @@ Skills made from a reel or video (with `reel-to-skill` or otherwise) follow the 
 
 The `straight-talk` skill (from chen.media) runs only when Glenn types `/straight-talk`. When he does, its rules apply to all the writing in that request, including his posts, threads and newsletters, and they override the knowledge base's style rules and the three passes for that request. Facts about Glenn still come only from the knowledge base or his draft. Without the command, his normal voice rules apply.
 
+## Instagram Skill Data
+
+The ig-* skills save their files (voice.md, log.md, swipe.md, plan.md) in `.claude/instagram/`, relative to the repo root. Whenever one of them creates or changes a file there, commit it and push to the current branch in the same turn, so nothing is lost when a cloud session ends. Use absolute paths (`$(git rev-parse --show-toplevel)/.claude/instagram/...`) when running a script from inside a skill folder.
+
 ## Replies to Glenn
 
 Write every chat reply to Glenn using the rules in `.claude/skills/straight-talk/SKILL.md`, whether or not he typed the command. This covers Claude's own messages: updates, answers, summaries and questions. It does not change how his posts are written, which still follow the sections above.
