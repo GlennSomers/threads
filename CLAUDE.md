@@ -32,6 +32,17 @@ Skills made from a reel or video (with `reel-to-skill` or otherwise) follow the 
 
 The `straight-talk` skill (from chen.media) runs only when Glenn types `/straight-talk`. When he does, its rules apply to all the writing in that request, including his posts, threads and newsletters, and they override the knowledge base's style rules and the three passes for that request. Facts about Glenn still come only from the knowledge base or his draft. Without the command, his normal voice rules apply.
 
+## Save Everything to GitHub
+
+This runs in cloud sessions that wipe everything outside the repo when they end. So anything worth keeping lives in the repo and gets pushed:
+
+- Every skill, agent, setting, note, transcript, data file or saved output goes inside the repo (under `.claude/` unless a section below says otherwise). Never save lasting files to `~/`, `~/.claude/` or `/tmp/`.
+- When a new skill or skill pack names a save folder outside the repo, point it at a matching folder under `.claude/` and add that folder to this file.
+- Commit and push every change to the current branch in the same turn it happens. Don't leave anything uncommitted at the end of a turn.
+- Never commit secrets: API keys, tokens, passwords, cookies or login files. Those stay out of the repo (for example `~/.agent-reach/`), and Glenn sets them up again when needed.
+- Don't commit large media (videos, audio). Keep transcripts and notes instead.
+- `reel-to-skill` runs live in `.claude/reel-to-skill-runs/`, and the skills it builds go in `.claude/skills/`.
+
 ## Instagram Skill Data
 
 The ig-* skills save their files (voice.md, log.md, swipe.md, plan.md) in `.claude/instagram/`, relative to the repo root. Whenever one of them creates or changes a file there, commit it and push to the current branch in the same turn, so nothing is lost when a cloud session ends. Use absolute paths (`$(git rev-parse --show-toplevel)/.claude/instagram/...`) when running a script from inside a skill folder.

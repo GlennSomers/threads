@@ -1,0 +1,26 @@
+This is the only way I've been able to get AI to write and actually sound like me.
+I've tried so many prompts, I've tried all of the Claude skills,
+and this method is really the only one that hasn't produced complete AI slop.
+So there's two steps to it.
+The first step is to use a voice dictation tool like Whisperflow,
+and you're going to do a brain dump about your idea.
+A voice dictation tool is non-negotiable, and I'll tell you why in step two.
+So you're going to just talk about your idea for at least a couple of minutes.
+Make sure you hit all the points that you want to make.
+Now here's the very, very important part.
+Before you actually give that to AI, you need to tell AI that your brain dump,
+all of that text, is in your spoken voice.
+Tell it that you used a voice dictation tool, and to write the script in your own voice.
+Tell AI to treat it as an edit, not a rewrite.
+To keep your exact phrases and words wherever you can.
+Tell it that at least 80% of the script should be words you actually said.
+You can tell it to cut repeated points, tangents, and rambling.
+You can tell it to reorder sections so the stronger ideas come earlier.
+And you can tell it to join fragments so a sentence makes sense out loud.
+Tell it not to add facts or stories or examples or quotes you didn't say.
+Tell it not to swap your casual words for better ones.
+Tell it not to clean up your grammar.
+And please, for the love of God, tell it not to use short, punchy sentences.
+And even after doing all of this, it still only gets me 70 to 80% there.
+You still have to go through and check everything and make edits.
+But it is a very useful way to get a first draft of a script.
