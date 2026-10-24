@@ -17,6 +17,9 @@ Patterns in how Glenn talks in brain dumps and what his choices show. Each line 
 
 ## From his choices
 
+- Spoken lists of items sound janky. Put lists on screen as b-roll, keep the spoken line as one flowing thought. (decision 26)
+- Each section has to lead into the next like he's telling a mate. Stitched-together beats get rejected even when each beat is right. (decision 26)
+
 - Wants the point of the video clear and useful, proven by the story, not a vague "have faith" ending. (decision 25)
 
 - Rewords my options rather than just picking ("prepared for the worst" over "prepared to adapt"), so the key word lands once, at the end. (decision 23)
