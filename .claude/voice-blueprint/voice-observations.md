@@ -12,9 +12,12 @@ Patterns in how Glenn talks in brain dumps and what his choices show. Each line 
 - Present tense for the realisation ("I need to accept that I'm going to fuck up"), past tense for the day. (wedding v2)
 - Says the turn with "But": "But once I got that all out of my way", "But I definitely could have…". (wedding v2)
 - Ends on an open loop to the next video, not a lesson. (wedding v2)
+- States his own point plainly when asked: "planning not just for things to go right but even more for things to go wrong", "get multiple people to think of everything you missed". (planning dump)
 - Uses "despite" twice. It's his own way to set up a contrast. (wedding v2)
 
 ## From his choices
+
+- Wants the point of the video clear and useful, proven by the story, not a vague "have faith" ending. (decision 25)
 
 - Rewords my options rather than just picking ("prepared for the worst" over "prepared to adapt"), so the key word lands once, at the end. (decision 23)
 - Wants a promise early that the end pays off, in his own words from the dumps. (decision 23)
