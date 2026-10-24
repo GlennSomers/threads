@@ -36,6 +36,18 @@ The `straight-talk` skill (from chen.media) runs only when Glenn types `/straigh
 
 The ig-* skills save their files (voice.md, log.md, swipe.md, plan.md) in `.claude/instagram/`, relative to the repo root. Whenever one of them creates or changes a file there, commit it and push to the current branch in the same turn, so nothing is lost when a cloud session ends. Use absolute paths (`$(git rev-parse --show-toplevel)/.claude/instagram/...`) when running a script from inside a skill folder.
 
+## Content Skills Data (Ootto pack)
+
+These skills save inside the repo, relative to the repo root:
+
+- `ai-brain` and every skill that mentions "your Obsidian vault": the vault is `.claude/vault/`, with notes in `.claude/vault/AI Brain/` and the index at `.claude/vault/AI Brain/MOC.md`. Read and write the files directly.
+- `hook-mining`: CSVs and their `.mined.json` output go in `.claude/hook-mining/`.
+- `comment-responder`: rules in `.claude/comment-responder/auto_responses.json`, lead log in `.claude/comment-responder/leads.md`.
+
+Whenever one of these skills creates or changes a file there, commit it and push to the current branch in the same turn.
+
+Exception: `agent-reach` keeps its settings, cookies and API keys in `~/.agent-reach/`. Never copy that folder into the repo or commit any of its contents. Its temporary output stays in `/tmp/`.
+
 ## Replies to Glenn
 
 Write every chat reply to Glenn using the rules in `.claude/skills/straight-talk/SKILL.md`, whether or not he typed the command. This covers Claude's own messages: updates, answers, summaries and questions. It does not change how his posts are written, which still follow the sections above.
