@@ -16,6 +16,9 @@ Patterns in how Glenn talks in brain dumps and what his choices show. Each line 
 
 ## From his choices
 
+- Rewords my options rather than just picking ("prepared for the worst" over "prepared to adapt"), so the key word lands once, at the end. (decision 23)
+- Wants a promise early that the end pays off, in his own words from the dumps. (decision 23)
+
 - Will bring back one detail he cut if it now does a specific job (the shotgun mic as a re-hook). The cut list as a whole stays cut. (decision 22)
 - Present tense for the chaos scene only, past for the rest. (decision 22)
 
