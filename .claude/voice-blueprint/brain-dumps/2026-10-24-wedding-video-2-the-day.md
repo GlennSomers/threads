@@ -9,4 +9,12 @@ Alright here's the brain dump of the day, first off like all weddings everything
 
 ## Approved script
 
-Not approved yet. See decisions.md.
+Current draft (after decision 17), not signed off yet:
+
+Shot my friends' wedding despite not touching my camera since February. Fucking diabolical, considering I never told them. Sorry guys.
+I knew I'd fuck up, so I just went in with disgustingly stupid confidence that it'd all work out.
+And like all weddings, everything was delayed, by about three quarters of an hour at the start of the day. Which meant I was shooting the groom and bride getting ready at the same time, hundreds of metres apart. I got my fucking steps in that day, never doing cardio again though.
+But thankfully, like all men, the groom took 15 minutes to get ready. So I snuck in a whiskey before running back.
+And that's only one example. I had to keep readjusting the mic, the tripod for the video camera, aka my phone, dumping the shot list. And turns out that shotgun mic is hyper directional, so lots of editing to clean it up.
+Yet everything worked out, or is currently working out. I'm not saying go shoot a wedding on a camera you haven't touched in months, but have a bit of faith and you'll be fine.
+
