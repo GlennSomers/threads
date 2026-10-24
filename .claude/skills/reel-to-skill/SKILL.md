@@ -20,6 +20,17 @@ Based on "The Reel to Skill Engine" by Jens (Jens AI Community).
 
 Check `uv` and `ffmpeg` before step 1. If either is missing, say which one and stop.
 
+## YouTube and other sites
+
+yt-dlp also handles YouTube links (and most other video sites), so the same workflow applies. Use the video ID as the working folder name. For long videos, skip the download and Whisper: YouTube usually has captions, which are much faster than transcribing on a machine without a GPU. Check `automatic_captions` or `subtitles` in the step 1 JSON, then:
+
+```bash
+uvx yt-dlp --skip-download --write-auto-subs --sub-langs en --sub-format vtt \
+  -o "$WORKDIR/video.%(ext)s" "<URL>"
+```
+
+Strip the timestamps and the repeated rolling lines from the `.vtt` to get a plain `transcript.txt`, then carry on from step 4. Captions have no punctuation and some misheard words, so read them with that in mind. If there are no captions, fall back to downloading and running Whisper.
+
 ## Workflow
 
 Run steps in order. If a step fails, report which step and why, then stop cleanly. Never leave the session in a broken state.
@@ -97,6 +108,8 @@ Then invoke the `skill-creator` skill. Give it:
 - the reel link
 
 Let skill-creator run its own process and questions. Ground the new skill in what the reel actually says. Don't pad it with steps the reel never mentioned.
+
+Keep the skill faithful to the source. Don't tailor it to the user's voice, brand, or style guides (in Glenn's repo: not to the knowledge base or the three-pass workflow), and don't drop tactics because they clash with that style. Glenn tailors outputs to his voice later in a separate skill. Swapping a paid tool the reel promotes for plain Claude is fine.
 
 Where to write the result:
 
