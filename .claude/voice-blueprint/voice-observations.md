@@ -16,6 +16,8 @@ Patterns in how Glenn talks in brain dumps and what his choices show. Each line 
 
 ## From his choices
 
+- Picks from the line-by-line pop-ups (decision 15): wedding before the risk in the hook; shortest version of a joke; one "fucking" per joke, not two; plain verbs ("snuck in" over "had time to get in"); breaks long lists into two sentences; "a bit of faith… you'll be fine" over "you'll do great".
+
 - When he cuts or moves a line in his own edit, it was on purpose. Never put it back, even if a storytelling rule says it would score higher. (decision 14)
 
 - His own hand edit (decision 13): trims the setup of a joke so it lands faster ("especially when I never told them that. Sorry guys."), turns the self-roast up ("disgustingly stupid confidence"), adds a throwaway "though" at the end of a joke, uses the right gear words ("readjusting", "hyper directional"), and ends by talking to the viewer.
