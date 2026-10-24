@@ -31,3 +31,7 @@ Skills made from a reel or video (with `reel-to-skill` or otherwise) follow the 
 ## Straight Talk Skill
 
 The `straight-talk` skill (from chen.media) runs only when Glenn types `/straight-talk`. When he does, its rules apply to all the writing in that request, including his posts, threads and newsletters, and they override the knowledge base's style rules and the three passes for that request. Facts about Glenn still come only from the knowledge base or his draft. Without the command, his normal voice rules apply.
+
+## Replies to Glenn
+
+Write every chat reply to Glenn using the rules in `.claude/skills/straight-talk/SKILL.md`, whether or not he typed the command. This covers Claude's own messages: updates, answers, summaries and questions. It does not change how his posts are written, which still follow the sections above.
