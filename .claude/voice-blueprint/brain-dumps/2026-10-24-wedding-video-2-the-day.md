@@ -15,10 +15,11 @@ The point he wants (his words): "a valuable pay off on planning not just for thi
 
 ## Approved script
 
-Current draft (decision 28), not signed off yet:
+Current draft (Glenn's edit, decision 29), not signed off yet:
 
 I shot my friends' wedding despite not touching my camera since February. Fucking diabolical, considering I never told them. Sorry guys.
-I was worried something would fuck up, so I planned not just for things to go right, but even more for things to go wrong, and went in with disgustingly stupid confidence.
-And like all weddings, everything's delayed three quarters of an hour. So I'm constantly organising timings, getting the groom to start five minutes into the bridal makeup, so I'm running between them, hundreds of metres apart. I got my fucking steps in, never doing cardio again though. Thankfully, like all men, the groom took 15 minutes to get ready, so I snuck in a whiskey before running back.
-What I didn't plan for was how hyper directional the shotgun mic is. I should have had a second mic recording a safety track, but no, that's a painful lesson.
-When you're planning, you'll think of everything you can, but get multiple people to think of everything you missed, especially if you're a bit out of practice.
+I knew something would fuck up, so I planned not more for things to go wrong than right and went in with disgustingly stupid confidence. And like all weddings, everything's delayed by 45 minutes.
+So I'm organising timings, getting the groom to start five minutes into the bridal makeup, so I'm running between them, hundreds of metres apart. I got my fucking steps in, never doing cardio again though.
+Thankfully, like all men, the groom took 15 minutes to get ready, so I snuck in a whiskey before running back.
+What I didn't plan for was how hyper directional the shotgun mic is. I should have had a second mic recording a safety track.
+See when you're planning, you'll think of everything you can, so get multiple people to think of everything you missed, especially if you're a bit out of practice.
