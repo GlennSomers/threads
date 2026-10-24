@@ -16,6 +16,11 @@ Patterns in how Glenn talks in brain dumps and what his choices show. Each line 
 
 ## From his choices
 
+- Happy for his sentences to be trimmed or joined (dropping a repeat like "months", tightening "The thing that I realised") as long as the words stay his. (decision 7)
+- Keeps the joke lines whole: "Fucking diabolical, especially considering I never told them that…" stayed verbatim. (decision 7)
+- Approved moving his own payoff line up as a rehook. (decision 7)
+- Wants scores pushed up, but not at the cost of his voice. Open to more of his character in the script. (decision 7)
+
 - Context first: the viewer has to know what the video is about (the wedding) before the risk. (decision 2)
 - Likes a delayed reveal: "bride and groom" first, "my friends" later. (decision 2)
 - Rejects short, clipped, written-style sentences in scripts. (decision 4)
