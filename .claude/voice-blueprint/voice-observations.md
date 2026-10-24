@@ -16,6 +16,9 @@ Patterns in how Glenn talks in brain dumps and what his choices show. Each line 
 
 ## From his choices
 
+- Will bring back one detail he cut if it now does a specific job (the shotgun mic as a re-hook). The cut list as a whole stays cut. (decision 22)
+- Present tense for the chaos scene only, past for the rest. (decision 22)
+
 - Starts the hook with "I". Dropping it ("Shot my friends' wedding") went too far. (decision 18)
 - Happy to cut a whole list of good details to hit 60 seconds, and sum it up in one line instead. (decision 18)
 - Brings back his own phrasing from earlier dumps ("fuck ups are inevitable") to tie the end to the start. (decision 18)
