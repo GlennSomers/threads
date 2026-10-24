@@ -59,6 +59,10 @@ Whenever one of these skills creates or changes a file there, commit it and push
 
 Exception: `agent-reach` keeps its settings, cookies and API keys in `~/.agent-reach/`. Never copy that folder into the repo or commit any of its contents. Its temporary output stays in `/tmp/`.
 
+## Spoken Scripts and the Voice Blueprint
+
+When Glenn gives a brain dump for a video script, follow the workflow in `.claude/voice-blueprint/README.md`. Keep his words using the brain-dump skill rules, use all the script, hook and ig skills for structure, and give line-by-line variations for him to approve. Log every decision and its reason in `.claude/voice-blueprint/decisions.md`, add voice patterns to `.claude/voice-blueprint/voice-observations.md`, save the raw dump in `.claude/voice-blueprint/brain-dumps/`, then commit and push in the same turn. Straight-talk does not apply to spoken scripts unless he types `/straight-talk`.
+
 ## Replies to Glenn
 
 Write every chat reply to Glenn using the rules in `.claude/skills/straight-talk/SKILL.md`, whether or not he typed the command. This covers Claude's own messages: updates, answers, summaries and questions. It does not change how his posts are written, which still follow the sections above.
