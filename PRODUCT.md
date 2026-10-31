@@ -37,7 +37,7 @@ The refine step runs Claude Code against Glenn's own GitHub repo, so it uses his
 
 - Glenn's stated mission, from his knowledge base: "We keep it simple here."
 - Voice: plain, direct, no hype or guru tone, no em dashes. Interface copy follows the same rules.
-- Look (chosen by Glenn, 31 Oct 2026): a native Apple app feel (Notes, Reminders) mixed with Irish road signs. Native structure and controls; the road-sign world supplies colour, weight and the Read mode.
+- Look (chosen by Glenn, 31 Oct 2026, after comparing five mockups): a native Apple app feel (Notes, Reminders) in Graphite. Monochrome, no accent colour. He tried and dropped an Irish road-sign theme and a sign-green tint; don't bring them back.
 
 ## Evidence on Hand
 

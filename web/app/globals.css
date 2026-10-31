@@ -1,16 +1,19 @@
-/* Reel Drafts: a native Apple shell, with Irish road signs lending colour and Read mode. */
+/* Reel Drafts: a native Apple shell in Graphite. No colour, like a contact print. */
 
 :root {
-  /* Road-sign world */
-  --sign-green: #00703c;        /* national route sign ground */
-  --sign-green-deep: #005c32;   /* route-number plate */
-  --route-yellow: #ffd200;      /* route numbers, warning diamond */
-  --sign-white: #ffffff;
-  --diamond-edge: #1c1c1e;
+  /* Graphite, light */
+  --tint: #1c1c1e;
+  --on-tint: #ffffff;
+  --chip-bg: #e5e5ea;
+  --chip-text: #1c1c1e;
+  --selected-row: #e5e5ea;
+  --read-bg: #ffffff;
+  --read-text: #000000;
+  --read-cue: #6d6d72;
+  --read-sub: rgba(0, 0, 0, 0.6);
+  --read-knob: rgba(0, 0, 0, 0.07);
 
   /* Apple system colours, light */
-  --tint: var(--sign-green);
-  --on-tint: #ffffff;
   --bg: #f2f2f7;                /* systemGroupedBackground */
   --cell: #ffffff;              /* secondarySystemGroupedBackground */
   --label: #000000;
@@ -22,7 +25,7 @@
   --segment-on: #ffffff;
   --bar: rgba(242, 242, 247, 0.94);
   --red: #ff3b30;
-  --selection: rgba(0, 112, 60, 0.22);
+  --selection: rgba(0, 0, 0, 0.14);
   --scrim: rgba(0, 0, 0, 0.35);
 
   /* iOS text styles, scaled from the body size */
@@ -42,7 +45,16 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --tint: #3ccd84;            /* sign green lifted for dark backgrounds */
+    --tint: #f2f2f7;
+    --on-tint: #000000;
+    --chip-bg: #2c2c2e;
+    --chip-text: #f2f2f7;
+    --selected-row: #2c2c2e;
+    --read-bg: #000000;
+    --read-text: #ffffff;
+    --read-cue: #a1a1a8;
+    --read-sub: rgba(255, 255, 255, 0.65);
+    --read-knob: rgba(255, 255, 255, 0.14);
     --bg: #000000;
     --cell: #1c1c1e;
     --label: #ffffff;
@@ -54,7 +66,7 @@
     --segment-on: #636366;
     --bar: rgba(18, 18, 20, 0.94);
     --red: #ff453a;
-    --selection: rgba(60, 205, 132, 0.3);
+    --selection: rgba(255, 255, 255, 0.25);
     --scrim: rgba(0, 0, 0, 0.55);
   }
 }
@@ -243,7 +255,7 @@ h1, h2, p { margin: 0; }
   min-height: 34px;
   padding: 0 16px;
   border-radius: 999px;
-  background: var(--sign-green);
+  background: var(--tint);
   color: var(--on-tint);
   font-size: var(--t-sub);
   font-weight: 600;
@@ -330,8 +342,7 @@ h1, h2, p { margin: 0; }
 }
 .row:active { background: var(--fill); }
 @media (hover: hover) { .row:hover { background: color-mix(in srgb, var(--fill) 60%, transparent); } }
-.row.selected { background: var(--sign-green); color: var(--sign-white); }
-.row.selected .row-sub, .row.selected .row-time { color: rgba(255, 255, 255, 0.82); }
+.row.selected { background: var(--selected-row); }
 .row.selected::before, li:has(.row.selected) + li .row::before { border-top-color: transparent; }
 
 .row-main { flex: 1; min-width: 0; display: grid; gap: 2px; }
@@ -350,27 +361,23 @@ h1, h2, p { margin: 0; }
   min-width: 0;
 }
 .row-time { flex: none; color: var(--label); opacity: 0.85; }
-.row.selected .row-time { color: var(--sign-white); opacity: 1; }
 .row-preview { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .row-trailing { flex: none; display: inline-flex; align-items: center; }
 .mark-error { color: var(--red); }
-.row.selected .mark-error { color: var(--sign-white); }
 
-/* Route-number plate: yellow figures on deep sign green */
+/* Spoken length */
 .route-chip {
   display: inline-block;
-  padding: 2px 7px 1px;
-  border-radius: 5px;
-  background: var(--sign-green-deep);
-  color: var(--route-yellow);
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--chip-bg);
+  color: var(--chip-text);
   font-size: var(--t-foot);
   font-weight: 700;
-  letter-spacing: 0.02em;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.85), 0 0 0 1px var(--sign-green-deep);
 }
 .route-chip.large { font-size: 1.1rem; padding: 4px 10px 3px; border-radius: 7px; }
 
-.diamond { flex: none; display: block; }
+.refining-mark { flex: none; display: block; color: var(--label-2); animation: spin 1.1s linear infinite; }
 
 .spinner { color: var(--label-2); animation: spin 0.8s steps(8) infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -496,13 +503,13 @@ h1, h2, p { margin: 0; }
 @keyframes fade { from { opacity: 0; } }
 @keyframes rise { from { transform: translateY(40%); opacity: 0.4; } }
 
-/* ---------- Read mode: the script as a national-route sign ---------- */
+/* ---------- Read mode: the script, big, for reading while filming ---------- */
 
 .read-mode {
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: #0b2a19;
+  background: var(--read-bg);
   padding: calc(10px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right))
     calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));
   animation: fade 0.2s ease-out;
@@ -511,12 +518,8 @@ h1, h2, p { margin: 0; }
   height: 100%;
   display: grid;
   grid-template-rows: auto 1fr auto auto;
-  background: var(--sign-green);
-  color: var(--sign-white);
-  border-radius: 22px;
-  /* the sign's inset white border */
-  box-shadow: inset 0 0 0 7px var(--sign-green), inset 0 0 0 10px var(--sign-white);
-  padding: 20px 24px;
+  color: var(--read-text);
+  padding: 12px 18px;
 }
 .sign-top {
   display: grid;
@@ -527,7 +530,7 @@ h1, h2, p { margin: 0; }
 .sign-title {
   font-size: var(--t-sub);
   font-weight: 600;
-  opacity: 0.85;
+  color: var(--read-sub);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -538,13 +541,13 @@ h1, h2, p { margin: 0; }
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  color: var(--sign-white);
-  background: rgba(255, 255, 255, 0.14);
+  color: var(--read-text);
+  background: var(--read-knob);
 }
 .sign-script {
   overflow-y: auto;
   padding: 18px 4px 24px;
-  scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
+  scrollbar-color: var(--read-sub) transparent;
 }
 .sign-line {
   font-size: var(--read-size, 34px);
@@ -558,7 +561,7 @@ h1, h2, p { margin: 0; }
 .sign-cue {
   font-size: calc(var(--read-size, 34px) * 0.6);
   font-weight: 600;
-  color: var(--route-yellow);
+  color: var(--read-cue);
   margin: 0.2em 0 0.9em;
   max-width: 40ch;
 }
@@ -573,8 +576,9 @@ h1, h2, p { margin: 0; }
 .sign-a { font-weight: 700; line-height: 1; }
 .sign-a.small { font-size: 14px; }
 .sign-a.big { font-size: 24px; }
-.sign-awake { padding-top: 4px; font-size: var(--t-foot); opacity: 0.75; }
-.sign input[type="range"] { width: 100%; accent-color: var(--route-yellow); height: 28px; }
+.sign-awake { padding-top: 4px; font-size: var(--t-foot); color: var(--read-sub); }
+.sign input[type="range"] { width: 100%; accent-color: var(--read-text); height: 28px; }
+.sign .route-chip { background: transparent; color: var(--read-text); box-shadow: inset 0 0 0 1.5px var(--read-text); }
 
 @media (min-width: 900px) {
   .sign { padding: 28px 36px; }
@@ -597,17 +601,11 @@ h1, h2, p { margin: 0; }
   padding: 24px var(--gutter);
 }
 .login-card { width: 100%; max-width: 360px; display: grid; gap: 14px; }
-.login-sign {
-  justify-self: center;
-  display: inline-block;
-  background: var(--sign-green);
-  color: var(--sign-white);
-  border-radius: 12px;
-  padding: 12px 22px;
-  box-shadow: inset 0 0 0 4px var(--sign-green), inset 0 0 0 6px var(--sign-white);
-  font-size: var(--t-title3);
+.login-title {
+  font-size: var(--t-large);
   font-weight: 700;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.011em;
+  margin-bottom: 6px;
 }
 .login-field {
   width: 100%;

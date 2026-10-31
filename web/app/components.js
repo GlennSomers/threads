@@ -83,13 +83,11 @@ export const Icon = {
   ),
 };
 
-/** Yellow warning diamond, the road-sign mark for "refining". */
-export function Diamond({ size = 16, label = "Refining" }) {
+/** Open ring that turns while Claude is refining. */
+export function RefiningMark({ size = 18, label = "Refining" }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 20 20" role="img" aria-label={label} className="diamond">
-      <path d="M10 1.2 18.8 10 10 18.8 1.2 10z" fill="var(--route-yellow)" stroke="var(--diamond-edge)" strokeWidth="1.6" strokeLinejoin="round" />
-      <path d="M10 6v4.6" stroke="var(--diamond-edge)" strokeWidth="1.8" strokeLinecap="round" />
-      <circle cx="10" cy="13.4" r="1.05" fill="var(--diamond-edge)" />
+    <svg className="refining-mark" width={size} height={size} viewBox="0 0 24 24" fill="none" role="img" aria-label={label}>
+      <path d="M21 12a9 9 0 1 1-6.2-8.56" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
     </svg>
   );
 }
@@ -117,7 +115,7 @@ export function Spinner({ size = 18 }) {
   );
 }
 
-/** Road-sign route number: yellow on green. Used for spoken length. */
+/** Spoken length, e.g. 21s. */
 export function RouteChip({ seconds, large = false }) {
   if (!seconds) return null;
   return (
@@ -128,7 +126,7 @@ export function RouteChip({ seconds, large = false }) {
 }
 
 export function StatusMark({ status }) {
-  if (status === "refining") return <Diamond />;
+  if (status === "refining") return <RefiningMark />;
   if (status === "error") return <Icon.Alert size={18} className="mark-error" label="Refine didn't finish" />;
   return null;
 }

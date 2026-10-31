@@ -9,7 +9,7 @@ const MAX = 96;
 const defaultSize = () => (typeof window !== "undefined" && window.innerWidth >= 900 ? 56 : 34);
 const STORE_KEY = "reel-drafts:read-size";
 
-/** Full-screen script, set like a national-route road sign, for reading while filming. */
+/** Full-screen script, big and plain, for reading while filming. */
 export default function ReadMode({ title, script, seconds, onClose }) {
   const [size, setSize] = useState(34);
   const [awake, setAwake] = useState(false);

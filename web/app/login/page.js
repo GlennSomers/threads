@@ -28,7 +28,7 @@ export default function LoginPage() {
   return (
     <main className="login">
       <form className="login-card" onSubmit={submit}>
-        <h1 className="login-sign">Reel Drafts</h1>
+        <h1 className="login-title">Reel Drafts</h1>
         <input
           className="login-field"
           type="password"

@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AutoTextarea,
   CopyButton,
-  Diamond,
+  RefiningMark,
   Icon,
   SPEAKING_RATE,
   Spinner,
@@ -261,12 +261,11 @@ export default function DraftPage() {
 
         {refining && (
           <div className="callout">
-            <Diamond size={20} />
+            <RefiningMark size={20} />
             <div>
               <p className="callout-title">Claude is refining this</p>
               <p className="callout-text">It usually takes a minute or two. This page updates by itself.</p>
             </div>
-            <Spinner size={18} />
           </div>
         )}
         {status === "error" && (
