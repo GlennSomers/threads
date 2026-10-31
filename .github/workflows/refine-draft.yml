@@ -1,0 +1,85 @@
+name: Refine draft
+
+# Started by the Reel Drafts web app (or by hand from the Actions tab).
+# Runs Claude Code with the reel-script-refine skill on one draft, using Glenn's
+# Claude Pro login (CLAUDE_CODE_OAUTH_TOKEN), then commits the result.
+
+on:
+  workflow_dispatch:
+    inputs:
+      draft:
+        description: "Draft to refine, e.g. .claude/drafts/2026-10-31-my-idea-a1b2.md"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refine-${{ inputs.draft }}
+  cancel-in-progress: false
+
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DRAFT: ${{ inputs.draft }}
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Check draft path
+        run: |
+          if [[ ! "$DRAFT" =~ ^\.claude/drafts/[a-z0-9-]+\.md$ ]]; then
+            echo "::error::Draft path must look like .claude/drafts/some-name.md"
+            exit 1
+          fi
+          if [ ! -f "$DRAFT" ]; then
+            echo "::error::Draft not found: $DRAFT"
+            exit 1
+          fi
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Refine with Claude
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+            echo "::error::Missing repo secret CLAUDE_CODE_OAUTH_TOKEN. Run 'claude setup-token' and add it under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/reel-refine"
+          claude -p "Use the reel-script-refine skill to refine the draft at $DRAFT. Write the result back into that file as the skill describes. Use $RUNNER_TEMP/reel-refine for scratch files. Do not commit or push; this workflow does that." \
+            --allowedTools "Skill" "Read" "Edit" "Write" "Glob" "Grep" "Bash(python3:*)" "Bash(mkdir:*)" \
+            --add-dir "$RUNNER_TEMP/reel-refine" \
+            --permission-mode acceptEdits \
+            --max-turns 60
+
+      - name: Save result
+        if: always()
+        run: |
+          if [[ ! "$DRAFT" =~ ^\.claude/drafts/[a-z0-9-]+\.md$ ]] || [ ! -f "$DRAFT" ]; then
+            exit 0
+          fi
+          # If Claude didn't finish, flag the draft so the app shows an error instead of waiting.
+          if grep -q '^status: refining$' "$DRAFT"; then
+            sed -i 's/^status: refining$/status: error/' "$DRAFT"
+          fi
+          git config user.name "reel-refiner"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "$DRAFT"
+          if git diff --cached --quiet; then
+            echo "Nothing to commit."
+            exit 0
+          fi
+          git commit -m "Refine $DRAFT"
+          git pull --rebase --autostash
+          git push

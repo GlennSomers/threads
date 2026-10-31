@@ -59,6 +59,13 @@ Whenever one of these skills creates or changes a file there, commit it and push
 
 Exception: `agent-reach` keeps its settings, cookies and API keys in `~/.agent-reach/`. Never copy that folder into the repo or commit any of its contents. Its temporary output stays in `/tmp/`.
 
+## Reel Drafts App
+
+- The web app lives in `web/` (Next.js, hosted on Vercel with `web` as the root directory). Its setup steps are in `web/README.md`.
+- Drafts are markdown files in `.claude/drafts/`. The app reads and writes them through the GitHub API.
+- The Refine button runs `.github/workflows/refine-draft.yml`, which runs the `reel-script-refine` skill on one draft and commits it. That skill writes into the draft file on purpose, so the "Post Output" rule above doesn't apply to it.
+- When Glenn asks to refine a draft in a normal session, use the same skill, then commit and push as usual.
+
 ## Replies to Glenn
 
 Write every chat reply to Glenn using the rules in `.claude/skills/straight-talk/SKILL.md`, whether or not he typed the command. This covers Claude's own messages: updates, answers, summaries and questions. It does not change how his posts are written, which still follow the sections above.
