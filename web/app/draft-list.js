@@ -6,9 +6,10 @@ import { useDrafts } from "./drafts-context";
 import { Icon, RouteChip, Spinner, StatusMark, timeAgo } from "./components";
 
 const GROUPS = [
-  { key: "refining", title: "Refining", match: (d) => d.status === "refining" || d.status === "error" },
   { key: "refined", title: "Ready to Film", match: (d) => d.status === "refined" },
-  { key: "idea", title: "Ideas", match: (d) => d.status === "idea" },
+  { key: "refining", title: "Refining", match: (d) => d.status === "refining" },
+  // A failed refine goes back with the ideas, keeping its red mark.
+  { key: "idea", title: "Ideas", match: (d) => d.status === "idea" || d.status === "error" },
 ];
 
 export default function DraftList({ activeSlug }) {

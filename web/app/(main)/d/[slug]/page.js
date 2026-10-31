@@ -221,8 +221,8 @@ export default function DraftPage() {
         : dirty
           ? "Edited"
           : status === "refined"
-            ? `Refined ${timeAgo(draft.meta.updated).toLowerCase()}`
-            : `Edited ${timeAgo(draft.meta.updated).toLowerCase()}`;
+            ? `Refined ${relative(draft.meta.updated)}`
+            : `Edited ${relative(draft.meta.updated)}`;
 
   return (
     <div
@@ -394,6 +394,12 @@ export default function DraftPage() {
       )}
     </div>
   );
+}
+
+// "Just now" and "Yesterday" read mid-sentence in lower case; day names and dates keep capitals.
+function relative(iso) {
+  const t = timeAgo(iso);
+  return /^(Just now|Yesterday)$/.test(t) ? t.toLowerCase() : t;
 }
 
 function Group({ title, action, footer, children }) {
