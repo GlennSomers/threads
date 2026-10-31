@@ -1,0 +1,972 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-31T17:00:00Z",
+  "title": "Design System: Reel Drafts",
+  "extensions": {
+    "colorMeta": {
+      "graphite-tint": {
+        "role": "primary",
+        "displayName": "Graphite",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "graphite-tint-dark"
+      },
+      "graphite-tint-dark": {
+        "role": "primary",
+        "displayName": "Graphite (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "graphite-tint"
+      },
+      "on-tint": {
+        "role": "primary",
+        "displayName": "On Graphite",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "on-tint-dark"
+      },
+      "on-tint-dark": {
+        "role": "primary",
+        "displayName": "On Graphite (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "on-tint"
+      },
+      "grouped-background": {
+        "role": "neutral",
+        "displayName": "Grouped Background",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "grouped-background-dark"
+      },
+      "grouped-background-dark": {
+        "role": "neutral",
+        "displayName": "Grouped Background (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "grouped-background"
+      },
+      "cell": {
+        "role": "neutral",
+        "displayName": "Cell",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "cell-dark"
+      },
+      "cell-dark": {
+        "role": "neutral",
+        "displayName": "Cell (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "cell"
+      },
+      "label": {
+        "role": "neutral",
+        "displayName": "Label",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "label-dark"
+      },
+      "label-dark": {
+        "role": "neutral",
+        "displayName": "Label (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "label"
+      },
+      "label-secondary": {
+        "role": "neutral",
+        "displayName": "Secondary Label",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "label-secondary-dark"
+      },
+      "label-secondary-dark": {
+        "role": "neutral",
+        "displayName": "Secondary Label (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "label-secondary"
+      },
+      "label-tertiary": {
+        "role": "neutral",
+        "displayName": "Tertiary Label",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "label-tertiary-dark"
+      },
+      "label-tertiary-dark": {
+        "role": "neutral",
+        "displayName": "Tertiary Label (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "label-tertiary"
+      },
+      "placeholder": {
+        "role": "neutral",
+        "displayName": "Placeholder",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "placeholder-dark"
+      },
+      "placeholder-dark": {
+        "role": "neutral",
+        "displayName": "Placeholder (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "placeholder"
+      },
+      "separator": {
+        "role": "neutral",
+        "displayName": "Hairline Separator",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "separator-dark"
+      },
+      "separator-dark": {
+        "role": "neutral",
+        "displayName": "Hairline Separator (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "separator"
+      },
+      "fill": {
+        "role": "neutral",
+        "displayName": "System Fill",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "fill-dark"
+      },
+      "fill-dark": {
+        "role": "neutral",
+        "displayName": "System Fill (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "fill"
+      },
+      "chip-grey": {
+        "role": "neutral",
+        "displayName": "Chip Grey",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "chip-grey-dark"
+      },
+      "chip-grey-dark": {
+        "role": "neutral",
+        "displayName": "Chip Grey (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "chip-grey"
+      },
+      "chip-text": {
+        "role": "neutral",
+        "displayName": "Chip Text",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "chip-text-dark"
+      },
+      "chip-text-dark": {
+        "role": "neutral",
+        "displayName": "Chip Text (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "chip-text"
+      },
+      "selected-row": {
+        "role": "neutral",
+        "displayName": "Selected Row",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "selected-row-dark"
+      },
+      "selected-row-dark": {
+        "role": "neutral",
+        "displayName": "Selected Row (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "selected-row"
+      },
+      "segment-on": {
+        "role": "neutral",
+        "displayName": "Segment On",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "segment-on-dark"
+      },
+      "segment-on-dark": {
+        "role": "neutral",
+        "displayName": "Segment On (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "segment-on"
+      },
+      "bar-material": {
+        "role": "neutral",
+        "displayName": "Bar Material",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "bar-material-dark"
+      },
+      "bar-material-dark": {
+        "role": "neutral",
+        "displayName": "Bar Material (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "bar-material"
+      },
+      "selection": {
+        "role": "neutral",
+        "displayName": "Selection",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "selection-dark"
+      },
+      "selection-dark": {
+        "role": "neutral",
+        "displayName": "Selection (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "selection"
+      },
+      "scrim": {
+        "role": "neutral",
+        "displayName": "Scrim",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "scrim-dark"
+      },
+      "scrim-dark": {
+        "role": "neutral",
+        "displayName": "Scrim (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "scrim"
+      },
+      "system-red": {
+        "role": "tertiary",
+        "displayName": "System Red",
+        "tonalRamp": [
+          "#5c0f0b",
+          "#8f1610",
+          "#c41f17",
+          "#ff3b30",
+          "#ff6961",
+          "#ff9a94",
+          "#ffc9c5",
+          "#ffecea"
+        ],
+        "darkVariant": "system-red-dark"
+      },
+      "system-red-dark": {
+        "role": "tertiary",
+        "displayName": "System Red (Dark)",
+        "tonalRamp": [
+          "#5c0f0b",
+          "#8f1610",
+          "#c41f17",
+          "#ff3b30",
+          "#ff6961",
+          "#ff9a94",
+          "#ffc9c5",
+          "#ffecea"
+        ],
+        "lightVariant": "system-red"
+      },
+      "read-ground": {
+        "role": "neutral",
+        "displayName": "Read Ground",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "read-ground-dark"
+      },
+      "read-ground-dark": {
+        "role": "neutral",
+        "displayName": "Read Ground (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "read-ground"
+      },
+      "read-ink": {
+        "role": "neutral",
+        "displayName": "Read Ink",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "read-ink-dark"
+      },
+      "read-ink-dark": {
+        "role": "neutral",
+        "displayName": "Read Ink (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "read-ink"
+      },
+      "read-cue": {
+        "role": "neutral",
+        "displayName": "Read Cue",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "read-cue-dark"
+      },
+      "read-cue-dark": {
+        "role": "neutral",
+        "displayName": "Read Cue (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "read-cue"
+      },
+      "read-sub": {
+        "role": "neutral",
+        "displayName": "Read Sub",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "read-sub-dark"
+      },
+      "read-sub-dark": {
+        "role": "neutral",
+        "displayName": "Read Sub (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "read-sub"
+      },
+      "read-knob": {
+        "role": "neutral",
+        "displayName": "Read Knob",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "darkVariant": "read-knob-dark"
+      },
+      "read-knob-dark": {
+        "role": "neutral",
+        "displayName": "Read Knob (Dark)",
+        "tonalRamp": [
+          "#1c1c1e",
+          "#2c2c2e",
+          "#3a3a3c",
+          "#636366",
+          "#8e8e93",
+          "#aeaeb2",
+          "#e5e5ea",
+          "#f2f2f7"
+        ],
+        "lightVariant": "read-knob"
+      }
+    },
+    "typographyMeta": {
+      "large-title": {
+        "displayName": "Large Title",
+        "purpose": "Screen titles (Drafts, login); collapses into the nav bar on scroll."
+      },
+      "title1": {
+        "displayName": "Title 1",
+        "purpose": "Editable draft title."
+      },
+      "title3": {
+        "displayName": "Title 3",
+        "purpose": "Group headers and empty-state titles."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Row titles, sheet and callout titles, inline nav title."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Field text and text buttons; 17px root that follows Dynamic Type on iPhone, 15px on Mac."
+      },
+      "script": {
+        "displayName": "Script",
+        "purpose": "The script field on the draft page."
+      },
+      "subheadline": {
+        "displayName": "Subheadline",
+        "purpose": "Row previews, notes, callout text, prominent button label."
+      },
+      "footnote": {
+        "displayName": "Footnote",
+        "purpose": "Footers, toolbar status, segment labels, length chip; tabular figures."
+      },
+      "read-line": {
+        "displayName": "Read Line",
+        "purpose": "Spoken lines in Read mode; slider 22 to 96px, default 34px phone, 56px Mac."
+      },
+      "read-cue": {
+        "displayName": "Read Cue",
+        "purpose": "B-roll cues in Read mode, 0.6x the read size."
+      }
+    },
+    "shadows": [
+      {
+        "name": "segment-lift",
+        "value": "0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04)",
+        "purpose": "Selected segment of the segmented control."
+      },
+      {
+        "name": "floating-sheet",
+        "value": "0 24px 60px rgba(0, 0, 0, 0.25)",
+        "purpose": "Compose sheet when centred at 700px and up."
+      },
+      {
+        "name": "focus-ring-field",
+        "value": "0 0 0 2px color-mix(in srgb, var(--tint) 45%, transparent)",
+        "purpose": "Focused inset card or filled field."
+      },
+      {
+        "name": "focus-outline",
+        "value": "3px solid color-mix(in srgb, var(--tint) 55%, transparent), offset 2px",
+        "purpose": "Global keyboard focus (outline, not shadow)."
+      },
+      {
+        "name": "read-chip-ring",
+        "value": "inset 0 0 0 1.5px var(--read-text)",
+        "purpose": "Length chip inside Read mode."
+      }
+    ],
+    "materials": [
+      {
+        "name": "bar-blur",
+        "value": "backdrop-filter: saturate(180%) blur(20px)",
+        "purpose": "Condensed nav bar and toolbar over bar-material."
+      }
+    ],
+    "motion": [
+      {
+        "name": "press",
+        "value": "0.12s ease",
+        "purpose": "Prominent button press scale 0.96 and brightness."
+      },
+      {
+        "name": "row-feedback",
+        "value": "0.15s ease",
+        "purpose": "Row hover and press fill."
+      },
+      {
+        "name": "bar-condense",
+        "value": "0.2s ease",
+        "purpose": "Nav bar material and inline title fade; segment switch."
+      },
+      {
+        "name": "fade-in",
+        "value": "0.2s to 0.25s ease-out",
+        "purpose": "Read mode and sheet backdrop entrance."
+      },
+      {
+        "name": "sheet-rise",
+        "value": "0.42s cubic-bezier(0.2, 0.9, 0.25, 1)",
+        "purpose": "Compose sheet rising from 40% below."
+      },
+      {
+        "name": "refining-turn",
+        "value": "1.1s linear infinite",
+        "purpose": "Open refining ring."
+      },
+      {
+        "name": "spinner",
+        "value": "0.8s steps(8) infinite",
+        "purpose": "Eight-spoke activity indicator."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "0.01ms",
+        "purpose": "All animation and transition collapsed under prefers-reduced-motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sheet-centred",
+        "value": "700px"
+      },
+      {
+        "name": "split-view",
+        "value": "900px"
+      },
+      {
+        "name": "mac-density",
+        "value": "(hover: hover) and (pointer: fine) and (min-width: 900px)"
+      },
+      {
+        "name": "dynamic-type",
+        "value": "(hover: none) and (pointer: coarse), with -apple-system-body support"
+      }
+    ],
+    "appearance": {
+      "switch": "prefers-color-scheme",
+      "note": "Light tokens are the base keys; each has a -dark sibling."
+    }
+  },
+  "components": [
+    {
+      "name": "Prominent Button",
+      "kind": "button",
+      "refersTo": "button-prominent",
+      "description": "Graphite pill for the one forward action on a screen (Refine).",
+      "html": "<button class=\"ds-btn-prominent\">Refine</button>",
+      "css": ":host{--tint:#1c1c1e;--on-tint:#fff;--chip-bg:#e5e5ea;--chip-text:#1c1c1e;--bg:#f2f2f7;--cell:#fff;--label:#000;--label-2:rgba(60,60,67,.75);--separator:rgba(60,60,67,.29);--fill:rgba(118,118,128,.12);--segment-on:#fff;--bar:rgba(242,242,247,.94);--red:#ff3b30;--radius-cell:12px;--gutter:16px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,'Segoe UI',Roboto,sans-serif;font-size:17px;}.ds-btn-prominent{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 16px;border:0;border-radius:999px;background:var(--tint);color:var(--on-tint);font:inherit;font-size:.882rem;font-weight:600;cursor:pointer;transition:transform .12s ease,filter .12s ease;}.ds-btn-prominent:hover{filter:brightness(1.08);}.ds-btn-prominent:active{transform:scale(.96);filter:brightness(.92);}.ds-btn-prominent:focus-visible{outline:3px solid color-mix(in srgb,var(--tint) 55%,transparent);outline-offset:2px;}"
+    },
+    {
+      "name": "Text Button",
+      "kind": "button",
+      "refersTo": "button-text",
+      "description": "Frameless tinted text action; strong variant confirms in a bar.",
+      "html": "<span class=\"ds-row\"><button class=\"ds-btn-text\">Cancel</button><button class=\"ds-btn-text ds-strong\">Save</button></span>",
+      "css": ":host{--tint:#1c1c1e;--on-tint:#fff;--chip-bg:#e5e5ea;--chip-text:#1c1c1e;--bg:#f2f2f7;--cell:#fff;--label:#000;--label-2:rgba(60,60,67,.75);--separator:rgba(60,60,67,.29);--fill:rgba(118,118,128,.12);--segment-on:#fff;--bar:rgba(242,242,247,.94);--red:#ff3b30;--radius-cell:12px;--gutter:16px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,'Segoe UI',Roboto,sans-serif;font-size:17px;}.ds-row{display:inline-flex;gap:24px;}.ds-btn-text{display:inline-flex;align-items:center;gap:5px;min-height:44px;padding:0;border:0;background:none;color:var(--tint);font:inherit;font-size:1rem;cursor:pointer;}.ds-strong{font-weight:600;}.ds-btn-text:disabled{opacity:.4;}.ds-btn-text:focus-visible{outline:3px solid color-mix(in srgb,var(--tint) 55%,transparent);outline-offset:2px;border-radius:6px;}"
+    },
+    {
+      "name": "Icon Button",
+      "kind": "button",
+      "refersTo": "button-icon",
+      "description": "44px target with a stroked Lucide glyph, used in toolbars (compose, archive).",
+      "html": "<button class=\"ds-btn-icon\" aria-label=\"New idea\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7\"/><path d=\"M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z\"/></svg></button>",
+      "css": ":host{--tint:#1c1c1e;--on-tint:#fff;--chip-bg:#e5e5ea;--chip-text:#1c1c1e;--bg:#f2f2f7;--cell:#fff;--label:#000;--label-2:rgba(60,60,67,.75);--separator:rgba(60,60,67,.29);--fill:rgba(118,118,128,.12);--segment-on:#fff;--bar:rgba(242,242,247,.94);--red:#ff3b30;--radius-cell:12px;--gutter:16px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,'Segoe UI',Roboto,sans-serif;font-size:17px;}.ds-btn-icon{display:inline-grid;place-items:center;width:44px;height:44px;border:0;background:none;color:var(--tint);cursor:pointer;}.ds-btn-icon:focus-visible{outline:3px solid color-mix(in srgb,var(--tint) 55%,transparent);outline-offset:2px;border-radius:6px;}"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "nav",
+      "refersTo": "segmented-control",
+      "description": "Two-segment switch between Drafts and Archived.",
+      "html": "<div class=\"ds-seg\" role=\"tablist\"><button aria-selected=\"true\">Drafts</button><button aria-selected=\"false\">Archived</button></div>",
+      "css": ":host{--tint:#1c1c1e;--on-tint:#fff;--chip-bg:#e5e5ea;--chip-text:#1c1c1e;--bg:#f2f2f7;--cell:#fff;--label:#000;--label-2:rgba(60,60,67,.75);--separator:rgba(60,60,67,.29);--fill:rgba(118,118,128,.12);--segment-on:#fff;--bar:rgba(242,242,247,.94);--red:#ff3b30;--radius-cell:12px;--gutter:16px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,'Segoe UI',Roboto,sans-serif;font-size:17px;}.ds-seg{display:grid;grid-template-columns:1fr 1fr;padding:2px;background:var(--fill);border-radius:9px;width:320px;}.ds-seg button{height:28px;border:0;border-radius:7px;background:none;color:var(--label);font:inherit;font-size:.765rem;font-weight:500;cursor:pointer;transition:background-color .2s ease,box-shadow .2s ease;}.ds-seg button[aria-selected=true]{background:var(--segment-on);font-weight:600;box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04);}.ds-seg button:focus-visible{outline:3px solid color-mix(in srgb,var(--tint) 55%,transparent);}"
+    },
+    {
+      "name": "Grouped List",
+      "kind": "card",
+      "refersTo": "inset-group",
+      "description": "Title 3 header over a 12px inset cell of rows divided by inset hairlines.",
+      "html": "<section class=\"ds-group\"><h2 class=\"ds-group-h\">Ready to Film</h2><ul class=\"ds-list\"><li><a class=\"ds-rowi\" href=\"#\"><span class=\"ds-main\"><span class=\"ds-t\">Culling wedding photos</span><span class=\"ds-s\"><span class=\"ds-time\">2 hr ago</span><span>I shot 3,000 frames on Saturday</span></span></span><span class=\"ds-chip\">21s</span></a></li><li><a class=\"ds-rowi\" href=\"#\"><span class=\"ds-main\"><span class=\"ds-t\">Why I edit on the train</span><span class=\"ds-s\"><span class=\"ds-time\">Yesterday</span><span>No text yet</span></span></span></a></li></ul></section>",
+      "css": ":host{--tint:#1c1c1e;--on-tint:#fff;--chip-bg:#e5e5ea;--chip-text:#1c1c1e;--bg:#f2f2f7;--cell:#fff;--label:#000;--label-2:rgba(60,60,67,.75);--separator:rgba(60,60,67,.29);--fill:rgba(118,118,128,.12);--segment-on:#fff;--bar:rgba(242,242,247,.94);--red:#ff3b30;--radius-cell:12px;--gutter:16px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,'Segoe UI',Roboto,sans-serif;font-size:17px;}.ds-group{background:var(--bg);padding:18px var(--gutter);width:360px;}.ds-group-h{margin:0;padding:0 4px 6px var(--gutter);font-size:1.176rem;font-weight:600;letter-spacing:.01em;}.ds-list{list-style:none;margin:0;padding:0;background:var(--cell);border-radius:var(--radius-cell);overflow:hidden;}.ds-rowi{display:flex;align-items:center;gap:12px;min-height:60px;padding:9px var(--gutter);position:relative;color:var(--label);text-decoration:none;transition:background-color .15s ease;}.ds-list li+li .ds-rowi::before{content:'';position:absolute;top:0;left:var(--gutter);right:0;border-top:.5px solid var(--separator);}.ds-rowi:hover{background:color-mix(in srgb,var(--fill) 60%,transparent);}.ds-rowi:active{background:var(--fill);}.ds-rowi:focus-visible{outline:3px solid color-mix(in srgb,var(--tint) 55%,transparent);outline-offset:-3px;}.ds-main{flex:1;min-width:0;display:grid;gap:2px;}.ds-t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.ds-s{display:flex;gap:8px;font-size:.882rem;color:var(--label-2);white-space:nowrap;overflow:hidden;}.ds-time{color:var(--label);opacity:.85;font-variant-numeric:tabular-nums;}.ds-chip{padding:2px 8px;border-radius:6px;background:var(--chip-bg);color:var(--chip-text);font-size:.765rem;font-weight:700;font-variant-numeric:tabular-nums;}"
+    },
+    {
+      "name": "Length Chip",
+      "kind": "chip",
+      "refersTo": "length-chip",
+      "description": "Grey chip with the estimated spoken length.",
+      "html": "<span class=\"ds-chip\">21s</span>",
+      "css": ":host{--tint:#1c1c1e;--on-tint:#fff;--chip-bg:#e5e5ea;--chip-text:#1c1c1e;--bg:#f2f2f7;--cell:#fff;--label:#000;--label-2:rgba(60,60,67,.75);--separator:rgba(60,60,67,.29);--fill:rgba(118,118,128,.12);--segment-on:#fff;--bar:rgba(242,242,247,.94);--red:#ff3b30;--radius-cell:12px;--gutter:16px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,'Segoe UI',Roboto,sans-serif;font-size:17px;}.ds-chip{display:inline-block;padding:2px 8px;border-radius:6px;background:var(--chip-bg);color:var(--chip-text);font-size:.765rem;font-weight:700;font-variant-numeric:tabular-nums;}"
+    },
+    {
+      "name": "Filled Text Field",
+      "kind": "input",
+      "refersTo": "text-field-filled",
+      "description": "Borderless field on a cell, focus shown as a soft graphite ring.",
+      "html": "<input class=\"ds-input\" type=\"password\" placeholder=\"Password\">",
+      "css": ":host{--tint:#1c1c1e;--on-tint:#fff;--chip-bg:#e5e5ea;--chip-text:#1c1c1e;--bg:#f2f2f7;--cell:#fff;--label:#000;--label-2:rgba(60,60,67,.75);--separator:rgba(60,60,67,.29);--fill:rgba(118,118,128,.12);--segment-on:#fff;--bar:rgba(242,242,247,.94);--red:#ff3b30;--radius-cell:12px;--gutter:16px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,'Segoe UI',Roboto,sans-serif;font-size:17px;}.ds-input{width:320px;font:inherit;font-size:1rem;color:var(--label);background:var(--cell);border:0;border-radius:var(--radius-cell);padding:13px var(--gutter);}.ds-input::placeholder{color:rgba(60,60,67,.72);}.ds-input:focus{outline:none;box-shadow:0 0 0 2px color-mix(in srgb,var(--tint) 45%,transparent);}"
+    },
+    {
+      "name": "Toolbar",
+      "kind": "nav",
+      "refersTo": "button-text",
+      "description": "Bottom bar material with blur and hairline: leading action, centred status, trailing action.",
+      "html": "<footer class=\"ds-toolbar\"><button class=\"ds-tb\">Log Out</button><span class=\"ds-status\">3 Drafts</span><button class=\"ds-tb\" aria-label=\"New idea\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7\"/><path d=\"M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z\"/></svg></button></footer>",
+      "css": ":host{--tint:#1c1c1e;--on-tint:#fff;--chip-bg:#e5e5ea;--chip-text:#1c1c1e;--bg:#f2f2f7;--cell:#fff;--label:#000;--label-2:rgba(60,60,67,.75);--separator:rgba(60,60,67,.29);--fill:rgba(118,118,128,.12);--segment-on:#fff;--bar:rgba(242,242,247,.94);--red:#ff3b30;--radius-cell:12px;--gutter:16px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,'Segoe UI',Roboto,sans-serif;font-size:17px;}.ds-toolbar{width:375px;height:50px;padding:0 var(--gutter);display:grid;grid-template-columns:auto minmax(0,1fr) auto;column-gap:12px;align-items:center;background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--separator);}.ds-tb{display:inline-flex;align-items:center;min-height:44px;border:0;background:none;color:var(--tint);font:inherit;font-size:1rem;cursor:pointer;}.ds-tb:focus-visible{outline:3px solid color-mix(in srgb,var(--tint) 55%,transparent);border-radius:6px;}.ds-status{justify-self:center;font-size:.765rem;color:var(--label-2);font-variant-numeric:tabular-nums;}"
+    },
+    {
+      "name": "Read Mode",
+      "kind": "custom",
+      "refersTo": "read-close",
+      "description": "Signature full-screen script for filming: bold lines, grey cues, one size slider.",
+      "html": "<div class=\"ds-read\"><div class=\"ds-read-top\"><span class=\"ds-read-chip\">21s</span><span class=\"ds-read-title\">Culling wedding photos</span><button class=\"ds-read-close\" aria-label=\"Close Read mode\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\"><path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/></svg></button></div><p class=\"ds-read-line\">I shot three thousand frames on Saturday.</p><p class=\"ds-read-cue\">Scroll through the catalogue</p><p class=\"ds-read-line\">Here is how I get it down to four hundred.</p><div class=\"ds-read-bottom\"><span style=\"font-size:14px;font-weight:700\">A</span><input type=\"range\" min=\"22\" max=\"96\" value=\"34\" aria-label=\"Text size\"><span style=\"font-size:24px;font-weight:700\">A</span></div></div>",
+      "css": ":host{--tint:#1c1c1e;--on-tint:#fff;--chip-bg:#e5e5ea;--chip-text:#1c1c1e;--bg:#f2f2f7;--cell:#fff;--label:#000;--label-2:rgba(60,60,67,.75);--separator:rgba(60,60,67,.29);--fill:rgba(118,118,128,.12);--segment-on:#fff;--bar:rgba(242,242,247,.94);--red:#ff3b30;--radius-cell:12px;--gutter:16px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,'Segoe UI',Roboto,sans-serif;font-size:17px;}.ds-read{--read-bg:#fff;--read-text:#000;--read-cue:#6d6d72;--read-sub:rgba(0,0,0,.6);--read-knob:rgba(0,0,0,.07);background:var(--read-bg);color:var(--read-text);padding:22px 28px;width:420px;}.ds-read-top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;}.ds-read-chip{padding:4px 10px 3px;border-radius:7px;box-shadow:inset 0 0 0 1.5px var(--read-text);font-size:1.1rem;font-weight:700;font-variant-numeric:tabular-nums;}.ds-read-title{font-size:.882rem;font-weight:600;color:var(--read-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.ds-read-close{display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:var(--read-knob);color:var(--read-text);cursor:pointer;}.ds-read-close:focus-visible{outline:3px solid rgba(0,0,0,.55);outline-offset:2px;}.ds-read-line{font-size:34px;font-weight:700;line-height:1.22;letter-spacing:.005em;max-width:30ch;margin:18px 0 .55em;}.ds-read-cue{font-size:20.4px;font-weight:600;color:var(--read-cue);margin:.2em 0 .9em;}.ds-read-bottom{display:grid;grid-template-columns:auto minmax(120px,420px) auto;align-items:center;gap:12px;}.ds-read-bottom input{width:100%;accent-color:var(--read-text);}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Contact Print",
+    "overview": "Reel Drafts is a native Apple shell in the Graphite scheme: the grouped inset lists, hairline separators, blurred bars and large titles of Notes and Reminders, with every trace of colour taken out. Controls are near-black in light mode and near-white in dark, the way a contact print is all tone and no hue. The app should feel like it shipped with the iPhone, so the system's job is fidelity to Apple's own conventions, not invention on top of them.\n\nDensity follows the platform. On iPhone the root size follows the Dynamic Type setting and every target is at least 44px. On a Mac with a fine pointer the root drops to 15px and the list sits beside the open draft, Notes style. Both appearances are first-class; every colour token has a light and a dark value and they are switched only by `prefers-color-scheme`.\n\nThe one place the system raises its voice is Read mode: a full-screen sheet of bold script on plain white (or black), sized by a single slider, for reading at arm's length while filming. Everything else stays quiet so that screen can be loud.",
+    "keyCharacteristics": [
+      "Monochrome Graphite tint; system red is the only hue, and only for errors.",
+      "Apple grouped-list anatomy: grey grouped background, white inset cells, 12px corners, hairline separators inset by the gutter.",
+      "System font with the iOS text-style ramp, scaled from a 17px body.",
+      "Translucent blurred bars at top (once scrolled) and bottom.",
+      "Read mode as the signature: bold, big, plain, adjustable."
+    ],
+    "rules": [
+      {
+        "name": "The Graphite Rule",
+        "body": "There is no accent colour. Interactive emphasis comes from the graphite tint, weight and position, never from a hue.",
+        "section": "colors"
+      },
+      {
+        "name": "The Red Means Broken Rule",
+        "body": "System red appears only where something failed. It is never decoration, status for success, or emphasis.",
+        "section": "colors"
+      },
+      {
+        "name": "The Paired Appearance Rule",
+        "body": "Every new colour token ships with both a light and a dark value, switched by `prefers-color-scheme`.",
+        "section": "colors"
+      },
+      {
+        "name": "The Dynamic Type Rule",
+        "body": "Sizes are rem off a 17px root, and on iPhone the root follows the system Dynamic Type setting. Don't set app text in fixed px; Read mode's slider-driven size is the one deliberate exception.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Family Rule",
+        "body": "No second typeface. Hierarchy is weight (400, 600, 700) and the iOS size ramp.",
+        "section": "typography"
+      },
+      {
+        "name": "The Material Not Shadow Rule",
+        "body": "Bars get blur and a hairline, cells get tone. A new surface earns a shadow only if Apple would float it (sheet, popover, selected segment).",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use the graphite tint for every interactive control and nothing else for emphasis.",
+      "Do build new screens from grouped inset sections: Title 3 header, 12px cell, optional footnote footer.",
+      "Do keep touch targets at 44px minimum and pad bars with safe-area insets.",
+      "Do give every new colour a dark value and check both appearances.",
+      "Do use tabular figures for counts, durations and times.",
+      "Do keep motion short and native (0.12 to 0.25s fades and presses, a 0.42s sheet rise on `cubic-bezier(0.2, 0.9, 0.25, 1)`), and collapse it under reduced motion.",
+      "Do keep Read mode pure ground and ink with one size control."
+    ],
+    "donts": [
+      "Don't introduce an accent hue. System red for errors is the only colour.",
+      "Don't bring back the dropped Irish road-sign theme or its sign-green tint (tried and dropped by Glenn, 31 Oct 2026). Class names such as `.sign`, `.sign-line` and `.route-chip` are leftovers from it and now style plain Read mode and the length chip; they are not a cue to restyle anything as signage.",
+      "Don't add borders or drop shadows to cells; depth comes from tone and bar material.",
+      "Don't add a second typeface or set app text in fixed px outside Read mode.",
+      "Don't use cream grounds or warm tinted neutrals; neutrals are Apple's cool system greys."
+    ]
+  }
+}
