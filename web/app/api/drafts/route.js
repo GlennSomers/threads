@@ -7,6 +7,7 @@ import {
   parseDraft,
   serializeDraft,
   titleFromIdea,
+  wordCount,
 } from "@/lib/draft";
 
 export const dynamic = "force-dynamic";
@@ -25,10 +26,12 @@ export async function GET(request) {
           .filter((l) => l && !/^\[.*\]$/.test(l))
           .join(" ")
           .slice(0, 140);
+        const words = wordCount(sections.Script);
         return {
           slug,
           title: meta.title || slug,
           status: meta.status || "idea",
+          seconds: words ? Math.round(words / 2.75) : 0,
           created: meta.created || "",
           updated: meta.updated || meta.created || "",
           preview,

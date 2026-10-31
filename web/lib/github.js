@@ -1,6 +1,7 @@
 // Small GitHub API client for reading and writing drafts and starting the refine workflow.
 
-const API = "https://api.github.com";
+// GITHUB_API_URL is only for local testing against a mock; leave it unset in production.
+const API = process.env.GITHUB_API_URL || "https://api.github.com";
 export const DRAFTS_DIR = ".claude/drafts";
 export const WORKFLOW_FILE = "refine-draft.yml";
 

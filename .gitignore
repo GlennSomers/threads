@@ -1,0 +1,5 @@
+
+# impeccable working files (screenshots, mocks, build state)
+.impeccable/review/
+.impeccable/mocks/
+.impeccable/build/

@@ -26,22 +26,24 @@ export default function LoginPage() {
   }
 
   return (
-    <form className="login card" onSubmit={submit}>
-      <h1 style={{ marginBottom: 16 }}>Reel Drafts</h1>
-      <input
-        type="password"
-        autoComplete="current-password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        autoFocus
-      />
-      {error && <p className="banner error" style={{ marginTop: 12 }}>{error}</p>}
-      <div className="row end" style={{ marginTop: 14 }}>
-        <button className="primary" disabled={busy || !password}>
+    <main className="login">
+      <form className="login-card" onSubmit={submit}>
+        <h1 className="login-sign">Reel Drafts</h1>
+        <input
+          className="login-field"
+          type="password"
+          autoComplete="current-password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          aria-label="Password"
+          autoFocus
+        />
+        {error && <p className="inline-error" role="alert">{error}</p>}
+        <button className="prominent-button" disabled={busy || !password}>
           {busy ? "Checking…" : "Open"}
         </button>
-      </div>
-    </form>
+      </form>
+    </main>
   );
 }

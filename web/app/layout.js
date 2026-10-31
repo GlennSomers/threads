@@ -4,6 +4,7 @@ export const metadata = {
   title: "Reel Drafts",
   description: "Draft and refine Instagram Reels scripts.",
   robots: { index: false, follow: false },
+  appleWebApp: { capable: true, title: "Reel Drafts", statusBarStyle: "default" },
 };
 
 export const viewport = {
@@ -11,17 +12,15 @@ export const viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f3ee" },
-    { media: "(prefers-color-scheme: dark)", color: "#16140f" },
+    { media: "(prefers-color-scheme: light)", color: "#f2f2f7" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
   ],
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en-IE">
-      <body>
-        <main className="shell">{children}</main>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
