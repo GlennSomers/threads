@@ -11,10 +11,10 @@ export default function NoDraftSelected() {
     <div className="empty-detail">
       <p className="empty-title">{hasDrafts ? "No draft open" : "No drafts yet"}</p>
       <p className="empty-text">
-        {hasDrafts ? "Pick one from the list, or start a new idea." : "Start with a rough idea. Type it or dictate it."}
+        {hasDrafts ? "Pick one from the list, or start a new idea" : "Start with a rough idea. Type it or dictate it."}
       </p>
       <button type="button" className="text-button large" onClick={() => setComposeOpen(true)}>
-        <Icon.Compose size={18} /> New Idea
+        <Icon.Compose size={18} /> New idea
       </button>
     </div>
   );

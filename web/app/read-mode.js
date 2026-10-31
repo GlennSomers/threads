@@ -90,7 +90,10 @@ export default function ReadMode({ title, script, seconds, onClose }) {
           ) : (
             lines.map((line, i) =>
               /^\[.*\]$/.test(line) ? (
-                <p key={i} className="sign-cue">{line.slice(1, -1)}</p>
+                <p key={i} className="sign-cue">
+                  <Icon.Camera size={20} className="sign-cue-mark" />
+                  <span>{line.slice(1, -1).replace(/^b-?roll:\s*/i, "")}</span>
+                </p>
               ) : (
                 <p key={i} className="sign-line">{line}</p>
               )

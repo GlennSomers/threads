@@ -63,7 +63,7 @@ export default function ComposeSheet() {
       <div className="sheet" role="dialog" aria-modal="true" aria-labelledby="compose-title">
         <div className="sheet-bar">
           <button type="button" className="text-button" onClick={close} disabled={busy}>Cancel</button>
-          <h2 id="compose-title" className="sheet-title">New Idea</h2>
+          <h2 id="compose-title" className="sheet-title">New idea</h2>
           <button type="button" className="text-button strong" onClick={save} disabled={busy || !idea.trim()}>
             {busy ? <Spinner size={16} /> : "Save"}
           </button>
@@ -86,7 +86,7 @@ export default function ComposeSheet() {
               placeholder="Direction for Claude (optional)"
               aria-label="Direction for Claude"
             />
-            <p className="field-footer">For example: about 30 seconds, part 4 of the wedding series.</p>
+            <p className="field-footer">For example: about 30 seconds, part 4 of the wedding series</p>
           </div>
           {error && <p className="inline-error" role="alert">{error}</p>}
         </div>

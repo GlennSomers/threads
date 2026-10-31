@@ -4,7 +4,8 @@ import { useLayoutEffect, useRef, useState } from "react";
 
 /* ---------- Icons (Lucide paths, ISC licence, drawn at one stroke weight) ---------- */
 
-function Svg({ children, size = 22, strokeWidth = 1.9, label, ...rest }) {
+// One stroke weight for every icon.
+function Svg({ children, size = 22, strokeWidth = 1.75, label, ...rest }) {
   return (
     <svg
       width={size}
@@ -33,12 +34,12 @@ export const Icon = {
     </Svg>
   ),
   Back: (p) => (
-    <Svg strokeWidth={2.4} {...p}>
+    <Svg {...p}>
       <path d="m15 18-6-6 6-6" />
     </Svg>
   ),
   Close: (p) => (
-    <Svg strokeWidth={2.2} {...p}>
+    <Svg {...p}>
       <path d="M18 6 6 18" />
       <path d="m6 6 12 12" />
     </Svg>
@@ -63,7 +64,7 @@ export const Icon = {
     </Svg>
   ),
   Check: (p) => (
-    <Svg strokeWidth={2.4} {...p}>
+    <Svg {...p}>
       <path d="M20 6 9 17l-5-5" />
     </Svg>
   ),
@@ -72,6 +73,12 @@ export const Icon = {
       <circle cx="12" cy="12" r="10" />
       <path d="M12 8v4" />
       <path d="M12 16h.01" />
+    </Svg>
+  ),
+  Camera: (p) => (
+    <Svg {...p}>
+      <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5" />
+      <rect x="2" y="6" width="14" height="12" rx="2" />
     </Svg>
   ),
   Read: (p) => (
@@ -115,12 +122,18 @@ export function Spinner({ size = 18 }) {
   );
 }
 
-/** Spoken length, e.g. 21s. */
+/** Seconds as camera timecode, e.g. 0:21. */
+export function timecode(seconds) {
+  const s = Math.max(0, Math.round(seconds || 0));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+/** Spoken length as timecode, the app's one signature detail. */
 export function RouteChip({ seconds, large = false }) {
   if (!seconds) return null;
   return (
     <span className={`route-chip${large ? " large" : ""}`} aria-label={`About ${seconds} seconds spoken`}>
-      {seconds}s
+      {timecode(seconds)}
     </span>
   );
 }
@@ -171,7 +184,7 @@ export function CopyButton({ text, label = "Copy" }) {
   }
   return (
     <button type="button" className="text-button" onClick={copy} disabled={!text}>
-      {done ? <Icon.Check size={16} /> : <Icon.Copy size={16} />}
+      {done ? <Icon.Check size={18} /> : <Icon.Copy size={18} />}
       {done ? "Copied" : label}
     </button>
   );

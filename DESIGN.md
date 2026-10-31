@@ -235,19 +235,19 @@ All tone, no hue: Apple's system greys and labels, with the tint itself set to g
 
 **Display Font:** the Apple system font (SF Pro via `-apple-system`), with BlinkMacSystemFont, system-ui, Segoe UI and Roboto as fallbacks
 **Body Font:** the same
-**Label/Mono Font:** none distinct; numerals in status text, timestamps, chips and footers use tabular figures
+**Label/Mono Font:** the system mono (SF Mono) only for the spoken-length timecode chip, e.g. `0:21`. Other numerals in status text, timestamps and footers use tabular figures
 
 **Character:** one family, carried by weight and size the way iOS does it. In this world the system face is the native material, not a default left in place.
 
 ### Hierarchy
 - **Large Title** (700, 2rem / 34pt, 1.2, +0.011em): the "Drafts" screen title and the login title. Collapses into a centred 600 body-size title in the bar once it scrolls away.
 - **Title 1** (700, 1.647rem / 28pt, 1.2): the editable draft title, balanced wrap.
-- **Title 3** (600, 1.176rem / 20pt): group headers (Ready to Film, Idea, Script), empty-state titles.
+- **Title 3** (500 for group headers, 600 for empty-state titles; 1.176rem / 20pt): group headers in sentence case (Ready to film, Your idea, Script).
 - **Headline** (600, 1rem): row titles, sheet title, callout title, inline nav title, strong text buttons.
 - **Body** (400, 1rem / 17pt, 1.4 in fields, 1.3 base): field text, text buttons.
 - **Script** (400, 1.06rem, 1.5): the script field on the draft page, slightly larger and looser than body.
 - **Subheadline** (400, 0.882rem / 15pt): row previews, notes, callout text, prominent button label (at 600).
-- **Footnote** (400, 0.765rem / 13pt, tabular): group footers, toolbar status, segment labels (500, 600 selected), length chip (700).
+- **Footnote** (400, 0.765rem / 13pt, tabular): group footers, toolbar status, segment labels (500, 600 selected), length chip (system mono, 500, shown as timecode).
 - **Read Line** (700, user-set 22 to 96px, default 34px on phone and 56px on Mac, 1.22, max 30ch): spoken lines in Read mode.
 - **Read Cue** (600, 0.6x the read size, max 40ch): b-roll cues in Read mode.
 
@@ -339,3 +339,12 @@ A full-screen layer over everything: read ground, read ink, 10px plus safe-area 
 - **Don't** add borders or drop shadows to cells; depth comes from tone and bar material.
 - **Don't** add a second typeface or set app text in fixed px outside Read mode.
 - **Don't** use cream grounds or warm tinted neutrals; neutrals are Apple's cool system greys.
+
+## Unslop pass (31 Oct 2026)
+
+Run through the unslop skill (Damir Sokolovsky, CC BY 4.0) in polish mode. Character: calm, exact, unhurried. World: a camera monitor and a contact sheet, in black and white. Moment: the script in Read mode, with b-roll cues on their own quieter lines behind a small camera icon. Signature: timecode. Spoken length is always shown as `m:ss` in the system mono.
+
+- Spacing is on a 4px grid (cells pad 12px, rows 8px, groups 20px apart).
+- Labels and buttons use sentence case, and single-sentence captions have no full stop.
+- Every icon uses one stroke weight (1.75), 18px inline and 22px in bars.
+- Large titles stay bold (Apple native). Group headers are 500.

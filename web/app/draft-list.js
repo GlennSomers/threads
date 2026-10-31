@@ -6,7 +6,7 @@ import { useDrafts } from "./drafts-context";
 import { Icon, RouteChip, Spinner, StatusMark, timeAgo } from "./components";
 
 const GROUPS = [
-  { key: "refined", title: "Ready to Film", match: (d) => d.status === "refined" },
+  { key: "refined", title: "Ready to film", match: (d) => d.status === "refined" },
   { key: "refining", title: "Refining", match: (d) => d.status === "refining" },
   // A failed refine goes back with the ideas, keeping its red mark.
   { key: "idea", title: "Ideas", match: (d) => d.status === "idea" || d.status === "error" },
@@ -63,7 +63,7 @@ export default function DraftList({ activeSlug }) {
         active.length === 0 ? (
           <div className="list-empty">
             <p className="empty-title">No drafts yet</p>
-            <p className="empty-text">Tap the compose button to save your first idea.</p>
+            <p className="empty-text">Tap the compose button to save your first idea</p>
           </div>
         ) : (
           GROUPS.map((g) => {
@@ -83,7 +83,7 @@ export default function DraftList({ activeSlug }) {
         )
       ) : archived.length === 0 ? (
         <div className="list-empty">
-          <p className="empty-text">Archived drafts show up here.</p>
+          <p className="empty-text">Archived drafts show up here</p>
         </div>
       ) : (
         <section className="group">
@@ -96,9 +96,9 @@ export default function DraftList({ activeSlug }) {
       )}
 
       <footer className="toolbar">
-        <button type="button" className="text-button" onClick={logout}>Log Out</button>
+        <button type="button" className="text-button" onClick={logout}>Log out</button>
         <span className="toolbar-status">
-          {drafts === null ? "" : `${count} ${count === 1 ? "Draft" : "Drafts"}`}
+          {drafts === null ? "" : `${count} ${count === 1 ? "draft" : "drafts"}`}
         </span>
         <button
           type="button"
@@ -106,7 +106,7 @@ export default function DraftList({ activeSlug }) {
           onClick={() => setComposeOpen(true)}
           aria-label="New idea"
         >
-          <Icon.Compose size={24} />
+          <Icon.Compose size={22} />
         </button>
       </footer>
     </div>

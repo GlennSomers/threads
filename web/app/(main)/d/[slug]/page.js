@@ -12,6 +12,7 @@ import {
   Spinner,
   api,
   timeAgo,
+  timecode,
 } from "../../../components";
 import { useDrafts } from "../../../drafts-context";
 import ReadMode from "../../../read-mode";
@@ -291,7 +292,7 @@ export default function DraftPage() {
           </div>
         )}
 
-        <Group title="Your Idea">
+        <Group title="Your idea">
           <AutoTextarea
             value={s.Idea}
             onChange={(v) => setSection("Idea", v)}
@@ -318,14 +319,14 @@ export default function DraftPage() {
               action={
                 <span className="group-actions">
                   <button type="button" className="text-button" onClick={() => setReading(true)} disabled={!s.Script}>
-                    <Icon.Read size={16} /> Read
+                    <Icon.Read size={18} /> Read
                   </button>
                   <CopyButton text={s.Script} />
                 </span>
               }
               footer={
                 words
-                  ? `${words} words, about ${seconds} seconds out loud. Claude wrote it. Edit anything.`
+                  ? `${words} words, about ${timecode(seconds)} out loud. Claude wrote it. Edit anything.`
                   : "Claude wrote this. Edit anything."
               }
             >
@@ -338,7 +339,7 @@ export default function DraftPage() {
               />
             </Group>
 
-            <Group title="On-Screen Text" action={<CopyButton text={s["On-screen text"]} />}>
+            <Group title="On-screen text" action={<CopyButton text={s["On-screen text"]} />}>
               <AutoTextarea
                 value={s["On-screen text"]}
                 onChange={(v) => setSection("On-screen text", v)}
@@ -357,7 +358,7 @@ export default function DraftPage() {
             </Group>
 
             {s["Claude's notes"] && (
-              <Group title="Claude's Notes">
+              <Group title="Claude's notes">
                 <div className="notes">{s["Claude's notes"]}</div>
               </Group>
             )}
@@ -384,7 +385,7 @@ export default function DraftPage() {
           disabled={!!busy || refining || !s.Idea.trim()}
         >
           {busy === "refine" ? <Spinner size={16} /> : null}
-          {hasOutput ? "Refine Again" : "Refine"}
+          {hasOutput ? "Refine again" : "Refine"}
         </button>
       </footer>
 
