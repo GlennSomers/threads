@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Editing Studio</title>
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&family=Montserrat:wght@600;800&family=Space+Grotesk:wght@500;700&family=Poppins:wght@600;800&family=Caveat:wght@700&family=JetBrains+Mono:wght@500;800&family=Lora:ital,wght@1,600&display=swap" rel="stylesheet">
+</head><body>
+<header>
+  <div class="brand">Editing Studio</div>
+  <div class="clipname" id="clipname">No clip yet</div>
+  <select id="clipsel" hidden></select>
+  <button class="ghost" id="addbtn">+ Add clip</button>
+  <button class="primary" id="exportbtn">Export</button>
+</header>
+<main id="app">
+  <section id="empty" hidden>
+    <div class="drop" id="drop">
+      <h1>Add your first clip</h1>
+      <p>Drop a vertical video here. It's saved to <code>editing-studio/clips/</code>, transcribed, and the Studio fills in.</p>
+      <input type="file" id="file" accept="video/*" hidden>
+      <button class="primary big" id="pick">Choose a video</button>
+      <div class="or">or link one from Google Drive</div>
+      <form id="linkform"><input id="linkurl" placeholder="Paste a Drive share link (anyone with the link)"><button class="ghost">Import</button></form>
+      <div id="msg" class="msg"></div>
+    </div>
+  </section>
+  <section id="studio" hidden>
+    <div class="left">
+      <div class="phone" id="main"></div>
+      <div class="ctl">
+        <button id="play">▶</button><input type="range" id="scrub" min="0" max="1000" value="0">
+        <button id="snd" title="Sound">🔇</button>
+        <div class="seg"><button data-m="raw">Raw</button><button data-m="edit" class="on">Edited</button></div>
+      </div>
+    </div>
+    <div class="right">
+      <nav id="tabs"></nav>
+      <p id="help" class="help"></p>
+      <div id="body"></div>
+      <div class="nav"><button class="ghost" id="back">Back</button><button class="primary" id="next">Next</button></div>
+    </div>
+  </section>
+</main>
+<div id="toast"></div>
+<script src="app.js"></script>
+</body></html>

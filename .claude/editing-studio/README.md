@@ -21,3 +21,9 @@ Without a key it falls back to local Whisper (`pip install faster-whisper`), whi
 
 ## Needs
 ffmpeg, Python 3, Node.js (all present in the cloud container).
+
+## Studio
+`python3 studio/server.py` then open http://localhost:8765. With no clip it shows an upload screen:
+drop a video (saved to `clips/`, small preview and transcript made automatically) or paste a Google Drive
+share link ("anyone with the link"). Picks save to `styles/<name>.json`.
+Not built yet: the D-key demo mode, real page screenshots on beats (cards use a stylised page), final render.
