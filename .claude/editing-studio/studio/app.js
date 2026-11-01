@@ -1,3 +1,33 @@
+/* ---------- hosted mode: login, config, direct uploads (does nothing different when run locally) ---------- */
+let CFG = {};
+const _fetch = window.fetch.bind(window);
+let loginP;
+function askLogin() {
+  return loginP || (loginP = new Promise(res => {
+    const o = document.createElement('div'); o.id = 'login';
+    o.innerHTML = '<form><h2>Editing Studio</h2><input type="password" id="pw" placeholder="Password" autofocus><button class="primary">Log in</button><p id="lerr"></p></form>';
+    document.body.appendChild(o);
+    o.querySelector('form').onsubmit = async e => { e.preventDefault();
+      const r = await _fetch('/api/login', { method: 'POST', body: JSON.stringify({ password: o.querySelector('#pw').value }) });
+      if (r.ok) { o.remove(); loginP = null; res(); } else o.querySelector('#lerr').textContent = 'Wrong password'; }; }));
+}
+window.fetch = async (...args) => { const r = await _fetch(...args);
+  if (r.status === 401 && !String(args[0]).includes('/api/login')) { await askLogin(); return _fetch(...args); } return r; };
+const cleanName = n => n.replace(/[^A-Za-z0-9._-]+/g, '_');
+// kind: 'clip' | 'reference'. Hosted: straight to Blob, then register. Local: raw POST to the Python server.
+async function sendFile(kind, file, localUrl) {
+  if (CFG.blob) {
+    const { upload } = await import('https://esm.sh/@vercel/blob@0.27.3/client');
+    const pathname = (kind === 'clip' ? 'clips/' : 'references-src/') + cleanName(file.name);
+    await upload(pathname, file, { access: 'public', handleUploadUrl: '/api/blob-token', multipart: true });
+    return (await fetch('/api/register', { method: 'POST', body: JSON.stringify({ kind, pathname }) })).json();
+  }
+  return (await fetch(localUrl + encodeURIComponent(file.name), { method: 'POST', body: file })).json();
+}
+// keep checking the clip list while a hosted job (import, prepare) finishes
+function pollClips(ms = 5000, tries = 90) { let n = 0; const t = setInterval(async () => { if (++n > tries) return clearInterval(t);
+  const list = await (await fetch('/api/clips')).json(); if (list.some(c => c.status === 'ready') && $('#studio').hidden) { clearInterval(t); refresh(); } if (list.length && list.every(c => c.status === 'ready')) clearInterval(t); }, ms); }
+
 /* ---------- sound ---------- */
 let AC, musicNode;
 function snd(kind) {
@@ -116,7 +146,9 @@ function renderBeats(body) {
     body.insertAdjacentHTML('beforeend', `<h3>Page for this beat</h3><div class="row"><input type="text" id="shoturl" placeholder="https://the-page-you-mention.com" value="${esc(b.shotUrl || '')}"><button id="shotbtn">${b.shot ? 'Recapture' : 'Capture'}</button></div><div class="help" id="shotmsg">${b.shot ? 'Using a real screenshot: ' + esc(b.shot) : 'Until you capture one, the card shows a stand-in page.'}</div>`);
     $('#shotbtn').onclick = async () => { const u = $('#shoturl').value.trim(); if (!u) return; $('#shotmsg').textContent = 'Taking a screenshot...';
       const d = await (await fetch('/api/shot', { method: 'POST', body: JSON.stringify({ url: u }) })).json();
-      if (d.error) { $('#shotmsg').textContent = d.error; return; } b.shot = d.file; b.shotUrl = u; toast('Screenshot saved'); renderStep(); }; }
+      if (d.error) { $('#shotmsg').textContent = d.error; return; }
+      if (d.pending) { for (let i = 0; i < 60; i++) { if ((await fetch('/shots/' + encodeURIComponent(d.file), { method: 'HEAD' })).ok) break; $('#shotmsg').textContent = 'Taking the screenshot in the background... ' + (i * 4) + 's'; await new Promise(r => setTimeout(r, 4000)); } }
+      b.shot = d.file; b.shotUrl = u; toast('Screenshot saved'); renderStep(); }; }
   body.insertAdjacentHTML('beforeend', `<h3>${S.beat === 0 ? 'Hook title' : 'Beat ' + (S.beat + 1) + ' effects'}</h3><div class="grid"></div>`);
   if (S.beat === 0) HOOKS.forEach((h, i) => card(i, h[1], () => { S.hook = S.hook === h[0] ? null : h[0]; S.done.add(3); toast('Hook: ' + h[1]); renderStep(); }, () => ({ ...baseCfg(), hook: h[0] }), win, S.hook === h[0]));
   else {
@@ -138,7 +170,15 @@ function renderWatch(body) {
     S.beats.slice(1).map((b, i) => row('Beat ' + (i + 2), S.fx[i + 1].map(x => FX.find(f => f[0] === x)[1]).join(', ') || 'Just you')).join('') +
     `${row('Whole clip', [...S.whole].join(', '))}${row('Sound', [...S.snd].join(', '))}</div>
     <h3>Save as my style</h3><div class="row"><input type="text" id="sname" placeholder="Style name, e.g. split-card-reels"><button class="primary" id="ssave">Save style</button></div>
-    <p class="help">Saved to <code>editing-studio/styles/</code>. The final render happens when you ask Claude to edit this clip in this style (guide chapter 6).</p>`;
+    <h3>Render</h3><div class="row"><button class="primary" id="rbtn">Render this style</button></div><div id="rstat" class="help">Save the style first, then render. The video is 1080x1920 at 30 fps.</div><div id="rlist"></div>`;
+  const showRenders = async name => { const d = await (await fetch('/api/renders?name=' + encodeURIComponent(name))).json(), el = $('#rlist'); if (!el) return;
+    el.innerHTML = (d.files || []).map(f => `<div class="row"><a href="${f.url}" target="_blank">${esc(f.file)}</a><span class="help">${(f.size / 1e6).toFixed(1)} MB</span></div>`).join('');
+    const j = d.job; $('#rstat').textContent = !j ? $('#rstat').textContent : j.status === 'running' || j.status === 'queued' ? 'Rendering... this takes a few minutes.' : j.status === 'error' ? 'Render failed: ' + j.message : 'Render finished.'; return j; };
+  $('#rbtn').onclick = async () => { const n = $('#sname').value.trim(); if (!n) return toast('Name and save your style first');
+    await fetch('/save', { method: 'POST', body: JSON.stringify(styleObj(n)) }); S.done.add(5); mark();
+    const r = await (await fetch('/api/render', { method: 'POST', body: JSON.stringify({ name: n }) })).json(); if (r.error) return toast(r.error);
+    $('#rstat').textContent = 'Rendering... this takes a few minutes.'; const slugn = n.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
+    for (let i = 0; i < 360; i++) { await new Promise(r => setTimeout(r, 5000)); const j = await showRenders(slugn); if (j && (j.status === 'done' || j.status === 'error')) break; } };
   $('#ssave').onclick = async () => { const n = $('#sname').value.trim(); if (!n) return toast('Name your style first');
     const r = await (await fetch('/save', { method: 'POST', body: JSON.stringify(styleObj(n)) })).json(); toast('Saved ' + r.saved); S.done.add(5); mark(); };
 }
@@ -146,8 +186,7 @@ function renderWatch(body) {
 /* ---------- wiring ---------- */
 async function upload(file) {
   setMsg(`Uploading ${file.name}...`); show('empty');
-  const r = await fetch('/api/upload?name=' + encodeURIComponent(file.name), { method: 'POST', body: file });
-  const d = await r.json(); if (d.error) return setMsg(d.error, true); S.clip = null; refresh(d.name);
+  const d = await sendFile('clip', file, '/api/upload?name='); if (d.error) return setMsg(d.error, true); S.clip = null; refresh(d.name);
 }
 $('#pick').onclick = () => $('#file').click(); $('#addbtn').onclick = () => { show('empty'); setMsg(''); };
 $('#file').onchange = e => e.target.files[0] && upload(e.target.files[0]);
@@ -157,6 +196,7 @@ const drop = $('#drop');
 drop.addEventListener('drop', e => e.dataTransfer.files[0] && upload(e.dataTransfer.files[0]));
 $('#linkform').onsubmit = async e => { e.preventDefault(); setMsg('Fetching from the link...');
   const d = await (await fetch('/api/import', { method: 'POST', body: JSON.stringify({ url: $('#linkurl').value.trim() }) })).json();
+  if (d.pending) { setMsg('Importing in the background. This can take a few minutes; the Studio opens when it is ready.'); pollClips(); return; }
   d.error ? setMsg(d.error, true) : (S.clip = null, refresh(d.name)); };
 $('#clipsel').onchange = e => { S.clip = null; refresh(e.target.value); };
 $('#tabs').onclick = e => { const b = e.target.closest('button'); if (b) { S.step = +b.dataset.i; renderStep(); } };
@@ -169,7 +209,7 @@ $('#snd').onclick = () => { S.sound = !S.sound; $('#snd').textContent = S.sound 
 document.querySelectorAll('.seg button').forEach(b => b.onclick = () => { S.mode = b.dataset.m; document.querySelectorAll('.seg button').forEach(x => x.classList.toggle('on', x === b)); });
 $('#exportbtn').onclick = () => { S.step = 5; renderStep(); toast('Save your style, then ask Claude to render it'); };
 document.addEventListener('keydown', e => { if (e.key === 'r' && !/INPUT/.test(e.target.tagName)) location.reload(); });
-refresh();
+fetch('/api/config').then(r => r.json()).then(c => { CFG = c; }).catch(() => {}).finally(refresh);
 
 /* ---------- hands-free demo (press D). R reloads. ---------- */
 let demoOn = false;
@@ -273,7 +313,7 @@ async function ingestList() {
   if (list.some(r => r.status === 'processing')) { clearTimeout(ingestTimer); ingestTimer = setTimeout(ingestList, 2000); }
 }
 async function ingestUpload(file) { $('#imsg').textContent = 'Uploading ' + file.name + '...';
-  const d = await (await fetch('/api/ingest-upload?name=' + encodeURIComponent(file.name), { method: 'POST', body: file })).json();
+  const d = await sendFile('reference', file, '/api/ingest-upload?name=');
   $('#imsg').textContent = d.error || 'Analysing ' + d.name; ingestList(); }
 $('#ingestbtn').onclick = () => { show('ingest'); ingestList(); };
 $('#iback').onclick = () => S.clip && main ? show('studio') : refresh();
@@ -281,7 +321,8 @@ $('#ipick').onclick = () => $('#ifile').click();
 $('#ifile').onchange = e => e.target.files[0] && ingestUpload(e.target.files[0]);
 $('#ilink').onsubmit = async e => { e.preventDefault(); $('#imsg').textContent = 'Fetching...';
   const d = await (await fetch('/api/ingest-import', { method: 'POST', body: JSON.stringify({ url: $('#iurl').value.trim() }) })).json();
-  $('#imsg').textContent = d.error || 'Analysing ' + d.name; ingestList(); };
+  $('#imsg').textContent = d.error || (d.pending ? 'Importing in the background. The result shows up below when it is ready.' : 'Analysing ' + d.name);
+  const t = setInterval(ingestList, 8000); setTimeout(() => clearInterval(t), 600000); ingestList(); };
 
 
 /* ---------- LUTs: Rec.709 .cube files, applied to the footage only ---------- */
