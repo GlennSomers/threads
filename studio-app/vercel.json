@@ -1,0 +1,12 @@
+{
+  "buildCommand": "node scripts/sync-frontend.js",
+  "outputDirectory": "public",
+  "functions": { "api/**/*.js": { "maxDuration": 60 } },
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/router?route=/api/:path*" },
+    { "source": "/save", "destination": "/api/router?route=/save" },
+    { "source": "/shots/:file", "destination": "/api/router?route=/shots/:file" },
+    { "source": "/luts/:file", "destination": "/api/router?route=/luts/:file" },
+    { "source": "/refs/:id/:file", "destination": "/api/router?route=/refs/:id/:file" }
+  ]
+}

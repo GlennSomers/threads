@@ -1,0 +1,17 @@
+{
+  "name": "editing-studio-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "STORAGE=fs node dev-server.js",
+    "sync": "node scripts/sync-frontend.js",
+    "build": "node scripts/sync-frontend.js",
+    "test": "STORAGE=fs node --test test/"
+  },
+  "dependencies": {
+    "@vercel/blob": "^0.27.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
