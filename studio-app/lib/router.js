@@ -34,7 +34,7 @@ async function clips() {
     const job = await jobStatus(`prep-${stem}`);
     let status = px && words ? 'ready' : 'new';
     if (status !== 'ready' && job) status = job.status === 'error' ? `error: ${job.message}` : job.status === 'done' ? 'new' : 'processing';
-    out.push({ name, status, proxy: px ? px.url : null, words: words || [] });
+    out.push({ name, status, proxy: px ? px.url : null, words: words || [], cuts: (await getJSON(`clips/${stem}.cuts.json`)) || [] });
   }
   return out;
 }
@@ -85,6 +85,11 @@ export async function handle(req, res) {
       return send(res, 200, { name });
     }
     if (route === '/api/clips') return send(res, 200, await clips());
+    if (route === '/api/cuts' && M === 'POST') {
+      const name = safe(q.get('name') || ''), cuts = await body(req);
+      if (!Array.isArray(cuts) || !cuts.every(c => c && +c.b > +c.a && +c.a >= 0)) return send(res, 400, { error: 'Expected a list of {a, b}' });
+      await putText(`clips/${stemOf(name)}.cuts.json`, JSON.stringify(cuts, null, 1)); return send(res, 200, { saved: cuts.length });
+    }
     if (route === '/api/words' && M === 'POST') {
       const name = safe(q.get('name') || ''), words = await body(req);
       if (!Array.isArray(words) || !words.every(w => w && typeof w.word === 'string' && Number.isFinite(+w.start) && Number.isFinite(+w.end))) return send(res, 400, { error: 'Expected a list of {word, start, end}' });

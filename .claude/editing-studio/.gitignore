@@ -14,3 +14,4 @@ projects/**/hf/
 references/*/source.*
 # LUTs are often paid products. Keep them out of a public repo.
 luts/
+__pycache__/

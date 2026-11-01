@@ -47,6 +47,19 @@ Presets are saved to `styles/captions/` only when you press "Save current as pre
 - **Transcript** (top of the Captions step): click a word to hear it, type to fix it, set its start and end, delete it, or find and replace (for names and products). Captions update live. "Save transcript" writes `clips/<clip>.words.json`, which the render uses.
 - **Timeline** (under the Studio): one track per kind of edit: titles and effects, whole-clip effects, captions (grouped as they show), video split at the beats with the grade and LUT, the voice waveform, sound effects and music. Click or drag to scrub, click a block to jump to it, zoom with the slider. It shows edits; dragging blocks to change them is not built yet.
 
+## Cutting
+The timeline sits under the video; every option is on the right.
+- **Find dead air and retakes**: suggests cuts for gaps between words longer than the slider (default 0.4 s, keeping 0.08 s of air either side; the waveform has to be quiet there too) and for repeated lines (the same three words said again, keeping the later take). **Nothing is cut until you pick it**: click a dashed suggestion to cut it, or "Cut all suggestions".
+- **Range tool**: drag across the timeline, then "Cut selection". **Cut word from video** in the transcript cuts one word.
+- Click a solid cut to restore it. Cuts are saved per clip (`clips/<clip>.cuts.json`), the preview skips them (switch to Raw to hear everything), struck-out words drop out of the captions, and the render joins the kept parts with 10 ms audio fades and moves captions, effects and sounds to match.
+
+## Voice processing
+On the Sound step: **Off, Light, Clean, Podcast**, an **Amount** slider and a **Noise reduction** slider.
+The chain is rumble cut (high-pass), noise reduction, warmth (Podcast), presence lift at 3.5 kHz, de-esser and compression. The numbers live in `voiceParams()` (`studio/engine.js`) and `voice_filter()` (`tools/render.py`) and match.
+- The preview plays everything except noise reduction live (Web Audio on the video; turn sound on and flip Raw/Edited to compare). Noise reduction (ffmpeg `afftdn`) is only heard in the render.
+- The render processes the voice on the clip before sound effects and music are mixed in, then masters to -14 LUFS.
+- On a test iPhone clip, Clean raised the gap between speech and background noise from 18 dB to 29 dB (25 dB at 60%).
+
 ## LUTs (Rec.709 .cube)
 On the Colours step, "Add a LUT (.cube)" takes a 3D `.cube` file. It is checked (size, row count, input range) and previewed on your clip first.
 It is **only saved as a preset when you press Save**, into `luts/`. Pick a saved LUT from the grid to use it.
