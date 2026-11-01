@@ -53,3 +53,5 @@ body.demo,body.demo *{cursor:none!important}
 
 #login{position:fixed;inset:0;background:#0e0f12;display:grid;place-items:center;z-index:200}#login form{display:flex;flex-direction:column;gap:12px;width:min(320px,86vw)}
 #login input{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:12px;font:inherit}#lerr{color:#ff7b7b;margin:0;min-height:20px}
+
+.amt{display:flex;flex-direction:column;gap:4px;margin:12px 0;color:var(--mut);font-size:12px;max-width:360px}.amt b{color:var(--ink)}

@@ -27,6 +27,7 @@ ROOT = HERE.parent
 CLIPS, STYLES, TOOLS, SHOTS = ROOT / "clips", ROOT / "styles", ROOT / "tools", ROOT / "shots"
 REFS, PRESETS, LUTS = ROOT / "references", ROOT / "styles" / "captions", ROOT / "luts"
 PROXY = HERE / "proxy"
+FLOAT = r"[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?"   # .cube rows can use e-notation, e.g. 1.2e-05
 VIDEO_EXT = {".mp4", ".mov", ".m4v", ".webm", ".mkv"}
 render_status = {}
 ingest_status = {}
@@ -246,7 +247,7 @@ class H(SimpleHTTPRequestHandler):
             if u.path == "/api/lut-save":
                 d = json.loads(self.body()); text = d["text"]
                 size = re.search(r"^\s*LUT_3D_SIZE\s+(\d+)", text, re.M)
-                rows = sum(1 for l in text.splitlines() if re.match(r"^\s*-?[\d.]+\s+-?[\d.]+\s+-?[\d.]+", l))
+                rows = sum(1 for l in text.splitlines() if re.match(rf"^\s*{FLOAT}\s+{FLOAT}\s+{FLOAT}", l))
                 if not size or rows != int(size.group(1)) ** 3:
                     return self.json({"error": "Not a valid 3D .cube file."}, 400)
                 lid = re.sub(r"[^a-z0-9-]+", "-", str(d.get("name", "lut")).lower()).strip("-") or "lut"

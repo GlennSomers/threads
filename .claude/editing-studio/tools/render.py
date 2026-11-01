@@ -68,8 +68,15 @@ def build_project(name, style, clip, words, proj):
     if lut and lut.exists():
         # The LUT grades the footage only. Captions and effects are drawn on top afterwards, so they are never graded.
         shutil.copy(lut, proj / "grade.cube")
-        run("ffmpeg", "-y", "-loglevel", "error", "-i", clip, "-vf", "lut3d=file=grade.cube:interp=tetrahedral",
-            "-c:v", "libx264", "-crf", "12", "-preset", "fast", "-pix_fmt", "yuv420p", "-c:a", "copy", proj / "clip.mp4", cwd=proj)
+        k = max(0.0, min(1.0, float(style.get("lutAmount", 100) if style.get("lutAmount") is not None else 100) / 100))
+        # work at the output size (cover-crop, same as the composition), and tag the result as Rec.709 so nothing downstream guesses
+        fit = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920"
+        to709 = "scale=out_color_matrix=bt709:out_range=tv,format=yuv420p"
+        graded = f"lut3d=file=grade.cube:interp=tetrahedral,{to709}"
+        fc = f"[0:v]{fit},{graded}[v]" if k >= 1 else f"[0:v]{fit},format=yuv420p,split[a][b];[b]{graded}[g];[a][g]blend=all_mode=normal:all_opacity={k:.3f}[v]"
+        run("ffmpeg", "-y", "-loglevel", "error", "-i", clip, "-filter_complex", fc, "-map", "[v]", "-map", "0:a?",
+            "-c:v", "libx264", "-crf", "12", "-preset", "fast", "-pix_fmt", "yuv420p", "-colorspace", "bt709", "-color_primaries", "bt709",
+            "-color_trc", "bt709", "-color_range", "tv", "-c:a", "copy", proj / "clip.mp4", cwd=proj)
     else:
         shutil.copy(clip, proj / "clip.mp4")
     shutil.copy(ROOT / "studio" / "engine.js", proj / "engine.js")
@@ -170,8 +177,16 @@ def main():
     raw = proj / "render.mp4"
     run("npx", "--yes", HF, "render", "-q", "standard", "-o", raw, cwd=proj)
     print("3/3 mastering audio to -14 LUFS")
-    run("ffmpeg", "-y", "-loglevel", "error", "-i", raw, "-c:v", "copy",
-        "-af", "loudnorm=I=-14:TP=-1.5:LRA=11", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", out)
+    # two passes: measure, then apply a linear gain. One pass undershoots or overshoots on short clips.
+    LN = "loudnorm=I=-14:TP=-1.5:LRA=11"
+    probe = subprocess.run(["ffmpeg", "-hide_banner", "-i", str(raw), "-af", LN + ":print_format=json", "-vn", "-f", "null", "-"], capture_output=True, text=True).stderr
+    try:
+        m = json.loads(probe[probe.rindex("{"):probe.rindex("}") + 1])
+        af = (f"{LN}:measured_I={m['input_i']}:measured_TP={m['input_tp']}:measured_LRA={m['input_lra']}:"
+              f"measured_thresh={m['input_thresh']}:offset={m['target_offset']}:linear=true")
+    except (ValueError, KeyError):
+        af = LN
+    run("ffmpeg", "-y", "-loglevel", "error", "-i", raw, "-c:v", "copy", "-af", af, "-c:a", "aac", "-b:a", "192k", "-ar", "48000", out)
     raw.unlink()
     print("Saved", out)
 

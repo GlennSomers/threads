@@ -6,6 +6,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { DATA } from './store.js';
 
+const F = '[-+]?(?:\\d+\\.?\\d*|\\.\\d+)(?:[eE][-+]?\\d+)?', CUBE_ROW = new RegExp(`^\\s*${F}\\s+${F}\\s+${F}`);   // rows may use e-notation
 const VIDEO = new Set(['.mp4', '.mov', '.m4v', '.webm', '.mkv']);
 const slug = s => String(s).toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'item';
 const safe = n => (path.basename(String(n)).replace(/[^A-Za-z0-9._-]+/g, '_').replace(/^[._]+|[._]+$/g, '') || 'file');
@@ -64,7 +65,7 @@ export async function handle(req, res) {
     if (route === '/api/blob-token' && M === 'POST' && !FS) {
       const { handleUpload } = await import('@vercel/blob/client');
       const json = await handleUpload({ body: await body(req), request: req, onBeforeGenerateToken: async pathname => {
-        if (!/^(clips|references-src)\/[A-Za-z0-9._-]+$/.test(pathname)) throw new Error('Bad upload path');
+        if (!/^(clips|references-src|luts)\/[A-Za-z0-9._-]+$/.test(pathname)) throw new Error('Bad upload path');
         return { allowedContentTypes: ['video/*', 'application/octet-stream'], addRandomSuffix: false, allowOverwrite: true, maximumSizeInBytes: 3e9 }; },
         onUploadCompleted: async () => {} });
       return send(res, 200, json);
@@ -102,12 +103,18 @@ export async function handle(req, res) {
     if (route === '/api/presets') { const out = []; for (const f of (await list('styles/captions/')).filter(f => f.pathname.endsWith('.json'))) { const j = await getJSON(f.pathname); if (j) out.push(j); } return send(res, 200, out); }
     if (route === '/api/lut-save' && M === 'POST') {
       const d = await body(req), text = String(d.text || ''), size = /^\s*LUT_3D_SIZE\s+(\d+)/m.exec(text);
-      const rows = text.split(/\r?\n/).filter(l => /^\s*-?[\d.]+\s+-?[\d.]+\s+-?[\d.]+/.test(l)).length;
+      const rows = text.split(/\r?\n/).filter(l => CUBE_ROW.test(l)).length;
       if (!size || rows !== (+size[1]) ** 3) return send(res, 400, { error: 'Not a valid 3D .cube file.' });
       if (text.length > 60e6) return send(res, 400, { error: 'LUT too large' });
       const id = slug(d.name || 'lut');
       await putText(`luts/${id}.cube`, text, 'text/plain'); await putText(`luts/${id}.json`, JSON.stringify({ id, name: String(d.name || id), size: +size[1], warnings: d.warnings || [] }, null, 1));
       return send(res, 200, { id });
+    }
+    if (route === '/api/lut-register' && M === 'POST') {   // the browser uploaded luts/<id>.cube straight to Blob (too big for a function body)
+      const d = await body(req), id = slug(d.name || 'lut'), text = await getText(`luts/${id}.cube`) || '';
+      const size = /^\s*LUT_3D_SIZE\s+(\d+)/m.exec(text), rows = text.split(/\r?\n/).filter(l => CUBE_ROW.test(l)).length;
+      if (!size || rows !== (+size[1]) ** 3) return send(res, 400, { error: 'Not a valid 3D .cube file.' });
+      await putText(`luts/${id}.json`, JSON.stringify({ id, name: String(d.name || id), size: +size[1], warnings: d.warnings || [] }, null, 1)); return send(res, 200, { id });
     }
     if (route === '/api/luts') { const out = []; for (const f of (await list('luts/')).filter(f => f.pathname.endsWith('.json'))) { const j = await getJSON(f.pathname); if (j) out.push(j); } return send(res, 200, out); }
     if (route === '/save' && M === 'POST') {

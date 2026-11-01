@@ -65,6 +65,7 @@ class Stage {
     const g = this.glx = this.glx || initGL(this.gl); if (!g) { this.gl.hidden = true; this.v.style.visibility = 'visible'; return; }
     if (g.cube !== S.lutCube) { uploadLut(g, S.lutCube); g.cube = S.lutCube; }
     const w = this.v.videoWidth, h = this.v.videoHeight; if (this.gl.width !== w || this.gl.height !== h) { this.gl.width = w; this.gl.height = h; g.gl.viewport(0, 0, w, h); }
+    g.gl.uniform1f(g.amt, S.lutAmount / 100);
     g.gl.activeTexture(g.gl.TEXTURE0); g.gl.bindTexture(g.gl.TEXTURE_2D, g.vtex);
     g.gl.texImage2D(g.gl.TEXTURE_2D, 0, g.gl.RGBA, g.gl.RGBA, g.gl.UNSIGNED_BYTE, this.v); g.gl.drawArrays(g.gl.TRIANGLE_STRIP, 0, 4);
     this.gl.style.filter = f.filter; this.gl.style.transform = this.v.style.transform; }
@@ -109,7 +110,7 @@ function load(c) {
   S.clip = c; S.words = c.words;
   const probe = document.createElement('video'); probe.preload = 'metadata'; probe.src = c.proxy;
   probe.onloadedmetadata = () => { S.dur = probe.duration; S.beats = makeBeats(S.words, S.dur); S.fx = {}; S.beats.forEach((_, i) => S.fx[i] = []);
-    S.caption = null; S.capEdit = {}; S.lut = null; S.lutCube = null; baseImg = null; S.hook = null; S.whole = new Set(); S.snd = new Set(); S.done = new Set(); S.step = 0; S.beat = 0; show('studio'); build(); renderStep(); };
+    S.caption = null; S.capEdit = {}; S.lut = null; S.lutCube = null; S.lutAmount = 100; baseImg = null; S.hook = null; S.whole = new Set(); S.snd = new Set(); S.done = new Set(); S.step = 0; S.beat = 0; show('studio'); build(); renderStep(); };
 }
 function build() {
   if (main) main.destroy(); $('#main').innerHTML = '';
@@ -162,11 +163,11 @@ function renderBeats(body) {
     d.onclick = () => { S.whole.has(w[0]) ? S.whole.delete(w[0]) : S.whole.add(w[0]); S.done.add(3); toast(w[1]); renderStep(); }; g2.appendChild(d);
     cards.push(new Stage(d, { cfg: () => ({ ...baseCfg(), whole: new Set([w[0]]) }), win: [b.t0, Math.min(b.t1, b.t0 + 4)] })); });
 }
-function styleObj(name) { return { name, clip: S.clip.name, grade: S.grade, font: S.font, caption: S.caption, hook: S.hook, lut: S.lut ? S.lut.id : null, capOpts: S.capEdit, dur: +S.dur.toFixed(2),
+function styleObj(name) { return { name, clip: S.clip.name, grade: S.grade, font: S.font, caption: S.caption, hook: S.hook, lut: S.lut ? S.lut.id : null, lutAmount: S.lut ? S.lutAmount : null, capOpts: S.capEdit, dur: +S.dur.toFixed(2),
   beats: S.beats.map((b, i) => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text, effects: S.fx[i], shot: b.shot || null, shotUrl: b.shotUrl || null })), whole: [...S.whole], sounds: [...S.snd] }; }
 function renderWatch(body) {
   const row = (k, v) => `<div><b>${k}</b><span>${esc(v || 'not picked')}</span></div>`;
-  body.innerHTML = `<div class="sum">${row('Colour', G(S.grade)[1])}${row('LUT', S.lut ? S.lut.name : 'none')}${row('Font', F(S.font)[1])}${row('Captions', (CAPS.find(c => c[0] === S.caption) || [])[1])}${row('Hook', (HOOKS.find(h => h[0] === S.hook) || [])[1])}` +
+  body.innerHTML = `<div class="sum">${row('Colour', G(S.grade)[1])}${row('LUT', S.lut ? S.lut.name + ' (' + S.lutAmount + '%)' : 'none')}${row('Font', F(S.font)[1])}${row('Captions', (CAPS.find(c => c[0] === S.caption) || [])[1])}${row('Hook', (HOOKS.find(h => h[0] === S.hook) || [])[1])}` +
     S.beats.slice(1).map((b, i) => row('Beat ' + (i + 2), S.fx[i + 1].map(x => FX.find(f => f[0] === x)[1]).join(', ') || 'Just you')).join('') +
     `${row('Whole clip', [...S.whole].join(', '))}${row('Sound', [...S.snd].join(', '))}</div>
     <h3>Save as my style</h3><div class="row"><input type="text" id="sname" placeholder="Style name, e.g. split-card-reels"><button class="primary" id="ssave">Save style</button></div>
@@ -334,7 +335,7 @@ function parseCube(text) {
     else if (/^LUT_1D_SIZE/i.test(l)) oneD = true;
     else if (/^DOMAIN_MIN/i.test(l)) dmin = l.split(/\s+/).slice(1).map(Number);
     else if (/^DOMAIN_MAX/i.test(l)) dmax = l.split(/\s+/).slice(1).map(Number);
-    else if (/^[-\d.]/.test(l)) { const p = l.split(/\s+/); if (p.length >= 3) vals.push(+p[0], +p[1], +p[2]); } }
+    else if (/^[-+\d.]/.test(l)) { const p = l.split(/\s+/); if (p.length >= 3) vals.push(+p[0], +p[1], +p[2]); } }
   if (oneD && !size) throw new Error('This is a 1D LUT. Only 3D .cube LUTs are supported.');
   if (!size || size < 2 || size > 129) throw new Error('No valid LUT_3D_SIZE found. Is this a 3D .cube file?');
   if (vals.length !== size ** 3 * 3) throw new Error(`Expected ${size ** 3} colour rows for size ${size}, found ${vals.length / 3}.`);
@@ -368,23 +369,35 @@ function initGL(canvas) {
   const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); return o; };
   const p = gl.createProgram();
   gl.attachShader(p, sh(gl.VERTEX_SHADER, 'attribute vec2 a;varying vec2 v;void main(){v=vec2(a.x*.5+.5,.5-a.y*.5);gl_Position=vec4(a,0,1);}'));
-  gl.attachShader(p, sh(gl.FRAGMENT_SHADER, `precision highp float;varying vec2 v;uniform sampler2D vid,lut;uniform float N;uniform vec3 dmin,dmax;
+  gl.attachShader(p, sh(gl.FRAGMENT_SHADER, `precision highp float;varying vec2 v;uniform sampler2D vid,lut;uniform float N,amt;uniform vec3 dmin,dmax;
     vec3 at(float r,float g,float b){return texture2D(lut,vec2((b*N+r+.5)/(N*N),(g+.5)/N)).rgb;}
     void main(){vec3 c=clamp((texture2D(vid,v).rgb-dmin)/(dmax-dmin),0.,1.)*(N-1.);vec3 f=floor(c),t=c-f,u=min(f+1.,N-1.);
       vec3 x0=mix(mix(at(f.r,f.g,f.b),at(u.r,f.g,f.b),t.r),mix(at(f.r,u.g,f.b),at(u.r,u.g,f.b),t.r),t.g);
       vec3 x1=mix(mix(at(f.r,f.g,u.b),at(u.r,f.g,u.b),t.r),mix(at(f.r,u.g,u.b),at(u.r,u.g,u.b),t.r),t.g);
-      gl_FragColor=vec4(mix(x0,x1,t.b),1.);}`));
+      vec3 src=texture2D(vid,v).rgb;gl_FragColor=vec4(mix(src,mix(x0,x1,t.b),amt),1.);}`));
   gl.linkProgram(p); gl.useProgram(p);
   const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
   const loc = gl.getAttribLocation(p, 'a'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
   const tex = () => { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
     [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER].forEach(k => gl.texParameteri(gl.TEXTURE_2D, k, gl.LINEAR));
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); return t; };
-  const g = { gl, p, vtex: tex(), ltex: tex() };
+  const g = { gl, p, vtex: tex(), ltex: tex(), amt: gl.getUniformLocation(p, 'amt') };
   gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, g.ltex); [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER].forEach(k => gl.texParameteri(gl.TEXTURE_2D, k, gl.NEAREST));
   gl.uniform1i(gl.getUniformLocation(p, 'vid'), 0); gl.uniform1i(gl.getUniformLocation(p, 'lut'), 1); return g;
 }
+function resampleCube(c, M) {   // preview only: shrink a big LUT (e.g. 65 points) so its texture fits the GPU
+  const N = c.size, out = new Float32Array(M ** 3 * 3), at = (r, g, b) => (r + g * N + b * N * N) * 3;
+  for (let b = 0; b < M; b++) for (let g = 0; g < M; g++) for (let r = 0; r < M; r++) {
+    const x = r / (M - 1) * (N - 1), y = g / (M - 1) * (N - 1), z = b / (M - 1) * (N - 1), x0 = Math.floor(x), y0 = Math.floor(y), z0 = Math.floor(z);
+    const x1 = Math.min(x0 + 1, N - 1), y1 = Math.min(y0 + 1, N - 1), z1 = Math.min(z0 + 1, N - 1), fx = x - x0, fy = y - y0, fz = z - z0, o = (r + g * M + b * M * M) * 3;
+    for (let k = 0; k < 3; k++) {
+      const v = (X, Y, Z) => c.data[at(X, Y, Z) + k];
+      const c00 = v(x0, y0, z0) * (1 - fx) + v(x1, y0, z0) * fx, c10 = v(x0, y1, z0) * (1 - fx) + v(x1, y1, z0) * fx, c01 = v(x0, y0, z1) * (1 - fx) + v(x1, y0, z1) * fx, c11 = v(x0, y1, z1) * (1 - fx) + v(x1, y1, z1) * fx;
+      out[o + k] = (c00 * (1 - fy) + c10 * fy) * (1 - fz) + (c01 * (1 - fy) + c11 * fy) * fz; } }
+  return { ...c, size: M, data: out };
+}
 function uploadLut(g, c) {
+  if (c.size * c.size > g.gl.getParameter(g.gl.MAX_TEXTURE_SIZE)) c = resampleCube(c, 33);
   const { gl } = g, N = c.size, px = new Uint8Array(N * N * N * 4);
   for (let b = 0; b < N; b++) for (let gg = 0; gg < N; gg++) for (let r = 0; r < N; r++) {
     const s = (r + gg * N + b * N * N) * 3, o = (gg * N * N + b * N + r) * 4;
@@ -408,12 +421,14 @@ function lutCard(label, num, selected, onclick, paint) {
 }
 async function lutSection(body) {
   body.insertAdjacentHTML('beforeend', `<h3>LUTs (Rec.709 .cube)</h3><div class="grid" id="lutgrid"></div>
+    ${S.lut ? `<label class="amt">LUT amount <b id="lutamt">${S.lutAmount}%</b><input type="range" id="lutamount" min="0" max="100" step="1" value="${S.lutAmount}"></label>` : ''}
     <div class="row"><input type="file" id="lutfile" accept=".cube" hidden><button id="lutpick">Add a LUT (.cube)</button></div><div id="lutnew"></div>
     <p class="help">A LUT grades the footage only. Captions, titles and effects are drawn on top and are never graded. It is used in the final render too.</p>`);
   lutCard('No LUT', 1, !S.lut, () => { S.lut = null; S.lutCube = null; S.done.add(0); toast('LUT: none'); renderStep(); }, (x, img) => x.putImageData(img, 0, 0));
   const luts = await (await fetch('/api/luts')).json();
   luts.forEach((l, i) => lutCard(l.name, i + 2, S.lut?.id === l.id, async () => { S.lutCube = await loadLut(l.id); S.lut = { id: l.id, name: l.name }; S.done.add(0); toast('LUT: ' + l.name); renderStep(); },
     async (x, img) => x.putImageData(lutCPU(img, await loadLut(l.id)), 0, 0)));
+  const amt = $('#lutamount'); if (amt) { amt.oninput = () => { S.lutAmount = +amt.value; $('#lutamt').textContent = amt.value + '%'; }; amt.ondblclick = () => { amt.value = 100; amt.oninput(); }; }
   $('#lutpick').onclick = () => $('#lutfile').click();
   $('#lutfile').onchange = async e => { const f = e.target.files[0]; if (!f) return; const box = $('#lutnew'); box.innerHTML = '';
     let text, cube; try { text = await f.text(); cube = parseCube(text); } catch (err) { box.innerHTML = `<p class="err">${esc(err.message)}</p>`; return; }
@@ -424,6 +439,11 @@ async function lutSection(body) {
       <p class="help">Not saved until you press Save. You can still try it first: the preview above uses your clip.</p></div>`;
     baseFrame().then(img => $('#lutprev').getContext('2d').putImageData(lutCPU(img, cube), 0, 0));
     $('#lutsave').onclick = async () => { const n = $('#lutname').value.trim() || base;
-      const r = await (await fetch('/api/lut-save', { method: 'POST', body: JSON.stringify({ name: n, text, warnings: warns }) })).json();
+      let r;
+      if (CFG.blob) {   // .cube files can be several MB: straight to Blob, then register
+        const id = n.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'lut', { upload } = await import('https://esm.sh/@vercel/blob@0.27.3/client');
+        await upload(`luts/${id}.cube`, new Blob([text], { type: 'text/plain' }), { access: 'public', handleUploadUrl: '/api/blob-token', contentType: 'text/plain' });
+        r = await (await fetch('/api/lut-register', { method: 'POST', body: JSON.stringify({ name: n, warnings: warns }) })).json();
+      } else r = await (await fetch('/api/lut-save', { method: 'POST', body: JSON.stringify({ name: n, text, warnings: warns }) })).json();
       if (r.error) return toast(r.error); toast('Saved LUT preset ' + r.id); renderStep(); }; };
 }
