@@ -61,9 +61,9 @@ def process(name):
         status[name] = f"error: {e}"
 
 
-def run_render(name):
+def run_render(name, spec):
     render_status[name] = {"status": "running", "message": ""}
-    r = subprocess.run([sys.executable, str(TOOLS / "render.py"), name], capture_output=True, text=True)
+    r = subprocess.run([sys.executable, str(TOOLS / "render.py"), str(spec)], capture_output=True, text=True)
     render_status[name] = {"status": "done", "message": ""} if r.returncode == 0 else \
         {"status": "error", "message": (r.stderr.strip().splitlines() or ["render failed"])[-1]}
 
@@ -265,12 +265,18 @@ class H(SimpleHTTPRequestHandler):
                 (CLIPS / name).with_suffix(".words.json").write_text(json.dumps(clean, indent=1))
                 return self.json({"saved": len(clean)})
             if u.path == "/api/render":
-                n = re.sub(r"[^a-z0-9-]+", "-", str(json.loads(self.body()).get("name", "")).lower()).strip("-")
-                if not (STYLES / f"{n}.json").exists(): return self.json({"error": "Save the style first, then render it."}, 404)
+                d = json.loads(self.body()); style = d.get("style")
+                if style is None:            # older callers: render a saved style by name
+                    n0 = re.sub(r"[^a-z0-9-]+", "-", str(d.get("name", "")).lower()).strip("-")
+                    if not (STYLES / f"{n0}.json").exists(): return self.json({"error": "No saved style with that name."}, 404)
+                    style = json.loads((STYLES / f"{n0}.json").read_text())
+                n = re.sub(r"[^a-z0-9-]+", "-", str(style.get("name") or Path(style.get("clip", "render")).stem).lower()).strip("-") or "render"
+                style["name"] = n
+                spec = ROOT / "projects" / n / "render-style.json"; spec.parent.mkdir(parents=True, exist_ok=True); spec.write_text(json.dumps(style))
                 if render_status.get(n, {}).get("status") != "running":
-                    threading.Thread(target=run_render, args=(n,), daemon=True).start()
+                    threading.Thread(target=run_render, args=(n, spec), daemon=True).start()
                     render_status[n] = {"status": "running", "message": ""}
-                return self.json({"job": f"render-{n}"})
+                return self.json({"job": f"render-{n}", "name": n})
             if u.path == "/api/preset":
                 d = json.loads(self.body()); PRESETS.mkdir(parents=True, exist_ok=True)
                 n = re.sub(r"[^a-z0-9-]+", "-", str(d.get("name", "preset")).lower()).strip("-") or "preset"

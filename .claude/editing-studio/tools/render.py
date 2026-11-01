@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Render a reel in a saved style with HyperFrames: 1080x1920, 30 fps, audio mastered to -14 LUFS.
 
-Usage: python3 render.py <style-name>
-Reads styles/<style-name>.json (saved from the Studio) and the clip it names in clips/.
+Usage: python3 render.py <style-name | path/to/style.json>
+Reads styles/<style-name>.json (a saved style) or any style JSON file (the Studio's current picks), and the clip it names in clips/.
 Builds a HyperFrames project in projects/<style-name>/hf/ (regenerated each time, not committed),
 renders it with `npx hyperframes render`, then masters the audio.
 Writes projects/<style-name>/renders/<style-name>-vN.mp4 (never overwrites an older version).
 Needs ffmpeg and Node 22+. HyperFrames is fetched by npx on first use.
 """
-import json, math, os, random, shutil, struct, subprocess, sys, wave
+import json, math, os, random, re, shutil, struct, subprocess, sys, wave
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -159,8 +159,10 @@ def build_project(name, style, clip, words, proj):
 def main():
     if len(sys.argv) != 2:
         sys.exit(__doc__)
-    name = sys.argv[1]
-    style = json.loads((ROOT / "styles" / f"{name}.json").read_text())
+    arg = sys.argv[1]
+    src = Path(arg) if arg.endswith(".json") else ROOT / "styles" / f"{arg}.json"
+    style = json.loads(src.read_text())
+    name = re.sub(r"[^a-z0-9-]+", "-", str(style.get("name") or Path(style["clip"]).stem).lower()).strip("-") or "render"
     clip = ROOT / "clips" / style["clip"]
     words = clip.with_suffix(".words.json")
     if not clip.exists() or not words.exists():

@@ -131,7 +131,7 @@ function card(i, label, onc, cfgFn, win, selected) {
 function renderStep() {
   cards.forEach(c => c.destroy()); cards = []; mark();
   const [id, , help] = STEPS[S.step]; $('#help').textContent = help; const body = $('#body'); body.innerHTML = '';
-  $('#back').disabled = S.step === 0; $('#next').textContent = S.step === STEPS.length - 1 ? 'Done' : 'Next';
+  $('#back').disabled = S.step === 0; $('#next').textContent = S.step === STEPS.length - 1 ? 'Render video' : 'Next';
   const w0 = [0, Math.min(3, S.dur)]; main.win = null;
   const grid = () => body.insertAdjacentHTML('beforeend', '<div class="grid"></div>');
   if (id === 'colours') { grid(); GRADES.forEach((g, i) => card(i, g[1], () => { S.grade = g[0]; S.done.add(0); toast('Grade: ' + g[1]); renderStep(); }, () => ({ ...baseCfg(), grade: g[0] }), w0, S.grade === g[0])); lutSection(body); }
@@ -170,23 +170,51 @@ function renderBeats(body) {
 }
 function styleObj(name) { return { name, clip: S.clip.name, grade: S.grade, font: S.font, caption: S.caption, hook: S.hook, lut: S.lut ? S.lut.id : null, lutAmount: S.lut ? S.lutAmount : null, capOpts: S.capEdit, dur: +S.dur.toFixed(2),
   beats: S.beats.map((b, i) => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text, effects: S.fx[i], shot: b.shot || null, shotUrl: b.shotUrl || null })), whole: [...S.whole], sounds: [...S.snd] }; }
+const renderName = () => S.clip.name.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'render';
+async function showRenders(name) {
+  const d = await (await fetch('/api/renders?name=' + encodeURIComponent(name))).json(), el = $('#rlist'), st = $('#rstat'); if (!el) return d.job;
+  el.innerHTML = (d.files || []).map(f => `<div class="row"><a href="${f.url}" target="_blank">${esc(f.file)}</a><span class="help">${(f.size / 1e6).toFixed(1)} MB</span></div>`).join('');
+  const j = d.job; if (j && st) st.textContent = j.status === 'running' || j.status === 'queued' ? 'Rendering... this takes a few minutes.' : j.status === 'error' ? 'Render failed: ' + j.message : 'Render finished.';
+  return j;
+}
+// Render the current picks. No saved style needed.
+async function startRender() {
+  if (S.step !== STEPS.length - 1) { S.step = STEPS.length - 1; renderStep(); }
+  const name = renderName(), r = await (await fetch('/api/render', { method: 'POST', body: JSON.stringify({ style: styleObj(name) }) })).json();
+  if (r.error) return toast(r.error);
+  $('#rstat').textContent = 'Rendering... this takes a few minutes.'; S.done.add(5); mark();
+  for (let i = 0; i < 360; i++) { await new Promise(res => setTimeout(res, 5000)); const j = await showRenders(name); if (j && (j.status === 'done' || j.status === 'error')) break; }
+}
 function renderWatch(body) {
   const row = (k, v) => `<div><b>${k}</b><span>${esc(v || 'not picked')}</span></div>`;
   body.innerHTML = `<div class="sum">${row('Colour', G(S.grade)[1])}${row('LUT', S.lut ? S.lut.name + ' (' + S.lutAmount + '%)' : 'none')}${row('Font', F(S.font)[1])}${row('Captions', (CAPS.find(c => c[0] === S.caption) || [])[1])}${row('Hook', (HOOKS.find(h => h[0] === S.hook) || [])[1])}` +
     S.beats.slice(1).map((b, i) => row('Beat ' + (i + 2), S.fx[i + 1].map(x => FX.find(f => f[0] === x)[1]).join(', ') || 'Just you')).join('') +
     `${row('Whole clip', [...S.whole].join(', '))}${row('Sound', [...S.snd].join(', '))}</div>
-    <h3>Save as my style</h3><div class="row"><input type="text" id="sname" placeholder="Style name, e.g. split-card-reels"><button class="primary" id="ssave">Save style</button></div>
-    <h3>Render</h3><div class="row"><button class="primary" id="rbtn">Render this style</button></div><div id="rstat" class="help">Save the style first, then render. The video is 1080x1920 at 30 fps.</div><div id="rlist"></div>`;
-  const showRenders = async name => { const d = await (await fetch('/api/renders?name=' + encodeURIComponent(name))).json(), el = $('#rlist'); if (!el) return;
-    el.innerHTML = (d.files || []).map(f => `<div class="row"><a href="${f.url}" target="_blank">${esc(f.file)}</a><span class="help">${(f.size / 1e6).toFixed(1)} MB</span></div>`).join('');
-    const j = d.job; $('#rstat').textContent = !j ? $('#rstat').textContent : j.status === 'running' || j.status === 'queued' ? 'Rendering... this takes a few minutes.' : j.status === 'error' ? 'Render failed: ' + j.message : 'Render finished.'; return j; };
-  $('#rbtn').onclick = async () => { const n = $('#sname').value.trim(); if (!n) return toast('Name and save your style first');
-    await fetch('/save', { method: 'POST', body: JSON.stringify(styleObj(n)) }); S.done.add(5); mark();
-    const r = await (await fetch('/api/render', { method: 'POST', body: JSON.stringify({ name: n }) })).json(); if (r.error) return toast(r.error);
-    $('#rstat').textContent = 'Rendering... this takes a few minutes.'; const slugn = n.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
-    for (let i = 0; i < 360; i++) { await new Promise(r => setTimeout(r, 5000)); const j = await showRenders(slugn); if (j && (j.status === 'done' || j.status === 'error')) break; } };
+    <h3>Render</h3><div class="row"><button class="primary" id="rbtn">Render video</button></div>
+    <div id="rstat" class="help">Renders exactly what you see, 1080x1920 at 30 fps. You don't need to save a style first.</div><div id="rlist"></div>
+    <h3>Save these picks as a style (optional)</h3><div class="row"><input type="text" id="sname" placeholder="Style name, e.g. split-card-reels"><button id="ssave">Save style</button></div>
+    <p class="help">Saved styles appear in the Style menu at the top, ready to apply to any clip.</p>`;
+  showRenders(renderName());
+  $('#rbtn').onclick = startRender;
   $('#ssave').onclick = async () => { const n = $('#sname').value.trim(); if (!n) return toast('Name your style first');
-    const r = await (await fetch('/save', { method: 'POST', body: JSON.stringify(styleObj(n)) })).json(); toast('Saved ' + r.saved); S.done.add(5); mark(); };
+    const r = await (await fetch('/save', { method: 'POST', body: JSON.stringify(styleObj(n)) })).json(); toast('Saved ' + r.saved); loadStyles(); };
+}
+
+/* ---------- saved styles: pick one from the top bar to apply it to this clip ---------- */
+let STYLES_CACHE = [];
+async function loadStyles() {
+  try { STYLES_CACHE = await (await fetch('/api/styles')).json(); } catch { STYLES_CACHE = []; }
+  const sel = $('#stylesel'); if (!sel) return;
+  sel.innerHTML = `<option value="">${STYLES_CACHE.length ? 'Apply a saved style...' : 'No saved styles yet'}</option>` + STYLES_CACHE.map((s, i) => `<option value="${i}">${esc(s.name)}</option>`).join('');
+}
+async function applyStyle(st) {
+  S.grade = st.grade || 'raw'; S.font = st.font || 'inter'; S.caption = st.caption || null; S.capEdit = { ...(st.capOpts || {}) }; S.hook = st.hook || null;
+  S.whole = new Set(st.whole || []); S.snd = new Set(st.sounds || []);
+  S.beats.forEach((b, i) => { S.fx[i] = ((st.beats || [])[i]?.effects || []).filter(id => FX.some(f => f[0] === id)); });
+  S.lut = null; S.lutCube = null; S.lutAmount = 100;
+  if (st.lut) { try { S.lutCube = await loadLut(st.lut); S.lut = { id: st.lut, name: st.lut }; S.lutAmount = st.lutAmount ?? 100;
+      const l = (await (await fetch('/api/luts')).json()).find(x => x.id === st.lut); if (l) S.lut.name = l.name; } catch { toast(`LUT "${st.lut}" from this style is missing`); } }
+  [0, 1, 2, 3, 4].forEach(i => S.done.add(i)); renderStep(); toast('Applied style: ' + st.name);
 }
 
 /* ---------- wiring ---------- */
@@ -207,16 +235,17 @@ $('#linkform').onsubmit = async e => { e.preventDefault(); setMsg('Fetching from
   d.error ? setMsg(d.error, true) : (S.clip = null, refresh(d.name)); };
 $('#clipsel').onchange = e => { S.clip = null; refresh(e.target.value); };
 $('#tabs').onclick = e => { const b = e.target.closest('button'); if (b) { S.step = +b.dataset.i; renderStep(); } };
-$('#next').onclick = () => { if (S.step < STEPS.length - 1) { S.step++; renderStep(); } };
+$('#next').onclick = () => { if (S.step < STEPS.length - 1) { S.step++; renderStep(); } else startRender(); };
 $('#back').onclick = () => { if (S.step > 0) { S.step--; renderStep(); } };
 $('#play').onclick = () => { const v = main.v; v.paused ? v.play() : v.pause(); $('#play').textContent = v.paused ? '▶' : '❚❚'; };
 $('#scrub').oninput = e => { updateScrub.drag = true; main.v.currentTime = e.target.value / 1000 * S.dur; };
 $('#scrub').onchange = () => updateScrub.drag = false;
 $('#snd').onclick = () => { S.sound = !S.sound; $('#snd').textContent = S.sound ? '🔊' : '🔇'; main.v.muted = !S.sound; };
 document.querySelectorAll('.seg button').forEach(b => b.onclick = () => { S.mode = b.dataset.m; document.querySelectorAll('.seg button').forEach(x => x.classList.toggle('on', x === b)); });
-$('#exportbtn').onclick = () => { S.step = 5; renderStep(); toast('Save your style, then ask Claude to render it'); };
+$('#exportbtn').onclick = () => { S.step = 5; renderStep(); };
 document.addEventListener('keydown', e => { if (e.key === 'r' && !/INPUT/.test(e.target.tagName)) location.reload(); });
-fetch('/api/config').then(r => r.json()).then(c => { CFG = c; }).catch(() => {}).finally(refresh);
+fetch('/api/config').then(r => r.json()).then(c => { CFG = c; }).catch(() => {}).finally(() => { refresh(); loadStyles(); });
+$('#stylesel').onchange = e => { const st = STYLES_CACHE[+e.target.value]; e.target.value = ''; if (st && S.clip) applyStyle(st); else if (st) toast('Add a clip first'); };
 
 /* ---------- hands-free demo (press D). R reloads. ---------- */
 let demoOn = false;

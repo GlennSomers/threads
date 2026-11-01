@@ -128,9 +128,10 @@ export async function handle(req, res) {
     }
     if (route === '/api/styles') { const out = []; for (const f of (await list('styles/')).filter(f => /^styles\/[^/]+\.json$/.test(f.pathname))) { const j = await getJSON(f.pathname); if (j) out.push(j); } return send(res, 200, out); }
     if (route === '/api/render' && M === 'POST') {
-      const { name } = await body(req), n = slug(name || ''), style = await getJSON(`styles/${n}.json`);
-      if (!style) return send(res, 404, { error: 'Save the style first, then render it.' });
-      const id = await dispatch('render', { style }, `render-${n}`); return send(res, 200, { job: id });
+      const d = await body(req); let style = d.style;
+      if (!style) { style = await getJSON(`styles/${slug(d.name || '')}.json`); if (!style) return send(res, 404, { error: 'No saved style with that name.' }); }
+      const n = slug(style.name || stemOf(String(style.clip || 'render'))); style.name = n;
+      const id = await dispatch('render', { style }, `render-${n}`); return send(res, 200, { job: id, name: n });
     }
     if (route === '/api/renders') {
       const n = slug(q.get('name') || ''), files = (await list(`renders/${n}/`)).filter(f => f.pathname.endsWith('.mp4')), job = await jobStatus(`render-${n}`);
