@@ -1,0 +1,11 @@
+# secrets
+.env
+# large media stays out of the repo
+clips/*
+references/**/*.mp4
+references/**/*.mov
+projects/**/renders/
+projects/**/*.mp4
+*.wav
+*.mp3
+!.gitkeep
