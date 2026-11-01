@@ -35,7 +35,7 @@ const STEPS = [
 
 /* ---------- state ---------- */
 const S = { clips: [], clip: null, words: [], dur: 0, step: 0, beat: 0, mode: 'edit',
-  grade: 'raw', font: 'inter', caption: null, hook: null, fx: {}, whole: new Set(), snd: new Set(), done: new Set(), sound: false, capEdit: {}, lutAmount: 100 };
+  grade: 'raw', font: 'inter', caption: null, hook: null, fx: {}, whole: new Set(), snd: new Set(), done: new Set(), sound: false, capEdit: {}, lutAmount: 100, cuts: [], wordsLive: null };
 const G = id => GRADES.find(g => g[0] === id), F = id => FONTS.find(f => f[0] === id);
 
 /* ---------- beats from the transcript ---------- */
@@ -71,11 +71,14 @@ function capOpts(id, over) {
   Object.entries(over || {}).forEach(([k, v]) => { if (v !== null && v !== undefined && v !== '') o[k] = v; });
   return o;
 }
-function curIdx(t, linger) { let i = -1; for (let k = 0; k < S.words.length; k++) { if (S.words[k].start <= t) i = k; else break; }
-  return i >= 0 && t - S.words[i].end < (linger ?? .5) ? i : -1; }
+// words still in the edit (a word whose middle falls inside a cut is gone)
+function refreshLive() { const cs = S.cuts || []; S.wordsLive = S.words.filter(w => { const m = (w.start + w.end) / 2; return !cs.some(c => m > c.a && m < c.b); }); return S.wordsLive; }
+const liveWords = () => S.wordsLive || S.words;
+function curIdx(t, linger) { const W = liveWords(); let i = -1; for (let k = 0; k < W.length; k++) { if (W[k].start <= t) i = k; else break; }
+  return i >= 0 && t - W[i].end < (linger ?? .5) ? i : -1; }
 function caption(id, t, acc, over) {
   const o = capOpts(id, over), tt = t - o.offset, i = curIdx(tt, o.linger); if (i < 0) return '';
-  const W = S.words, n = Math.max(1, Math.round(o.group)), g = Math.floor(i / n) * n, ws = W.slice(g, g + n), hi = o.accent || acc;
+  const W = liveWords(), n = Math.max(1, Math.round(o.group)), g = Math.floor(i / n) * n, ws = W.slice(g, g + n), hi = o.accent || acc;
   const fmt = x => o.upper ? x.toUpperCase() : o.lower ? x.toLowerCase() : x;
   const key = ws.reduce((b, x, j) => x.word.length > ws[b].word.length ? j : b, 0);
   let inner;

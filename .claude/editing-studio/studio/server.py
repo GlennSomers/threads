@@ -101,7 +101,8 @@ def list_clips():
             st = status.get(p.name) or ("ready" if proxy.exists() and w.exists() else "new")
             out.append({"name": p.name, "status": st,
                         "proxy": f"/proxy/{p.stem}.mp4" if proxy.exists() else None,
-                        "words": json.loads(w.read_text()) if w.exists() else []})
+                        "words": json.loads(w.read_text()) if w.exists() else [],
+                        "cuts": json.loads(p.with_suffix(".cuts.json").read_text()) if p.with_suffix(".cuts.json").exists() else []})
     return out
 
 
@@ -256,6 +257,12 @@ class H(SimpleHTTPRequestHandler):
                 (LUTS / f"{lid}.json").write_text(json.dumps({"id": lid, "name": str(d.get("name", lid)), "size": int(size.group(1)),
                                                               "warnings": d.get("warnings", [])}, indent=1))
                 return self.json({"id": lid})
+            if u.path == "/api/cuts":
+                name = safe(q["name"][0]); cuts = json.loads(self.body())
+                if not isinstance(cuts, list) or not all(isinstance(c, dict) and float(c["b"]) > float(c["a"]) >= 0 for c in cuts):
+                    return self.json({"error": "Expected a list of {a, b}"}, 400)
+                (CLIPS / name).with_suffix(".cuts.json").write_text(json.dumps(cuts, indent=1))
+                return self.json({"saved": len(cuts)})
             if u.path == "/api/words":
                 name = safe(q["name"][0]); words = json.loads(self.body())
                 if not isinstance(words, list) or not all(isinstance(w, dict) and isinstance(w.get("word"), str)

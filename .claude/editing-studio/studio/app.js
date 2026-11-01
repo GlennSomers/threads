@@ -76,6 +76,7 @@ class Stage {
     if (!this.vis) return; const v = this.v; let t = v.currentTime; const [a, b] = this.win || [0, S.dur || v.duration || 1];
     if (!this.main || this.win) { if (t >= b - .02 || t < a - .3) { v.currentTime = a; t = a; if (v.paused && !this.main) v.play().catch(() => {}); } }
     if (this.main && !this.win && v.ended) { v.currentTime = 0; }
+    if (this.main && S.mode !== 'raw' && !v.paused) { const c = (S.cuts || []).find(c => t >= c.a && t < c.b - .02); if (c) { v.currentTime = Math.min(c.b + .001, S.dur); t = c.b; } }
     const cfg = this.cfg(), raw = this.main && S.mode === 'raw', f = compose(t, cfg, raw);
     v.style.filter = f.filter; v.style.transform = `scale(${f.scale})`; this.el.style.setProperty('--hf', f.font);
     if (this.main) this.drawLut(raw, f);
@@ -111,7 +112,7 @@ function setMsg(m, err) { const e = $('#msg'); e.textContent = m; e.className = 
 
 function load(c) {
   if (S.clip?.name === c.name && S.clip.proxy === c.proxy && main) { show('studio'); return; }
-  S.clip = c; S.words = c.words.map(w => ({ ...w })); S.wordsSaved = JSON.stringify(c.words); TL.peaks = null; TL.fitFor = null;
+  S.clip = c; S.words = c.words.map(w => ({ ...w })); S.cuts = (c.cuts || []).map(x => ({ ...x })); S.sugg = []; refreshLive(); S.wordsSaved = JSON.stringify(c.words); TL.peaks = null; TL.fitFor = null;
   const probe = document.createElement('video'); probe.preload = 'metadata'; probe.src = c.proxy;
   probe.onloadedmetadata = () => { S.dur = probe.duration; S.beats = makeBeats(S.words, S.dur); S.fx = {}; S.beats.forEach((_, i) => S.fx[i] = []);
     S.caption = null; S.capEdit = {}; S.lut = null; S.lutCube = null; S.lutAmount = 100; baseImg = null; S.hook = null; S.whole = new Set(); S.snd = new Set(); S.done = new Set(); S.step = 0; S.beat = 0; show('studio'); build(); renderStep(); };
@@ -168,7 +169,7 @@ function renderBeats(body) {
     d.onclick = () => { S.whole.has(w[0]) ? S.whole.delete(w[0]) : S.whole.add(w[0]); S.done.add(3); toast(w[1]); renderStep(); }; g2.appendChild(d);
     cards.push(new Stage(d, { cfg: () => ({ ...baseCfg(), whole: new Set([w[0]]) }), win: [b.t0, Math.min(b.t1, b.t0 + 4)] })); });
 }
-function styleObj(name) { return { name, clip: S.clip.name, grade: S.grade, font: S.font, caption: S.caption, hook: S.hook, lut: S.lut ? S.lut.id : null, lutAmount: S.lut ? S.lutAmount : null, capOpts: S.capEdit, dur: +S.dur.toFixed(2),
+function styleObj(name) { return { name, clip: S.clip.name, grade: S.grade, font: S.font, caption: S.caption, hook: S.hook, lut: S.lut ? S.lut.id : null, lutAmount: S.lut ? S.lutAmount : null, capOpts: S.capEdit, cuts: S.cuts.map(c => [+c.a.toFixed(3), +c.b.toFixed(3)]), dur: +S.dur.toFixed(2),
   beats: S.beats.map((b, i) => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text, effects: S.fx[i], shot: b.shot || null, shotUrl: b.shotUrl || null })), whole: [...S.whole], sounds: [...S.snd] }; }
 const renderName = () => S.clip.name.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'render';
 async function showRenders(name) {
@@ -488,7 +489,7 @@ async function lutSection(body) {
 /* ---------- transcript editor (top of the Captions step) ---------- */
 let txSel = -1, txStop;
 function wordsChanged() {
-  S.words.sort((x, y) => x.start - y.start);
+  S.words.sort((x, y) => x.start - y.start); refreshLive();
   S.beats.forEach(b => { b.text = S.words.filter(w => w.start >= b.t0 && w.start < b.t1).map(w => w.word).join(' '); });
   const st = $('#txstate'); if (st) st.textContent = JSON.stringify(S.words) === S.wordsSaved ? 'Saved' : 'Unsaved changes';
   tlRender();
@@ -499,13 +500,14 @@ function txEditor(body) {
     <div class="tx" id="tx"></div>
     <div class="row txsel" id="txsel" hidden><span id="txinfo"></span>
       <label>Start <input type="number" id="txs" step="0.01" min="0"></label><label>End <input type="number" id="txe" step="0.01" min="0"></label>
-      <button id="txdel">Delete word</button></div>
+      <button id="txdel">Delete word from captions</button><button id="txcut">Cut word from video</button></div>
     <div class="row"><input type="text" id="txfind" placeholder="Find (e.g. clawd)"><input type="text" id="txrep" placeholder="Replace with (e.g. Claude)"><button id="txrepbtn">Replace all</button></div>
     <div class="row"><button class="primary" id="txsave">Save transcript</button><button id="txundo">Undo unsaved changes</button><span class="help" id="txstate"></span></div>`);
   txDraw(); wordsChanged();
   $('#txrepbtn').onclick = () => { const f = $('#txfind').value.trim(), r = $('#txrep').value; if (!f) return;
     const re = new RegExp('^(\\W*)' + f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(\\W*)$', 'i'); let n = 0;
     S.words.forEach(w => { if (re.test(w.word)) { w.word = w.word.replace(re, `$1${r}$2`); n++; } }); toast(`Replaced ${n} word${n === 1 ? '' : 's'}`); txDraw(); wordsChanged(); };
+  $('#txcut').onclick = () => { if (txSel < 0) return; const w = S.words[txSel]; addCut({ a: Math.max(0, w.start - .03), b: Math.min(S.dur, w.end + .03), kind: 'word', label: 'Cut: ' + w.word }); txDraw(); };
   $('#txdel').onclick = () => { if (txSel < 0) return; S.words.splice(txSel, 1); txSel = -1; $('#txsel').hidden = true; txDraw(); wordsChanged(); };
   const setT = (k, el) => el.onchange = () => { if (txSel < 0) return; const w = S.words[txSel]; w[k] = Math.max(0, +el.value);
     if (w.end <= w.start) w.end = +(w.start + .05).toFixed(2); const keep = w; wordsChanged(); txSel = S.words.indexOf(keep); txDraw(); };
@@ -517,7 +519,8 @@ function txEditor(body) {
 }
 function txDraw() {
   const box = $('#tx'); if (!box) return;
-  box.innerHTML = S.words.length ? S.words.map((w, i) => `<span class="w${i === txSel ? ' sel' : ''}" data-i="${i}" contenteditable="true" spellcheck="false" title="${w.start.toFixed(2)}s to ${w.end.toFixed(2)}s">${esc(w.word)}</span>`).join(' ')
+  const isCut = w => { const m = (w.start + w.end) / 2; return S.cuts.some(c => m > c.a && m < c.b); };
+  box.innerHTML = S.words.length ? S.words.map((w, i) => `<span class="w${i === txSel ? ' sel' : ''}${isCut(w) ? ' cutw' : ''}" data-i="${i}" contenteditable="true" spellcheck="false" title="${w.start.toFixed(2)}s to ${w.end.toFixed(2)}s">${esc(w.word)}</span>`).join(' ')
     : '<span class="help">No words yet. Transcription may still be running, or the clip has no speech.</span>';
   box.querySelectorAll('.w').forEach(el => {
     const i = +el.dataset.i;
@@ -529,10 +532,10 @@ function txDraw() {
   });
 }
 function txNow(t) { const box = $('#tx'); if (!box || main.v.paused) return; const i = curIdx(t, .05);
-  if (i === txNow.last) return; txNow.last = i; box.querySelectorAll('.w.now').forEach(x => x.classList.remove('now')); if (i >= 0) box.querySelector(`.w[data-i="${i}"]`)?.classList.add('now'); }
+  if (i === txNow.last) return; txNow.last = i; box.querySelectorAll('.w.now').forEach(x => x.classList.remove('now')); if (i >= 0) box.querySelector(`.w[data-i="${S.words.indexOf(liveWords()[i])}"]`)?.classList.add('now'); }
 
 /* ---------- timeline: every edit on its own track, like an NLE ---------- */
-const TL = { pps: 90, peaks: null, loading: false };
+const TL = { pps: 90, peaks: null, loading: false, range: false, sel: null };
 const FXN = id => (FX.find(f => f[0] === id) || [, id])[1], WHN = id => (WHOLE.find(f => f[0] === id) || [, id])[1];
 function tlRender() {
   const el = $('#tl'); if (!el || !S.dur) return;
@@ -567,20 +570,44 @@ function tlRender() {
       return `<div class="tlm" style="left:${x(e.t)}" title="${e.snd} at ${e.t.toFixed(2)}s"><span style="top:${2 + lane * 13}px">${e.snd}</span></div>`; }).join('')
     || `<div class="tlnone">${[...S.snd].some(s => s !== 'music') ? 'Sounds picked, but nothing on screen moves for them to sit on yet (add beats, effects or cuts)' : 'No sound effects picked'}</div>`]);
   tracks.push(['Music', S.snd.has('music') ? blk('t-music', 0, S.dur, 'Soft music bed') : '<div class="tlnone">No music</div>']);
+  // cuts: suggestions (dashed, not applied) and applied cuts (solid). Click to toggle.
+  tracks.unshift(['Cuts', S.sugg.map((c, i) => blk('t-sug', c.a, c.b, c.label, `data-sug="${i}"`)).join('') + S.cuts.map((c, i) => blk('t-cut', c.a, c.b, c.label || 'Cut', `data-cut="${i}"`)).join('')
+    || '<div class="tlnone">No cuts. Use "Find dead air" or the range tool.</div>']);
   let ticks = ''; const step = TL.pps >= 150 ? .5 : TL.pps >= 60 ? 1 : TL.pps >= 30 ? 2 : 5;
   for (let t = 0; t <= S.dur + 1e-6; t += step) ticks += `<div class="tlt" style="left:${x(t)}">${Number.isInteger(t) ? t + 's' : ''}</div>`;
-  const cuts = S.beats.slice(1).map(b => `<div class="tlcut" style="left:${x(b.t0)}"></div>`).join('');
+  const cuts = S.beats.slice(1).map(b => `<div class="tlcut" style="left:${x(b.t0)}"></div>`).join('')
+    + S.cuts.map(c => `<div class="tlcutshade" style="left:${x(c.a)};width:${w(c.a, c.b)}"></div>`).join('')
+    + (TL.sel ? `<div class="tlsel" style="left:${x(Math.min(...TL.sel))};width:${w(Math.min(...TL.sel), Math.max(...TL.sel))}"></div>` : '');
+  const cutLen = S.cuts.reduce((s, c) => s + (c.b - c.a), 0);
   const sc = el.querySelector('.tlscroll'), keep = sc ? sc.scrollLeft : 0;
-  el.innerHTML = `<div class="tlbar"><b>Timeline</b><span class="help" id="tltime"></span><label class="help">Zoom <input type="range" id="tlzoom" min="20" max="400" value="${TL.pps}"></label></div>
+  el.innerHTML = `<div class="tlbar"><b>Timeline</b><span class="help" id="tltime"></span><span class="help">Edited length ${(S.dur - cutLen).toFixed(2)}s${cutLen ? ` (${cutLen.toFixed(2)}s cut)` : ''}</span><label class="help">Zoom <input type="range" id="tlzoom" min="20" max="400" value="${TL.pps}"></label></div>
+    <div class="tlcuts"><label>Dead air longer than <b id="gapv">${S.cutGap.toFixed(2)}s</b><input type="range" id="gap" min="0.2" max="1.5" step="0.05" value="${S.cutGap}"></label>
+      <button id="finddead">Find dead air and retakes</button>
+      ${S.sugg.length ? `<span class="help">${S.sugg.length} suggestion${S.sugg.length > 1 ? 's' : ''}: click one to cut it, or</span><button id="applyall">Cut all suggestions</button><button id="clearsug">Dismiss</button>` : ''}
+      <button id="rangetool" class="${TL.range ? 'on' : ''}">Range tool</button>${TL.sel ? '<button id="cutsel">Cut selection</button>' : ''}
+      ${S.cuts.length ? '<button id="uncutall">Restore all cuts</button>' : ''}</div>
     <div class="tlwrap"><div class="tlheads"><div class="tlh ruler"></div>${tracks.map(t => `<div class="tlh ${t[2] || ''}"${t[3] ? ` style="height:${t[3]}px"` : ''}>${t[0]}</div>`).join('')}</div>
     <div class="tlscroll"><div class="tlinner" style="width:${W}px"><div class="tlruler">${ticks}</div>
       ${tracks.map(t => `<div class="tlrow ${t[2] || ''}"${t[3] ? ` style="height:${t[3]}px"` : ''}>${t[1]}</div>`).join('')}${cuts}<div class="tlph" id="tlph"></div></div></div></div>`;
   el.querySelector('.tlscroll').scrollLeft = keep;
   $('#tlzoom').oninput = e => { TL.pps = +e.target.value; tlRender(); };
-  const inner = el.querySelector('.tlinner'), seek = e => { const r = inner.getBoundingClientRect(); main.win = null; main.v.currentTime = clamp((e.clientX - r.left) / r.width, 0, 1) * S.dur; };
-  let drag = false; inner.onpointerdown = e => { if (e.target.closest('.tlb,.tlm')) return; drag = true; seek(e); inner.setPointerCapture(e.pointerId); };
-  inner.onpointermove = e => drag && seek(e); inner.onpointerup = () => drag = false;
-  inner.querySelectorAll('.tlb').forEach(b => b.onclick = e => { seek(e);
+  const inner = el.querySelector('.tlinner'), tAt = e => { const r = inner.getBoundingClientRect(); return clamp((e.clientX - r.left) / r.width, 0, 1) * S.dur; },
+    seek = e => { main.win = null; main.v.currentTime = tAt(e); };
+  let drag = false;
+  inner.onpointerdown = e => { if (!TL.range && e.target.closest('.tlb,.tlm')) return; drag = true; inner.setPointerCapture(e.pointerId);
+    if (TL.range) TL.sel = [tAt(e), tAt(e)]; else seek(e); };
+  inner.onpointermove = e => { if (!drag) return; if (TL.range) { TL.sel[1] = tAt(e); const s = el.querySelector('.tlsel'); if (s) { s.style.left = (Math.min(...TL.sel) / S.dur * 100) + '%'; s.style.width = (Math.abs(TL.sel[1] - TL.sel[0]) / S.dur * 100) + '%'; } } else seek(e); };
+  inner.onpointerup = () => { if (drag && TL.range) { if (Math.abs(TL.sel[1] - TL.sel[0]) < .05) TL.sel = null; tlRender(); } drag = false; };
+  $('#gap').oninput = e => { S.cutGap = +e.target.value; $('#gapv').textContent = S.cutGap.toFixed(2) + 's'; };
+  $('#finddead').onclick = () => { findSuggestions(); toast(S.sugg.length ? `${S.sugg.length} suggested cut${S.sugg.length > 1 ? 's' : ''}. Nothing is cut until you pick them.` : 'No dead air or retakes found at this setting'); tlRender(); };
+  $('#applyall') && ($('#applyall').onclick = () => { S.sugg.slice().forEach(c => addCut(c, true)); S.sugg = []; saveCuts(); tlRender(); });
+  $('#clearsug') && ($('#clearsug').onclick = () => { S.sugg = []; tlRender(); });
+  $('#rangetool').onclick = () => { TL.range = !TL.range; TL.sel = null; tlRender(); toast(TL.range ? 'Range tool: drag across the timeline, then "Cut selection"' : 'Range tool off'); };
+  $('#cutsel') && ($('#cutsel').onclick = () => { const [p, q] = [Math.min(...TL.sel), Math.max(...TL.sel)]; TL.sel = null; addCut({ a: p, b: q, kind: 'manual', label: 'Cut' }); });
+  $('#uncutall') && ($('#uncutall').onclick = () => { S.cuts = []; afterCuts(); });
+  inner.querySelectorAll('[data-sug]').forEach(b => b.onclick = e => { e.stopPropagation(); const c = S.sugg.splice(+b.dataset.sug, 1)[0]; addCut(c); });
+  inner.querySelectorAll('[data-cut]').forEach(b => b.onclick = e => { e.stopPropagation(); S.cuts.splice(+b.dataset.cut, 1); afterCuts(); toast('Cut restored'); });
+  inner.querySelectorAll('.tlb:not([data-sug]):not([data-cut])').forEach(b => b.onclick = e => { if (TL.range) return; seek(e);
     if (b.dataset.beat !== undefined && b.classList.contains('t-vid') === false) { S.beat = +b.dataset.beat; S.step = 3; renderStep(); }
     if (b.dataset.word !== undefined) { if (S.step !== 2) { S.step = 2; renderStep(); } $(`#tx .w[data-i="${b.dataset.word}"]`)?.focus(); } });
   tlWave(); tlPlayhead(main ? main.v.currentTime : 0);
@@ -599,3 +626,39 @@ async function tlWave() {
   const cv = $('#tlwave'); if (!cv) return; const w = cv.clientWidth, h = cv.clientHeight; cv.width = w; cv.height = h; const x = cv.getContext('2d');
   x.fillStyle = '#3ddc97'; for (let i = 0; i < w; i++) { const v = TL.peaks[Math.floor(i / w * TL.peaks.length)] || 0, bh = Math.max(1, v * (h - 4)); x.fillRect(i, (h - bh) / 2, 1, bh); }
 }
+
+
+/* ---------- cuts: suggestions never apply themselves; you pick them ---------- */
+S.cutGap = .4; S.sugg = [];
+const PAD = .08;   // keep a little air either side of speech
+function quietBetween(a, b) {   // is the audio in [a,b] actually quiet? (uses the waveform once it's loaded)
+  const pk = TL.peaks; if (!pk || !pk.length || !S.dur) return true;
+  const i0 = Math.floor(a / S.dur * pk.length), i1 = Math.ceil(b / S.dur * pk.length); let s = 0, n = 0;
+  for (let i = i0; i < i1; i++) { s += pk[i] || 0; n++; } return n ? s / n < .18 : true;
+}
+function overlapsCut(a, b) { return S.cuts.some(c => a < c.b && b > c.a); }
+function findSuggestions() {
+  const W = S.words, out = [], g = S.cutGap;
+  if (!W.length) { S.sugg = []; return; }
+  const gaps = [[0, W[0].start, 'Silence at the start'], ...W.slice(1).map((w, i) => [W[i].end, w.start, 'Dead air']), [W[W.length - 1].end, S.dur, 'Silence at the end']];
+  gaps.forEach(([p, q, label], k) => { const edgeStart = k === 0, edgeEnd = k === gaps.length - 1;
+    if (q - p < g) return; const a = edgeStart ? 0 : p + PAD, b = edgeEnd ? S.dur : q - PAD;
+    if (b - a > .05 && quietBetween(a, b) && !overlapsCut(a, b)) out.push({ a, b, kind: 'silence', label: `${label} ${(b - a).toFixed(2)}s` }); });
+  // retakes: the same 3 words said again soon after; suggest keeping the later take
+  const norm = s => s.toLowerCase().replace(/[^a-z0-9']/g, '');
+  for (let i = 0; i + 2 < W.length; i++) for (let j = i + 3; j + 2 < W.length && j - i <= 30; j++) {
+    if ([0, 1, 2].every(k => norm(W[i + k].word) && norm(W[i + k].word) === norm(W[j + k].word))) {
+      const a = Math.max(0, W[i].start - .04), b = Math.max(a + .05, W[j].start - .04);
+      if (!overlapsCut(a, b) && !out.some(o => a < o.b && b > o.a && o.kind === 'retake')) out.push({ a, b, kind: 'retake', label: `Retake: "${W.slice(i, i + 3).map(w => w.word).join(' ')}..."` });
+      break; } }
+  S.sugg = out.sort((x, y) => x.a - y.a);
+}
+function addCut(c, quiet) {
+  S.cuts.push({ a: +c.a.toFixed(3), b: +c.b.toFixed(3), kind: c.kind || 'manual', label: c.label || 'Cut' });
+  S.cuts.sort((x, y) => x.a - y.a);
+  const merged = []; S.cuts.forEach(c2 => { const m = merged[merged.length - 1]; if (m && c2.a <= m.b + .01) { m.b = Math.max(m.b, c2.b); m.label = 'Cut'; } else merged.push({ ...c2 }); });
+  S.cuts = merged; S.sugg = S.sugg.filter(s => !overlapsCut(s.a, s.b));
+  if (!quiet) afterCuts();
+}
+function afterCuts() { refreshLive(); saveCuts(); tlRender(); txDraw(); }
+async function saveCuts() { try { await fetch('/api/cuts?name=' + encodeURIComponent(S.clip.name), { method: 'POST', body: JSON.stringify(S.cuts) }); S.clip.cuts = S.cuts.map(c => ({ ...c })); } catch {} }
