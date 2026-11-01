@@ -94,7 +94,7 @@ class Stage {
 let main, cards = [];
 function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('show'), 1800); }
 function baseCfg() { return { grade: S.grade, font: S.font, caption: S.caption, capOpts: S.capEdit, hook: S.hook, fx: S.fx, whole: S.whole }; }
-function updateScrub(t) { if (!updateScrub.drag) $('#scrub').value = 1000 * t / (S.dur || 1); }
+function updateScrub(t) { if (!updateScrub.drag) $('#scrub').value = 1000 * t / (S.dur || 1); tlPlayhead(t); txNow(t); }
 
 async function refresh(keep) {
   S.clips = await (await fetch('/api/clips')).json();
@@ -111,7 +111,7 @@ function setMsg(m, err) { const e = $('#msg'); e.textContent = m; e.className = 
 
 function load(c) {
   if (S.clip?.name === c.name && S.clip.proxy === c.proxy && main) { show('studio'); return; }
-  S.clip = c; S.words = c.words;
+  S.clip = c; S.words = c.words.map(w => ({ ...w })); S.wordsSaved = JSON.stringify(c.words); TL.peaks = null; TL.fitFor = null;
   const probe = document.createElement('video'); probe.preload = 'metadata'; probe.src = c.proxy;
   probe.onloadedmetadata = () => { S.dur = probe.duration; S.beats = makeBeats(S.words, S.dur); S.fx = {}; S.beats.forEach((_, i) => S.fx[i] = []);
     S.caption = null; S.capEdit = {}; S.lut = null; S.lutCube = null; S.lutAmount = 100; baseImg = null; S.hook = null; S.whole = new Set(); S.snd = new Set(); S.done = new Set(); S.step = 0; S.beat = 0; show('studio'); build(); renderStep(); };
@@ -136,11 +136,12 @@ function renderStep() {
   const grid = () => body.insertAdjacentHTML('beforeend', '<div class="grid"></div>');
   if (id === 'colours') { grid(); GRADES.forEach((g, i) => card(i, g[1], () => { S.grade = g[0]; S.done.add(0); toast('Grade: ' + g[1]); renderStep(); }, () => ({ ...baseCfg(), grade: g[0] }), w0, S.grade === g[0])); lutSection(body); }
   if (id === 'fonts') { grid(); FONTS.forEach((f, i) => card(i, f[1], () => { S.font = f[0]; S.done.add(1); toast('Font: ' + f[1]); renderStep(); }, () => ({ ...baseCfg(), font: f[0], caption: S.caption || 'groups' }), w0, S.font === f[0])); }
-  if (id === 'captions') { grid(); CAPS.forEach((c, i) => card(i, c[1], () => { S.caption = c[0]; S.capEdit = {}; S.done.add(2); toast(`Synced captions to ${S.words.length} words`); renderStep(); }, () => ({ ...baseCfg(), caption: c[0], capOpts: {} }), w0, S.caption === c[0])); capEditor(body); }
+  if (id === 'captions') { txEditor(body); grid(); CAPS.forEach((c, i) => card(i, c[1], () => { S.caption = c[0]; S.capEdit = {}; S.done.add(2); toast(`Synced captions to ${S.words.length} words`); renderStep(); }, () => ({ ...baseCfg(), caption: c[0], capOpts: {} }), w0, S.caption === c[0])); capEditor(body); }
   if (id === 'beats') renderBeats(body);
   if (id === 'sound') { body.insertAdjacentHTML('beforeend', '<div class="sounds"></div>'); SOUNDS.forEach(s => { const b = document.createElement('button'); b.textContent = s[1]; b.className = S.snd.has(s[0]) ? 'on' : '';
     b.onclick = () => { S.snd.has(s[0]) ? S.snd.delete(s[0]) : S.snd.add(s[0]); S.done.add(4); S.sound = true; $('#snd').textContent = '🔊'; snd(s[0]); renderStep(); }; $('.sounds').appendChild(b); }); }
   if (id === 'watch') renderWatch(body);
+  tlRender();
 }
 function renderBeats(body) {
   const total = S.dur || 1;
@@ -249,7 +250,7 @@ const ANIMS = [['none', 'None'], ['pop', 'Pop'], ['slide', 'Slide up'], ['fade',
 function capEditor(body) {
   if (!S.caption) { body.insertAdjacentHTML('beforeend', '<p class="help">Pick a caption style above, then edit it here.</p>'); return; }
   const o = capOpts(S.caption, S.capEdit), acc = G(S.grade)[3]; o.case = o.upper ? 'upper' : o.lower ? 'lower' : 'as';
-  const set = (k, v) => { S.capEdit[k] = v; S.done.add(2); mark(); };
+  const set = (k, v) => { S.capEdit[k] = v; S.done.add(2); mark(); tlRender(); };
   const sel = (k, opts, label) => `<label>${label}<select data-k="${k}">${opts.map(x => `<option value="${x[0]}"${String(o[k]) === String(x[0]) ? ' selected' : ''}>${x[1]}</option>`).join('')}</select></label>`;
   const rng = (k, min, max, step, label, unit = '') => `<label>${label} <b id="v-${k}">${o[k]}${unit}</b><input type="range" data-k="${k}" min="${min}" max="${max}" step="${step}" value="${o[k]}"></label>`;
   body.insertAdjacentHTML('beforeend', `<h3>Edit captions</h3><div class="capedit">
@@ -452,4 +453,120 @@ async function lutSection(body) {
       } else r = await (await fetch('/api/lut-save', { method: 'POST', body: JSON.stringify({ name: n, text, warnings: warns }) })).json();
       if (r.error) return toast('LUT not saved: ' + r.error); toast('Saved LUT preset ' + r.id); renderStep();
     } catch (e) { toast('LUT not saved: ' + (e.message || e)); console.error(e); } }; };
+}
+
+
+/* ---------- transcript editor (top of the Captions step) ---------- */
+let txSel = -1, txStop;
+function wordsChanged() {
+  S.words.sort((x, y) => x.start - y.start);
+  S.beats.forEach(b => { b.text = S.words.filter(w => w.start >= b.t0 && w.start < b.t1).map(w => w.word).join(' '); });
+  const st = $('#txstate'); if (st) st.textContent = JSON.stringify(S.words) === S.wordsSaved ? 'Saved' : 'Unsaved changes';
+  tlRender();
+}
+function txEditor(body) {
+  body.insertAdjacentHTML('beforeend', `<h3>Transcript</h3>
+    <p class="help">Click a word to hear it. Type to fix spelling, names or punctuation. Captions update live. Save to keep it (the render uses the saved words).</p>
+    <div class="tx" id="tx"></div>
+    <div class="row txsel" id="txsel" hidden><span id="txinfo"></span>
+      <label>Start <input type="number" id="txs" step="0.01" min="0"></label><label>End <input type="number" id="txe" step="0.01" min="0"></label>
+      <button id="txdel">Delete word</button></div>
+    <div class="row"><input type="text" id="txfind" placeholder="Find (e.g. clawd)"><input type="text" id="txrep" placeholder="Replace with (e.g. Claude)"><button id="txrepbtn">Replace all</button></div>
+    <div class="row"><button class="primary" id="txsave">Save transcript</button><button id="txundo">Undo unsaved changes</button><span class="help" id="txstate"></span></div>`);
+  txDraw(); wordsChanged();
+  $('#txrepbtn').onclick = () => { const f = $('#txfind').value.trim(), r = $('#txrep').value; if (!f) return;
+    const re = new RegExp('^(\\W*)' + f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(\\W*)$', 'i'); let n = 0;
+    S.words.forEach(w => { if (re.test(w.word)) { w.word = w.word.replace(re, `$1${r}$2`); n++; } }); toast(`Replaced ${n} word${n === 1 ? '' : 's'}`); txDraw(); wordsChanged(); };
+  $('#txdel').onclick = () => { if (txSel < 0) return; S.words.splice(txSel, 1); txSel = -1; $('#txsel').hidden = true; txDraw(); wordsChanged(); };
+  const setT = (k, el) => el.onchange = () => { if (txSel < 0) return; const w = S.words[txSel]; w[k] = Math.max(0, +el.value);
+    if (w.end <= w.start) w.end = +(w.start + .05).toFixed(2); const keep = w; wordsChanged(); txSel = S.words.indexOf(keep); txDraw(); };
+  setT('start', $('#txs')); setT('end', $('#txe'));
+  $('#txundo').onclick = () => { S.words = JSON.parse(S.wordsSaved); txSel = -1; $('#txsel').hidden = true; txDraw(); wordsChanged(); };
+  $('#txsave').onclick = async () => { const bad = S.words.find(w => !w.word.trim()); if (bad) S.words = S.words.filter(w => w.word.trim());
+    const r = await (await fetch('/api/words?name=' + encodeURIComponent(S.clip.name), { method: 'POST', body: JSON.stringify(S.words) })).json();
+    if (r.error) return toast('Transcript not saved: ' + r.error); S.wordsSaved = JSON.stringify(S.words); S.clip.words = JSON.parse(S.wordsSaved); toast('Transcript saved'); wordsChanged(); };
+}
+function txDraw() {
+  const box = $('#tx'); if (!box) return;
+  box.innerHTML = S.words.length ? S.words.map((w, i) => `<span class="w${i === txSel ? ' sel' : ''}" data-i="${i}" contenteditable="true" spellcheck="false" title="${w.start.toFixed(2)}s to ${w.end.toFixed(2)}s">${esc(w.word)}</span>`).join(' ')
+    : '<span class="help">No words yet. Transcription may still be running, or the clip has no speech.</span>';
+  box.querySelectorAll('.w').forEach(el => {
+    const i = +el.dataset.i;
+    el.onfocus = () => { txSel = i; box.querySelectorAll('.w.sel').forEach(x => x.classList.remove('sel')); el.classList.add('sel');
+      const w = S.words[i]; $('#txsel').hidden = false; $('#txinfo').textContent = `"${w.word}"`; $('#txs').value = w.start.toFixed(2); $('#txe').value = w.end.toFixed(2);
+      main.win = null; main.v.currentTime = w.start; main.v.play().catch(() => {}); clearTimeout(txStop); txStop = setTimeout(() => main.v.pause(), Math.max(250, (w.end - w.start) * 1000 + 150)); };
+    el.oninput = () => { S.words[i].word = el.textContent.trim(); $('#txinfo').textContent = `"${S.words[i].word}"`; wordsChanged(); };
+    el.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } };
+  });
+}
+function txNow(t) { const box = $('#tx'); if (!box || main.v.paused) return; const i = curIdx(t, .05);
+  if (i === txNow.last) return; txNow.last = i; box.querySelectorAll('.w.now').forEach(x => x.classList.remove('now')); if (i >= 0) box.querySelector(`.w[data-i="${i}"]`)?.classList.add('now'); }
+
+/* ---------- timeline: every edit on its own track, like an NLE ---------- */
+const TL = { pps: 90, peaks: null, loading: false };
+const FXN = id => (FX.find(f => f[0] === id) || [, id])[1], WHN = id => (WHOLE.find(f => f[0] === id) || [, id])[1];
+function tlRender() {
+  const el = $('#tl'); if (!el || !S.dur) return;
+  if (TL.fitFor !== S.clip.name) { TL.fitFor = S.clip.name; TL.pps = clamp(Math.floor((el.clientWidth - 130) / S.dur), 20, 400); }   // start zoomed to fit
+  const W = Math.max(600, S.dur * TL.pps), x = t => (t / S.dur * 100).toFixed(3) + '%', w = (a, b) => (Math.max(0, b - a) / S.dur * 100).toFixed(3) + '%';
+  const blk = (cls, a, b, label, data = '', st = '') => `<div class="tlb ${cls}" style="left:${x(a)};width:${w(a, b)};${st}" title="${esc(label)} (${a.toFixed(2)} to ${b.toFixed(2)}s)" ${data}><span>${esc(label)}</span></div>`;
+  const cfg = baseCfg(), tracks = [];
+  // V2 titles and effects
+  let v2 = ''; const b0 = S.beats[0];
+  if (b0 && S.hook) v2 += blk('t-title', b0.t0, Math.min(b0.t1, b0.t0 + 3), 'Hook: ' + HOOKS.find(h => h[0] === S.hook)[1], 'data-beat="0"');
+  S.beats.forEach((b, i) => (S.fx[i] || []).forEach((id, k) => { v2 += blk('t-fx', b.t0, b.t1, FXN(id), `data-beat="${i}"`, `top:${2 + k * 18}px`); }));
+  const nfx = S.beats.reduce((m, b, i) => Math.max(m, (S.fx[i] || []).length), 1);
+  tracks.push(['Titles / FX', v2, '', 8 + nfx * 18]);
+  // whole-clip effects
+  tracks.push(['Whole clip', [...S.whole].map((id, k) => blk('t-whole', 0, S.dur, WHN(id), '', `top:${3 + k * 14}px`)).join('') || '<div class="tlnone">None</div>', '', Math.max(30, 6 + S.whole.size * 14)]);
+  // C1 captions, grouped exactly as they show
+  let c1 = '';
+  if (S.caption && S.words.length) { const o = capOpts(S.caption, S.capEdit), n = Math.max(1, Math.round(o.group));
+    for (let g = 0; g < S.words.length; g += n) { const ws = S.words.slice(g, g + n), nx = S.words[g + n];
+      const a = ws[0].start + o.offset, b = Math.min(ws[ws.length - 1].end + o.linger, nx ? nx.start + o.offset : S.dur) ;
+      c1 += blk('t-cap', a, Math.max(a + .05, b), ws.map(z => z.word).join(' '), `data-word="${g}"`); } }
+  else c1 = `<div class="tlnone">${S.caption ? 'No words in the transcript' : 'No caption style picked'}</div>`;
+  tracks.push(['Captions', c1]);
+  // V1 video, split at the beats (the cuts)
+  const look = [G(S.grade)[1], S.lut ? `${S.lut.name} ${S.lutAmount}%` : ''].filter(Boolean).join(' + ');
+  tracks.push(['Video', S.beats.map((b, i) => blk('t-vid', b.t0, b.t1, `${i === 0 ? 'Hook' : 'Beat ' + (i + 1)} · ${look}`, `data-beat="${i}"`)).join('')]);
+  // A1 voice waveform, A2 sound effects, A3 music
+  tracks.push(['Voice', `<canvas class="tlwave" id="tlwave"></canvas>`, 'wave']);
+  const ev = soundEvents(cfg, S.snd);
+  let lastT = -9, lane = 0;
+  tracks.push(['SFX', ev.map(e => { lane = e.t - lastT < .6 ? (lane + 1) % 3 : 0; lastT = e.t;
+      return `<div class="tlm" style="left:${x(e.t)}" title="${e.snd} at ${e.t.toFixed(2)}s"><span style="top:${2 + lane * 13}px">${e.snd}</span></div>`; }).join('')
+    || `<div class="tlnone">${[...S.snd].some(s => s !== 'music') ? 'Sounds picked, but nothing on screen moves for them to sit on yet (add beats, effects or cuts)' : 'No sound effects picked'}</div>`]);
+  tracks.push(['Music', S.snd.has('music') ? blk('t-music', 0, S.dur, 'Soft music bed') : '<div class="tlnone">No music</div>']);
+  let ticks = ''; const step = TL.pps >= 150 ? .5 : TL.pps >= 60 ? 1 : TL.pps >= 30 ? 2 : 5;
+  for (let t = 0; t <= S.dur + 1e-6; t += step) ticks += `<div class="tlt" style="left:${x(t)}">${Number.isInteger(t) ? t + 's' : ''}</div>`;
+  const cuts = S.beats.slice(1).map(b => `<div class="tlcut" style="left:${x(b.t0)}"></div>`).join('');
+  const sc = el.querySelector('.tlscroll'), keep = sc ? sc.scrollLeft : 0;
+  el.innerHTML = `<div class="tlbar"><b>Timeline</b><span class="help" id="tltime"></span><label class="help">Zoom <input type="range" id="tlzoom" min="20" max="400" value="${TL.pps}"></label></div>
+    <div class="tlwrap"><div class="tlheads"><div class="tlh ruler"></div>${tracks.map(t => `<div class="tlh ${t[2] || ''}"${t[3] ? ` style="height:${t[3]}px"` : ''}>${t[0]}</div>`).join('')}</div>
+    <div class="tlscroll"><div class="tlinner" style="width:${W}px"><div class="tlruler">${ticks}</div>
+      ${tracks.map(t => `<div class="tlrow ${t[2] || ''}"${t[3] ? ` style="height:${t[3]}px"` : ''}>${t[1]}</div>`).join('')}${cuts}<div class="tlph" id="tlph"></div></div></div></div>`;
+  el.querySelector('.tlscroll').scrollLeft = keep;
+  $('#tlzoom').oninput = e => { TL.pps = +e.target.value; tlRender(); };
+  const inner = el.querySelector('.tlinner'), seek = e => { const r = inner.getBoundingClientRect(); main.win = null; main.v.currentTime = clamp((e.clientX - r.left) / r.width, 0, 1) * S.dur; };
+  let drag = false; inner.onpointerdown = e => { if (e.target.closest('.tlb,.tlm')) return; drag = true; seek(e); inner.setPointerCapture(e.pointerId); };
+  inner.onpointermove = e => drag && seek(e); inner.onpointerup = () => drag = false;
+  inner.querySelectorAll('.tlb').forEach(b => b.onclick = e => { seek(e);
+    if (b.dataset.beat !== undefined && b.classList.contains('t-vid') === false) { S.beat = +b.dataset.beat; S.step = 3; renderStep(); }
+    if (b.dataset.word !== undefined) { if (S.step !== 2) { S.step = 2; renderStep(); } $(`#tx .w[data-i="${b.dataset.word}"]`)?.focus(); } });
+  tlWave(); tlPlayhead(main ? main.v.currentTime : 0);
+}
+function tlPlayhead(t) { const ph = $('#tlph'); if (!ph || !S.dur) return; ph.style.left = (t / S.dur * 100) + '%';
+  const tt = $('#tltime'); if (tt) tt.textContent = `${t.toFixed(2)}s / ${S.dur.toFixed(2)}s`;
+  if (main && !main.v.paused) { const sc = $('#tl .tlscroll'), px = t / S.dur * sc.scrollWidth; if (px < sc.scrollLeft || px > sc.scrollLeft + sc.clientWidth - 40) sc.scrollLeft = px - 60; } }
+async function tlWave() {
+  const c = $('#tlwave'); if (!c) return;
+  if (!TL.peaks && !TL.loading) { TL.loading = true; try {
+      const buf = await (await fetch(S.clip.proxy)).arrayBuffer(), ac = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 44100, 44100);
+      const au = await ac.decodeAudioData(buf), d = au.getChannelData(0), N = 4000, step = Math.max(1, Math.floor(d.length / N)), pk = new Float32Array(N);
+      for (let i = 0; i < N; i++) { let m = 0; for (let j = i * step; j < Math.min(d.length, (i + 1) * step); j++) m = Math.max(m, Math.abs(d[j])); pk[i] = m; }
+      const mx = Math.max(...pk) || 1; TL.peaks = pk.map(v => v / mx); } catch (e) { TL.peaks = new Float32Array(0); console.warn('waveform:', e); } TL.loading = false; }
+  if (!TL.peaks) return setTimeout(tlWave, 300);
+  const cv = $('#tlwave'); if (!cv) return; const w = cv.clientWidth, h = cv.clientHeight; cv.width = w; cv.height = h; const x = cv.getContext('2d');
+  x.fillStyle = '#3ddc97'; for (let i = 0; i < w; i++) { const v = TL.peaks[Math.floor(i / w * TL.peaks.length)] || 0, bh = Math.max(1, v * (h - 4)); x.fillRect(i, (h - bh) / 2, 1, bh); }
 }

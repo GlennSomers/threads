@@ -12,7 +12,7 @@ const slug = s => String(s).toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/
 const safe = n => (path.basename(String(n)).replace(/[^A-Za-z0-9._-]+/g, '_').replace(/^[._]+|[._]+$/g, '') || 'file');
 const stemOf = n => n.replace(/\.[^.]+$/, '');
 
-async function raw(req) { const c = []; for await (const x of req) c.push(x); return Buffer.concat(c); }
+async function raw(req) { const c = []; for await (const x of req) c.push(Buffer.isBuffer(x) ? x : Buffer.from(x)); return Buffer.concat(c); }
 async function body(req) {
   if (req.body && typeof req.body === 'object' && !Buffer.isBuffer(req.body)) return req.body;
   const t = typeof req.body === 'string' ? req.body : Buffer.isBuffer(req.body) ? req.body.toString() : (await raw(req)).toString();
@@ -66,7 +66,7 @@ export async function handle(req, res) {
       const { handleUpload } = await import('@vercel/blob/client');
       const json = await handleUpload({ body: await body(req), request: req, onBeforeGenerateToken: async pathname => {
         if (!/^(clips|references-src|luts)\/[A-Za-z0-9._-]+$/.test(pathname)) throw new Error('Bad upload path');
-        return { allowedContentTypes: ['video/*', 'application/octet-stream'], addRandomSuffix: false, allowOverwrite: true, maximumSizeInBytes: 3e9 }; },
+        return { allowedContentTypes: pathname.startsWith('luts/') ? ['text/plain', 'application/octet-stream'] : ['video/*', 'application/octet-stream'], addRandomSuffix: false, allowOverwrite: true, maximumSizeInBytes: 3e9 }; },
         onUploadCompleted: async () => {} });
       return send(res, 200, json);
     }
@@ -85,6 +85,12 @@ export async function handle(req, res) {
       return send(res, 200, { name });
     }
     if (route === '/api/clips') return send(res, 200, await clips());
+    if (route === '/api/words' && M === 'POST') {
+      const name = safe(q.get('name') || ''), words = await body(req);
+      if (!Array.isArray(words) || !words.every(w => w && typeof w.word === 'string' && Number.isFinite(+w.start) && Number.isFinite(+w.end))) return send(res, 400, { error: 'Expected a list of {word, start, end}' });
+      const clean = words.filter(w => w.word.trim()).map(w => ({ word: w.word.trim(), start: +(+w.start).toFixed(3), end: +(+w.end).toFixed(3) }));
+      await putText(`clips/${stemOf(name)}.words.json`, JSON.stringify(clean, null, 1)); return send(res, 200, { saved: clean.length });
+    }
     if (route === '/api/process' && M === 'POST') { const name = safe(q.get('name')); await dispatch('prepare', { clip: name }, `prep-${stemOf(name)}`); return send(res, 200, { name }); }
     if ((route === '/api/import' || route === '/api/ingest-import') && M === 'POST') {
       const { url } = await body(req); if (!/^https:\/\//.test(String(url || ''))) return send(res, 400, { error: 'https links only' });

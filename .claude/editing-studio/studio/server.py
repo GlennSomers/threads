@@ -256,6 +256,14 @@ class H(SimpleHTTPRequestHandler):
                 (LUTS / f"{lid}.json").write_text(json.dumps({"id": lid, "name": str(d.get("name", lid)), "size": int(size.group(1)),
                                                               "warnings": d.get("warnings", [])}, indent=1))
                 return self.json({"id": lid})
+            if u.path == "/api/words":
+                name = safe(q["name"][0]); words = json.loads(self.body())
+                if not isinstance(words, list) or not all(isinstance(w, dict) and isinstance(w.get("word"), str)
+                                                          and isinstance(w.get("start"), (int, float)) and isinstance(w.get("end"), (int, float)) for w in words):
+                    return self.json({"error": "Expected a list of {word, start, end}"}, 400)
+                clean = [{"word": w["word"].strip(), "start": round(float(w["start"]), 3), "end": round(float(w["end"]), 3)} for w in words if w["word"].strip()]
+                (CLIPS / name).with_suffix(".words.json").write_text(json.dumps(clean, indent=1))
+                return self.json({"saved": len(clean)})
             if u.path == "/api/render":
                 n = re.sub(r"[^a-z0-9-]+", "-", str(json.loads(self.body()).get("name", "")).lower()).strip("-")
                 if not (STYLES / f"{n}.json").exists(): return self.json({"error": "Save the style first, then render it."}, 404)
