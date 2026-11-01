@@ -55,19 +55,21 @@ const stages = new Set();
 class Stage {
   constructor(el, { cfg, win, main }) { this.el = el; this.cfg = cfg; this.win = win; this.main = main;
     el.insertAdjacentHTML('afterbegin', '<video muted playsinline preload="auto"></video><div class="ov"></div>');
-    this.v = el.querySelector('video'); this.ov = el.querySelector('.ov');
+    this.v = el.querySelector('video'); this.v.crossOrigin = 'anonymous'; this.ov = el.querySelector('.ov');
     if (main) { this.gl = el.insertBefore(Object.assign(document.createElement('canvas'), { className: 'glv' }), this.ov); this.gl.hidden = true; } this.v.src = S.clip.proxy; this.vis = true; this.last = ''; this.lastT = 0;
     if (!main) { new IntersectionObserver(e => { this.vis = e[0].isIntersecting; this.vis ? this.v.play().catch(() => {}) : this.v.pause(); }).observe(el); this.v.loop = false; this.v.play().catch(() => {}); }
     stages.add(this); }
   drawLut(raw, f) {
-    const on = !!S.lutCube && !raw && this.v.readyState >= 2;
+    const on = !!S.lutCube && !raw && !this.glBroken && this.v.readyState >= 2;
     this.gl.hidden = !on; this.v.style.visibility = on ? 'hidden' : 'visible'; if (!on) return;
     const g = this.glx = this.glx || initGL(this.gl); if (!g) { this.gl.hidden = true; this.v.style.visibility = 'visible'; return; }
     if (g.cube !== S.lutCube) { uploadLut(g, S.lutCube); g.cube = S.lutCube; }
     const w = this.v.videoWidth, h = this.v.videoHeight; if (this.gl.width !== w || this.gl.height !== h) { this.gl.width = w; this.gl.height = h; g.gl.viewport(0, 0, w, h); }
     g.gl.uniform1f(g.amt, S.lutAmount / 100);
     g.gl.activeTexture(g.gl.TEXTURE0); g.gl.bindTexture(g.gl.TEXTURE_2D, g.vtex);
-    g.gl.texImage2D(g.gl.TEXTURE_2D, 0, g.gl.RGBA, g.gl.RGBA, g.gl.UNSIGNED_BYTE, this.v); g.gl.drawArrays(g.gl.TRIANGLE_STRIP, 0, 4);
+    try { g.gl.texImage2D(g.gl.TEXTURE_2D, 0, g.gl.RGBA, g.gl.RGBA, g.gl.UNSIGNED_BYTE, this.v); }
+    catch (e) { this.glBroken = true; this.gl.hidden = true; this.v.style.visibility = 'visible'; toast('LUT preview could not read the video: ' + e.message); return; }
+    g.gl.drawArrays(g.gl.TRIANGLE_STRIP, 0, 4);
     this.gl.style.filter = f.filter; this.gl.style.transform = this.v.style.transform; }
   destroy() { stages.delete(this); this.v.removeAttribute('src'); this.v.load(); }
   tick() {
@@ -84,7 +86,9 @@ class Stage {
   sounds(t) { const lo = this.lastT; if (t < lo) return;
     soundEvents(this.cfg(), S.snd).forEach(e => { if (lo < e.t && e.t <= t) snd(e.snd); }); }
 }
-(function loop() { stages.forEach(s => s.tick()); requestAnimationFrame(loop); })();
+(function loop() {
+  stages.forEach(s => { try { s.tick(); } catch (e) { if (!s.failed) { s.failed = true; console.error('Preview error:', e); } } });
+  requestAnimationFrame(loop); })();
 
 /* ---------- ui ---------- */
 let main, cards = [];
@@ -187,7 +191,8 @@ function renderWatch(body) {
 /* ---------- wiring ---------- */
 async function upload(file) {
   setMsg(`Uploading ${file.name}...`); show('empty');
-  const d = await sendFile('clip', file, '/api/upload?name='); if (d.error) return setMsg(d.error, true); S.clip = null; refresh(d.name);
+  let d; try { d = await sendFile('clip', file, '/api/upload?name='); } catch (e) { return setMsg('Upload failed: ' + (e.message || e), true); }
+  if (d.error) return setMsg(d.error, true); S.clip = null; refresh(d.name);
 }
 $('#pick').onclick = () => $('#file').click(); $('#addbtn').onclick = () => { show('empty'); setMsg(''); };
 $('#file').onchange = e => e.target.files[0] && upload(e.target.files[0]);
@@ -411,7 +416,7 @@ function uploadLut(g, c) {
 const lutCache = {};
 async function loadLut(id) { return lutCache[id] || (lutCache[id] = parseCube(await (await fetch('/luts/' + encodeURIComponent(id) + '.cube')).text())); }
 let baseImg;
-function baseFrame() { return baseImg || (baseImg = new Promise(res => { const v = document.createElement('video'); v.muted = true; v.preload = 'auto'; v.src = S.clip.proxy;
+function baseFrame() { return baseImg || (baseImg = new Promise(res => { const v = document.createElement('video'); v.crossOrigin = 'anonymous'; v.muted = true; v.preload = 'auto'; v.src = S.clip.proxy;
   v.onloadeddata = () => { v.currentTime = Math.min(1.5, (v.duration || 3) / 3); }; v.onseeked = () => {
     const c = document.createElement('canvas'); c.width = 144; c.height = 256; const x = c.getContext('2d'), s = Math.max(144 / v.videoWidth, 256 / v.videoHeight), w = v.videoWidth * s, h = v.videoHeight * s;
     x.drawImage(v, (144 - w) / 2, (256 - h) / 2, w, h); res(x.getImageData(0, 0, 144, 256)); }; })); }
@@ -438,12 +443,13 @@ async function lutSection(body) {
       <div class="row"><input type="text" id="lutname" value="${esc(base)}"><button class="primary" id="lutsave">Save as preset</button></div>
       <p class="help">Not saved until you press Save. You can still try it first: the preview above uses your clip.</p></div>`;
     baseFrame().then(img => $('#lutprev').getContext('2d').putImageData(lutCPU(img, cube), 0, 0));
-    $('#lutsave').onclick = async () => { const n = $('#lutname').value.trim() || base;
+    $('#lutsave').onclick = async () => { try { const n = $('#lutname').value.trim() || base;
       let r;
       if (CFG.blob) {   // .cube files can be several MB: straight to Blob, then register
         const id = n.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'lut', { upload } = await import('https://esm.sh/@vercel/blob@0.27.3/client');
         await upload(`luts/${id}.cube`, new Blob([text], { type: 'text/plain' }), { access: 'public', handleUploadUrl: '/api/blob-token', contentType: 'text/plain' });
         r = await (await fetch('/api/lut-register', { method: 'POST', body: JSON.stringify({ name: n, warnings: warns }) })).json();
       } else r = await (await fetch('/api/lut-save', { method: 'POST', body: JSON.stringify({ name: n, text, warnings: warns }) })).json();
-      if (r.error) return toast(r.error); toast('Saved LUT preset ' + r.id); renderStep(); }; };
+      if (r.error) return toast('LUT not saved: ' + r.error); toast('Saved LUT preset ' + r.id); renderStep();
+    } catch (e) { toast('LUT not saved: ' + (e.message || e)); console.error(e); } }; };
 }

@@ -21,7 +21,7 @@ export async function list(prefix) {
       for (const e of ents) {
         const f = path.join(dir, e.name);
         if (e.isDirectory()) await walk(f);
-        else { const pathname = path.relative(DATA, f).split(path.sep).join('/'); if (pathname.startsWith(prefix)) out.push({ pathname, url: '/data/' + pathname.split('/').map(encodeURIComponent).join('/'), size: (await fs.stat(f)).size }); }
+        else { const pathname = path.relative(DATA, f).split(path.sep).join('/'); if (pathname.startsWith(prefix)) out.push({ pathname, url: (process.env.FS_PUBLIC_BASE || '/data/') + pathname.split('/').map(encodeURIComponent).join('/'), size: (await fs.stat(f)).size }); }
       }
     };
     await walk(DATA); return out;
