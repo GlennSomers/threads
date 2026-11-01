@@ -25,9 +25,19 @@ const stages = new Set();
 class Stage {
   constructor(el, { cfg, win, main }) { this.el = el; this.cfg = cfg; this.win = win; this.main = main;
     el.insertAdjacentHTML('afterbegin', '<video muted playsinline preload="auto"></video><div class="ov"></div>');
-    this.v = el.querySelector('video'); this.ov = el.querySelector('.ov'); this.v.src = S.clip.proxy; this.vis = true; this.last = ''; this.lastT = 0;
+    this.v = el.querySelector('video'); this.ov = el.querySelector('.ov');
+    if (main) { this.gl = el.insertBefore(Object.assign(document.createElement('canvas'), { className: 'glv' }), this.ov); this.gl.hidden = true; } this.v.src = S.clip.proxy; this.vis = true; this.last = ''; this.lastT = 0;
     if (!main) { new IntersectionObserver(e => { this.vis = e[0].isIntersecting; this.vis ? this.v.play().catch(() => {}) : this.v.pause(); }).observe(el); this.v.loop = false; this.v.play().catch(() => {}); }
     stages.add(this); }
+  drawLut(raw, f) {
+    const on = !!S.lutCube && !raw && this.v.readyState >= 2;
+    this.gl.hidden = !on; this.v.style.visibility = on ? 'hidden' : 'visible'; if (!on) return;
+    const g = this.glx = this.glx || initGL(this.gl); if (!g) { this.gl.hidden = true; this.v.style.visibility = 'visible'; return; }
+    if (g.cube !== S.lutCube) { uploadLut(g, S.lutCube); g.cube = S.lutCube; }
+    const w = this.v.videoWidth, h = this.v.videoHeight; if (this.gl.width !== w || this.gl.height !== h) { this.gl.width = w; this.gl.height = h; g.gl.viewport(0, 0, w, h); }
+    g.gl.activeTexture(g.gl.TEXTURE0); g.gl.bindTexture(g.gl.TEXTURE_2D, g.vtex);
+    g.gl.texImage2D(g.gl.TEXTURE_2D, 0, g.gl.RGBA, g.gl.RGBA, g.gl.UNSIGNED_BYTE, this.v); g.gl.drawArrays(g.gl.TRIANGLE_STRIP, 0, 4);
+    this.gl.style.filter = f.filter; this.gl.style.transform = this.v.style.transform; }
   destroy() { stages.delete(this); this.v.removeAttribute('src'); this.v.load(); }
   tick() {
     if (!this.vis) return; const v = this.v; let t = v.currentTime; const [a, b] = this.win || [0, S.dur || v.duration || 1];
@@ -35,6 +45,7 @@ class Stage {
     if (this.main && !this.win && v.ended) { v.currentTime = 0; }
     const cfg = this.cfg(), raw = this.main && S.mode === 'raw', f = compose(t, cfg, raw);
     v.style.filter = f.filter; v.style.transform = `scale(${f.scale})`; this.el.style.setProperty('--hf', f.font);
+    if (this.main) this.drawLut(raw, f);
     if (f.html !== this.last) { this.ov.innerHTML = f.html; this.last = f.html; }
     if (this.main && S.sound && !v.paused) this.sounds(t);
     this.lastT = t; if (this.main) updateScrub(t);
@@ -68,7 +79,7 @@ function load(c) {
   S.clip = c; S.words = c.words;
   const probe = document.createElement('video'); probe.preload = 'metadata'; probe.src = c.proxy;
   probe.onloadedmetadata = () => { S.dur = probe.duration; S.beats = makeBeats(S.words, S.dur); S.fx = {}; S.beats.forEach((_, i) => S.fx[i] = []);
-    S.caption = null; S.capEdit = {}; S.hook = null; S.whole = new Set(); S.snd = new Set(); S.done = new Set(); S.step = 0; S.beat = 0; show('studio'); build(); renderStep(); };
+    S.caption = null; S.capEdit = {}; S.lut = null; S.lutCube = null; baseImg = null; S.hook = null; S.whole = new Set(); S.snd = new Set(); S.done = new Set(); S.step = 0; S.beat = 0; show('studio'); build(); renderStep(); };
 }
 function build() {
   if (main) main.destroy(); $('#main').innerHTML = '';
@@ -88,7 +99,7 @@ function renderStep() {
   $('#back').disabled = S.step === 0; $('#next').textContent = S.step === STEPS.length - 1 ? 'Done' : 'Next';
   const w0 = [0, Math.min(3, S.dur)]; main.win = null;
   const grid = () => body.insertAdjacentHTML('beforeend', '<div class="grid"></div>');
-  if (id === 'colours') { grid(); GRADES.forEach((g, i) => card(i, g[1], () => { S.grade = g[0]; S.done.add(0); toast('Grade: ' + g[1]); renderStep(); }, () => ({ ...baseCfg(), grade: g[0] }), w0, S.grade === g[0])); }
+  if (id === 'colours') { grid(); GRADES.forEach((g, i) => card(i, g[1], () => { S.grade = g[0]; S.done.add(0); toast('Grade: ' + g[1]); renderStep(); }, () => ({ ...baseCfg(), grade: g[0] }), w0, S.grade === g[0])); lutSection(body); }
   if (id === 'fonts') { grid(); FONTS.forEach((f, i) => card(i, f[1], () => { S.font = f[0]; S.done.add(1); toast('Font: ' + f[1]); renderStep(); }, () => ({ ...baseCfg(), font: f[0], caption: S.caption || 'groups' }), w0, S.font === f[0])); }
   if (id === 'captions') { grid(); CAPS.forEach((c, i) => card(i, c[1], () => { S.caption = c[0]; S.capEdit = {}; S.done.add(2); toast(`Synced captions to ${S.words.length} words`); renderStep(); }, () => ({ ...baseCfg(), caption: c[0], capOpts: {} }), w0, S.caption === c[0])); capEditor(body); }
   if (id === 'beats') renderBeats(body);
@@ -119,11 +130,11 @@ function renderBeats(body) {
     d.onclick = () => { S.whole.has(w[0]) ? S.whole.delete(w[0]) : S.whole.add(w[0]); S.done.add(3); toast(w[1]); renderStep(); }; g2.appendChild(d);
     cards.push(new Stage(d, { cfg: () => ({ ...baseCfg(), whole: new Set([w[0]]) }), win: [b.t0, Math.min(b.t1, b.t0 + 4)] })); });
 }
-function styleObj(name) { return { name, clip: S.clip.name, grade: S.grade, font: S.font, caption: S.caption, hook: S.hook, capOpts: S.capEdit, dur: +S.dur.toFixed(2),
+function styleObj(name) { return { name, clip: S.clip.name, grade: S.grade, font: S.font, caption: S.caption, hook: S.hook, lut: S.lut ? S.lut.id : null, capOpts: S.capEdit, dur: +S.dur.toFixed(2),
   beats: S.beats.map((b, i) => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text, effects: S.fx[i], shot: b.shot || null, shotUrl: b.shotUrl || null })), whole: [...S.whole], sounds: [...S.snd] }; }
 function renderWatch(body) {
   const row = (k, v) => `<div><b>${k}</b><span>${esc(v || 'not picked')}</span></div>`;
-  body.innerHTML = `<div class="sum">${row('Colour', G(S.grade)[1])}${row('Font', F(S.font)[1])}${row('Captions', (CAPS.find(c => c[0] === S.caption) || [])[1])}${row('Hook', (HOOKS.find(h => h[0] === S.hook) || [])[1])}` +
+  body.innerHTML = `<div class="sum">${row('Colour', G(S.grade)[1])}${row('LUT', S.lut ? S.lut.name : 'none')}${row('Font', F(S.font)[1])}${row('Captions', (CAPS.find(c => c[0] === S.caption) || [])[1])}${row('Hook', (HOOKS.find(h => h[0] === S.hook) || [])[1])}` +
     S.beats.slice(1).map((b, i) => row('Beat ' + (i + 2), S.fx[i + 1].map(x => FX.find(f => f[0] === x)[1]).join(', ') || 'Just you')).join('') +
     `${row('Whole clip', [...S.whole].join(', '))}${row('Sound', [...S.snd].join(', '))}</div>
     <h3>Save as my style</h3><div class="row"><input type="text" id="sname" placeholder="Style name, e.g. split-card-reels"><button class="primary" id="ssave">Save style</button></div>
@@ -271,3 +282,107 @@ $('#ifile').onchange = e => e.target.files[0] && ingestUpload(e.target.files[0])
 $('#ilink').onsubmit = async e => { e.preventDefault(); $('#imsg').textContent = 'Fetching...';
   const d = await (await fetch('/api/ingest-import', { method: 'POST', body: JSON.stringify({ url: $('#iurl').value.trim() }) })).json();
   $('#imsg').textContent = d.error || 'Analysing ' + d.name; ingestList(); };
+
+
+/* ---------- LUTs: Rec.709 .cube files, applied to the footage only ---------- */
+function parseCube(text) {
+  let size = 0, title = '', dmin = [0, 0, 0], dmax = [1, 1, 1], oneD = false; const vals = [];
+  for (const raw of text.split(/\r?\n/)) { const l = raw.trim(); if (!l || l[0] === '#') continue;
+    if (/^TITLE/i.test(l)) title = l.replace(/^TITLE\s*/i, '').replace(/^"|"$/g, '');
+    else if (/^LUT_3D_SIZE/i.test(l)) size = +l.split(/\s+/)[1];
+    else if (/^LUT_1D_SIZE/i.test(l)) oneD = true;
+    else if (/^DOMAIN_MIN/i.test(l)) dmin = l.split(/\s+/).slice(1).map(Number);
+    else if (/^DOMAIN_MAX/i.test(l)) dmax = l.split(/\s+/).slice(1).map(Number);
+    else if (/^[-\d.]/.test(l)) { const p = l.split(/\s+/); if (p.length >= 3) vals.push(+p[0], +p[1], +p[2]); } }
+  if (oneD && !size) throw new Error('This is a 1D LUT. Only 3D .cube LUTs are supported.');
+  if (!size || size < 2 || size > 129) throw new Error('No valid LUT_3D_SIZE found. Is this a 3D .cube file?');
+  if (vals.length !== size ** 3 * 3) throw new Error(`Expected ${size ** 3} colour rows for size ${size}, found ${vals.length / 3}.`);
+  if (vals.some(Number.isNaN)) throw new Error('The file has rows that are not numbers.');
+  return { title, size, dmin, dmax, data: Float32Array.from(vals) };
+}
+function cubeWarnings(c, fname) {
+  const w = [], s = (c.title + ' ' + fname).toLowerCase();
+  if (/(s-?log|v-?log|c-?log|log-?c|logc|slog|vlog|clog|f-?log|n-?log|arri|braw|red ?log|aces|hlg|rec\.?2020|rec2020|bt\.?2020|\bpq\b|\blog\b)/.test(s))
+    w.push('The name suggests a log or wide-gamut conversion LUT. This Studio treats footage as Rec.709, so on normal phone or camera video this will look wrong.');
+  if (c.dmin.some(x => x !== 0) || c.dmax.some(x => x !== 1)) w.push('The input range is not 0 to 1, which is unusual for a Rec.709 LUT.');
+  return w;
+}
+function lutCPU(img, c) {
+  const N = c.size, d = c.data, out = new Uint8ClampedArray(img.data.length), px = img.data;
+  const at = (r, g, b) => (r + g * N + b * N * N) * 3;
+  for (let i = 0; i < px.length; i += 4) {
+    const f = k => clamp(((px[i + k] / 255) - c.dmin[k]) / (c.dmax[k] - c.dmin[k]), 0, 1) * (N - 1);
+    const r = f(0), g = f(1), b = f(2), r0 = Math.floor(r), g0 = Math.floor(g), b0 = Math.floor(b);
+    const r1 = Math.min(r0 + 1, N - 1), g1 = Math.min(g0 + 1, N - 1), b1 = Math.min(b0 + 1, N - 1), fr = r - r0, fg = g - g0, fb = b - b0;
+    for (let k = 0; k < 3; k++) {
+      const v = (R, G, B) => d[at(R, G, B) + k];
+      const c00 = v(r0, g0, b0) * (1 - fr) + v(r1, g0, b0) * fr, c10 = v(r0, g1, b0) * (1 - fr) + v(r1, g1, b0) * fr;
+      const c01 = v(r0, g0, b1) * (1 - fr) + v(r1, g0, b1) * fr, c11 = v(r0, g1, b1) * (1 - fr) + v(r1, g1, b1) * fr;
+      out[i + k] = 255 * ((c00 * (1 - fg) + c10 * fg) * (1 - fb) + (c01 * (1 - fg) + c11 * fg) * fb); }
+    out[i + 3] = 255; }
+  return new ImageData(out, img.width, img.height);
+}
+function initGL(canvas) {
+  const gl = canvas.getContext('webgl', { premultipliedAlpha: false }); if (!gl) return null;
+  const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); return o; };
+  const p = gl.createProgram();
+  gl.attachShader(p, sh(gl.VERTEX_SHADER, 'attribute vec2 a;varying vec2 v;void main(){v=vec2(a.x*.5+.5,.5-a.y*.5);gl_Position=vec4(a,0,1);}'));
+  gl.attachShader(p, sh(gl.FRAGMENT_SHADER, `precision highp float;varying vec2 v;uniform sampler2D vid,lut;uniform float N;uniform vec3 dmin,dmax;
+    vec3 at(float r,float g,float b){return texture2D(lut,vec2((b*N+r+.5)/(N*N),(g+.5)/N)).rgb;}
+    void main(){vec3 c=clamp((texture2D(vid,v).rgb-dmin)/(dmax-dmin),0.,1.)*(N-1.);vec3 f=floor(c),t=c-f,u=min(f+1.,N-1.);
+      vec3 x0=mix(mix(at(f.r,f.g,f.b),at(u.r,f.g,f.b),t.r),mix(at(f.r,u.g,f.b),at(u.r,u.g,f.b),t.r),t.g);
+      vec3 x1=mix(mix(at(f.r,f.g,u.b),at(u.r,f.g,u.b),t.r),mix(at(f.r,u.g,u.b),at(u.r,u.g,u.b),t.r),t.g);
+      gl_FragColor=vec4(mix(x0,x1,t.b),1.);}`));
+  gl.linkProgram(p); gl.useProgram(p);
+  const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(p, 'a'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const tex = () => { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+    [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER].forEach(k => gl.texParameteri(gl.TEXTURE_2D, k, gl.LINEAR));
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); return t; };
+  const g = { gl, p, vtex: tex(), ltex: tex() };
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, g.ltex); [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER].forEach(k => gl.texParameteri(gl.TEXTURE_2D, k, gl.NEAREST));
+  gl.uniform1i(gl.getUniformLocation(p, 'vid'), 0); gl.uniform1i(gl.getUniformLocation(p, 'lut'), 1); return g;
+}
+function uploadLut(g, c) {
+  const { gl } = g, N = c.size, px = new Uint8Array(N * N * N * 4);
+  for (let b = 0; b < N; b++) for (let gg = 0; gg < N; gg++) for (let r = 0; r < N; r++) {
+    const s = (r + gg * N + b * N * N) * 3, o = (gg * N * N + b * N + r) * 4;
+    px[o] = c.data[s] * 255; px[o + 1] = c.data[s + 1] * 255; px[o + 2] = c.data[s + 2] * 255; px[o + 3] = 255; }
+  gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, g.ltex); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, N * N, N, 0, gl.RGBA, gl.UNSIGNED_BYTE, px);
+  gl.uniform1f(gl.getUniformLocation(g.p, 'N'), N); gl.uniform3fv(gl.getUniformLocation(g.p, 'dmin'), c.dmin); gl.uniform3fv(gl.getUniformLocation(g.p, 'dmax'), c.dmax);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, g.vtex); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+  [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER].forEach(k => gl.texParameteri(gl.TEXTURE_2D, k, gl.LINEAR));
+}
+const lutCache = {};
+async function loadLut(id) { return lutCache[id] || (lutCache[id] = parseCube(await (await fetch('/luts/' + encodeURIComponent(id) + '.cube')).text())); }
+let baseImg;
+function baseFrame() { return baseImg || (baseImg = new Promise(res => { const v = document.createElement('video'); v.muted = true; v.preload = 'auto'; v.src = S.clip.proxy;
+  v.onloadeddata = () => { v.currentTime = Math.min(1.5, (v.duration || 3) / 3); }; v.onseeked = () => {
+    const c = document.createElement('canvas'); c.width = 144; c.height = 256; const x = c.getContext('2d'), s = Math.max(144 / v.videoWidth, 256 / v.videoHeight), w = v.videoWidth * s, h = v.videoHeight * s;
+    x.drawImage(v, (144 - w) / 2, (256 - h) / 2, w, h); res(x.getImageData(0, 0, 144, 256)); }; })); }
+function lutCard(label, num, selected, onclick, paint) {
+  const d = document.createElement('div'); d.className = 'card' + (selected ? ' on' : ''); d.innerHTML = `<canvas class="lutc" width="144" height="256"></canvas><span class="num">${num}</span><span class="pk">Picked</span><span class="lbl">${esc(label)}</span>`;
+  d.onclick = onclick; $('#lutgrid').appendChild(d); baseFrame().then(img => paint(d.querySelector('canvas').getContext('2d'), img)); return d;
+}
+async function lutSection(body) {
+  body.insertAdjacentHTML('beforeend', `<h3>LUTs (Rec.709 .cube)</h3><div class="grid" id="lutgrid"></div>
+    <div class="row"><input type="file" id="lutfile" accept=".cube" hidden><button id="lutpick">Add a LUT (.cube)</button></div><div id="lutnew"></div>
+    <p class="help">A LUT grades the footage only. Captions, titles and effects are drawn on top and are never graded. It is used in the final render too.</p>`);
+  lutCard('No LUT', 1, !S.lut, () => { S.lut = null; S.lutCube = null; S.done.add(0); toast('LUT: none'); renderStep(); }, (x, img) => x.putImageData(img, 0, 0));
+  const luts = await (await fetch('/api/luts')).json();
+  luts.forEach((l, i) => lutCard(l.name, i + 2, S.lut?.id === l.id, async () => { S.lutCube = await loadLut(l.id); S.lut = { id: l.id, name: l.name }; S.done.add(0); toast('LUT: ' + l.name); renderStep(); },
+    async (x, img) => x.putImageData(lutCPU(img, await loadLut(l.id)), 0, 0)));
+  $('#lutpick').onclick = () => $('#lutfile').click();
+  $('#lutfile').onchange = async e => { const f = e.target.files[0]; if (!f) return; const box = $('#lutnew'); box.innerHTML = '';
+    let text, cube; try { text = await f.text(); cube = parseCube(text); } catch (err) { box.innerHTML = `<p class="err">${esc(err.message)}</p>`; return; }
+    const warns = cubeWarnings(cube, f.name), base = f.name.replace(/\.cube$/i, '');
+    box.innerHTML = `<div class="sum"><div><b>${esc(f.name)}</b><span>3D, size ${cube.size}${cube.title ? ', "' + esc(cube.title) + '"' : ''}</span></div>${warns.map(w => `<p class="err">${esc(w)}</p>`).join('')}
+      <canvas id="lutprev" class="lutc" width="144" height="256" style="height:180px"></canvas>
+      <div class="row"><input type="text" id="lutname" value="${esc(base)}"><button class="primary" id="lutsave">Save as preset</button></div>
+      <p class="help">Not saved until you press Save. You can still try it first: the preview above uses your clip.</p></div>`;
+    baseFrame().then(img => $('#lutprev').getContext('2d').putImageData(lutCPU(img, cube), 0, 0));
+    $('#lutsave').onclick = async () => { const n = $('#lutname').value.trim() || base;
+      const r = await (await fetch('/api/lut-save', { method: 'POST', body: JSON.stringify({ name: n, text, warnings: warns }) })).json();
+      if (r.error) return toast(r.error); toast('Saved LUT preset ' + r.id); renderStep(); }; };
+}

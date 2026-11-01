@@ -43,6 +43,14 @@ On the Captions step, pick a style, then edit it live: font, weight, size, posit
 highlight mode, animation, timing shift, hold time, outline, case, colours and background box.
 Presets are saved to `styles/captions/` only when you press "Save current as preset". Your edits are saved with the style and used by the render.
 
+## LUTs (Rec.709 .cube)
+On the Colours step, "Add a LUT (.cube)" takes a 3D `.cube` file. It is checked (size, row count, input range) and previewed on your clip first.
+It is **only saved as a preset when you press Save**, into `luts/`. Pick a saved LUT from the grid to use it.
+- The LUT grades the **footage only**. Captions, titles and effects are drawn on top and are never graded. Preview: a WebGL shader on the video layer. Render: ffmpeg `lut3d` (tetrahedral) bakes it into the clip before HyperFrames adds the overlay.
+- It is meant for Rec.709 to Rec.709 looks. A name containing log, S-Log, V-Log, C-Log, ARRI, ACES, HLG, PQ or Rec.2020 gets a warning, since those expect different footage.
+- 1D LUTs are not supported. The preview thumbnails use 8-bit precision, so the render is a touch more exact than the preview.
+- It stacks with the built-in grades if you pick both. Leave the grade on Raw to use the LUT alone.
+
 ## Render (HyperFrames)
 After saving a style in the Studio: `python3 tools/render.py <style-name>`
 It builds a HyperFrames project in `projects/<style-name>/hf/` (regenerated each time, not committed), renders it with

@@ -12,6 +12,8 @@ API
   GET  /api/ingests          analysed references
   POST /api/preset           save a caption preset (only when you press Save)
   GET  /api/presets          saved caption presets
+  POST /api/lut-save         {"name", "text"} -> ../luts/<id>.cube (only when you press Save)
+  GET  /api/luts             saved LUT presets
   POST /save                 {"name": "...", ...} -> ../styles/<name>.json
   GET  /api/styles           saved styles
 """
@@ -22,7 +24,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 CLIPS, STYLES, TOOLS, SHOTS = ROOT / "clips", ROOT / "styles", ROOT / "tools", ROOT / "shots"
-REFS, PRESETS = ROOT / "references", ROOT / "styles" / "captions"
+REFS, PRESETS, LUTS = ROOT / "references", ROOT / "styles" / "captions", ROOT / "luts"
 PROXY = HERE / "proxy"
 VIDEO_EXT = {".mp4", ".mov", ".m4v", ".webm", ".mkv"}
 ingest_status = {}
@@ -101,6 +103,8 @@ class H(SimpleHTTPRequestHandler):
         p = path.split("?")[0]
         if p.startswith("/shots/"):
             return str(SHOTS / Path(p).name)
+        if p.startswith("/luts/"):
+            return str(LUTS / Path(urllib.parse.unquote(p)).name)
         if p.startswith("/refs/"):
             parts = urllib.parse.unquote(p).split("/")
             if len(parts) == 4 and ".." not in parts:
@@ -161,6 +165,9 @@ class H(SimpleHTTPRequestHandler):
         u = urllib.parse.urlparse(self.path)
         if u.path == "/api/clips": return self.json(list_clips())
         if u.path == "/api/ingests": return self.json(list_ingests())
+        if u.path == "/api/luts":
+            LUTS.mkdir(exist_ok=True)
+            return self.json([json.loads(p.read_text()) for p in sorted(LUTS.glob("*.json"))])
         if u.path == "/api/presets":
             PRESETS.mkdir(parents=True, exist_ok=True)
             return self.json([json.loads(p.read_text()) for p in sorted(PRESETS.glob("*.json"))])
@@ -217,6 +224,18 @@ class H(SimpleHTTPRequestHandler):
                 ingest_status[rid] = "processing"
                 threading.Thread(target=run_ingest, args=(rid, src), daemon=True).start()
                 return self.json({"name": fname})
+            if u.path == "/api/lut-save":
+                d = json.loads(self.body()); text = d["text"]
+                size = re.search(r"^\s*LUT_3D_SIZE\s+(\d+)", text, re.M)
+                rows = sum(1 for l in text.splitlines() if re.match(r"^\s*-?[\d.]+\s+-?[\d.]+\s+-?[\d.]+", l))
+                if not size or rows != int(size.group(1)) ** 3:
+                    return self.json({"error": "Not a valid 3D .cube file."}, 400)
+                lid = re.sub(r"[^a-z0-9-]+", "-", str(d.get("name", "lut")).lower()).strip("-") or "lut"
+                LUTS.mkdir(exist_ok=True)
+                (LUTS / f"{lid}.cube").write_text(text)
+                (LUTS / f"{lid}.json").write_text(json.dumps({"id": lid, "name": str(d.get("name", lid)), "size": int(size.group(1)),
+                                                              "warnings": d.get("warnings", [])}, indent=1))
+                return self.json({"id": lid})
             if u.path == "/api/preset":
                 d = json.loads(self.body()); PRESETS.mkdir(parents=True, exist_ok=True)
                 n = re.sub(r"[^a-z0-9-]+", "-", str(d.get("name", "preset")).lower()).strip("-") or "preset"

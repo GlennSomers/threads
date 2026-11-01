@@ -47,3 +47,6 @@ body.demo,body.demo *{cursor:none!important}
 @media(max-width:800px){#ingest .row{flex-wrap:wrap}}
 #iurl{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px;flex:1;min-width:0}
 .sum .row{justify-content:flex-start;gap:10px;padding:8px 0 0}
+
+.glv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.lutc{width:100%;height:100%;object-fit:cover;display:block}.sum .lutc{width:auto;border-radius:8px;margin:8px 0}

@@ -64,7 +64,14 @@ def build_project(name, style, clip, words, proj):
         run("npx", "--yes", HF, "init", proj.name, "--example", "blank", "--resolution", "portrait",
             "--non-interactive", "--skip-skills", cwd=proj.parent, stdout=subprocess.DEVNULL)
     (proj / "sfx").mkdir(exist_ok=True); (proj / "shots").mkdir(exist_ok=True)
-    shutil.copy(clip, proj / "clip.mp4")
+    lut = ROOT / "luts" / f"{style['lut']}.cube" if style.get("lut") else None
+    if lut and lut.exists():
+        # The LUT grades the footage only. Captions and effects are drawn on top afterwards, so they are never graded.
+        shutil.copy(lut, proj / "grade.cube")
+        run("ffmpeg", "-y", "-loglevel", "error", "-i", clip, "-vf", "lut3d=file=grade.cube:interp=tetrahedral",
+            "-c:v", "libx264", "-crf", "12", "-preset", "fast", "-pix_fmt", "yuv420p", "-c:a", "copy", proj / "clip.mp4", cwd=proj)
+    else:
+        shutil.copy(clip, proj / "clip.mp4")
     shutil.copy(ROOT / "studio" / "engine.js", proj / "engine.js")
     for b in style["beats"]:
         if b.get("shot") and (ROOT / "shots" / b["shot"]).exists():
