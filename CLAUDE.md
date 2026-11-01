@@ -59,6 +59,10 @@ Whenever one of these skills creates or changes a file there, commit it and push
 
 Exception: `agent-reach` keeps its settings, cookies and API keys in `~/.agent-reach/`. Never copy that folder into the repo or commit any of its contents. Its temporary output stays in `/tmp/`.
 
+## iPhone Shortcuts
+
+Shortcut files (`.shortcut`) and their notes live in `.claude/shortcuts/`. Files made here are unsigned; Glenn signs them on his Mac before importing.
+
 ## Reel Drafts App
 
 - The web app lives in `web/` (Next.js, hosted on Vercel with `web` as the root directory). Its setup steps are in `web/README.md`.
