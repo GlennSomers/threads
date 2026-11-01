@@ -35,7 +35,7 @@ const STEPS = [
 
 /* ---------- state ---------- */
 const S = { clips: [], clip: null, words: [], dur: 0, step: 0, beat: 0, mode: 'edit',
-  grade: 'raw', font: 'inter', caption: null, hook: null, fx: {}, whole: new Set(), snd: new Set(), done: new Set(), sound: false, capEdit: {} };
+  grade: 'raw', font: 'inter', caption: null, hook: null, fx: {}, whole: new Set(), snd: new Set(), done: new Set(), sound: false, capEdit: {}, lutAmount: 100 };
 const G = id => GRADES.find(g => g[0] === id), F = id => FONTS.find(f => f[0] === id);
 
 /* ---------- beats from the transcript ---------- */

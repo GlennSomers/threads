@@ -14,6 +14,7 @@ API
   GET  /api/presets          saved caption presets
   POST /api/lut-save         {"name", "text"} -> ../luts/<id>.cube (only when you press Save)
   GET  /api/luts             saved LUT presets
+  POST /api/render {name}    render a saved style (tools/render.py); GET /api/renders?name=...
   POST /save                 {"name": "...", ...} -> ../styles/<name>.json
   GET  /api/styles           saved styles
 """
@@ -26,7 +27,9 @@ ROOT = HERE.parent
 CLIPS, STYLES, TOOLS, SHOTS = ROOT / "clips", ROOT / "styles", ROOT / "tools", ROOT / "shots"
 REFS, PRESETS, LUTS = ROOT / "references", ROOT / "styles" / "captions", ROOT / "luts"
 PROXY = HERE / "proxy"
+FLOAT = r"[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?"   # .cube rows can use e-notation, e.g. 1.2e-05
 VIDEO_EXT = {".mp4", ".mov", ".m4v", ".webm", ".mkv"}
+render_status = {}
 ingest_status = {}
 status = {}  # clip name -> "processing" | "ready" | "error: ..."
 
@@ -56,6 +59,13 @@ def process(name):
         status[name] = "ready"
     except Exception as e:
         status[name] = f"error: {e}"
+
+
+def run_render(name):
+    render_status[name] = {"status": "running", "message": ""}
+    r = subprocess.run([sys.executable, str(TOOLS / "render.py"), name], capture_output=True, text=True)
+    render_status[name] = {"status": "done", "message": ""} if r.returncode == 0 else \
+        {"status": "error", "message": (r.stderr.strip().splitlines() or ["render failed"])[-1]}
 
 
 def run_ingest(rid, src):
@@ -103,6 +113,10 @@ class H(SimpleHTTPRequestHandler):
         p = path.split("?")[0]
         if p.startswith("/shots/"):
             return str(SHOTS / Path(p).name)
+        if p.startswith("/renders/"):
+            parts = urllib.parse.unquote(p).split("/")
+            if len(parts) == 4 and ".." not in parts:
+                return str(ROOT / "projects" / parts[2] / "renders" / parts[3])
         if p.startswith("/luts/"):
             return str(LUTS / Path(urllib.parse.unquote(p)).name)
         if p.startswith("/refs/"):
@@ -164,6 +178,12 @@ class H(SimpleHTTPRequestHandler):
     def do_GET(self):
         u = urllib.parse.urlparse(self.path)
         if u.path == "/api/clips": return self.json(list_clips())
+        if u.path == "/api/config": return self.json({"blob": False, "auth": False, "authed": True})
+        if u.path == "/api/renders":
+            n = re.sub(r"[^a-z0-9-]+", "-", urllib.parse.parse_qs(u.query).get("name", [""])[0].lower()).strip("-")
+            d = ROOT / "projects" / n / "renders"
+            files = [{"file": f.name, "url": f"/renders/{n}/{f.name}", "size": f.stat().st_size} for f in sorted(d.glob("*.mp4"))] if d.exists() else []
+            return self.json({"files": files, "job": render_status.get(n)})
         if u.path == "/api/ingests": return self.json(list_ingests())
         if u.path == "/api/luts":
             LUTS.mkdir(exist_ok=True)
@@ -227,7 +247,7 @@ class H(SimpleHTTPRequestHandler):
             if u.path == "/api/lut-save":
                 d = json.loads(self.body()); text = d["text"]
                 size = re.search(r"^\s*LUT_3D_SIZE\s+(\d+)", text, re.M)
-                rows = sum(1 for l in text.splitlines() if re.match(r"^\s*-?[\d.]+\s+-?[\d.]+\s+-?[\d.]+", l))
+                rows = sum(1 for l in text.splitlines() if re.match(rf"^\s*{FLOAT}\s+{FLOAT}\s+{FLOAT}", l))
                 if not size or rows != int(size.group(1)) ** 3:
                     return self.json({"error": "Not a valid 3D .cube file."}, 400)
                 lid = re.sub(r"[^a-z0-9-]+", "-", str(d.get("name", "lut")).lower()).strip("-") or "lut"
@@ -236,6 +256,13 @@ class H(SimpleHTTPRequestHandler):
                 (LUTS / f"{lid}.json").write_text(json.dumps({"id": lid, "name": str(d.get("name", lid)), "size": int(size.group(1)),
                                                               "warnings": d.get("warnings", [])}, indent=1))
                 return self.json({"id": lid})
+            if u.path == "/api/render":
+                n = re.sub(r"[^a-z0-9-]+", "-", str(json.loads(self.body()).get("name", "")).lower()).strip("-")
+                if not (STYLES / f"{n}.json").exists(): return self.json({"error": "Save the style first, then render it."}, 404)
+                if render_status.get(n, {}).get("status") != "running":
+                    threading.Thread(target=run_render, args=(n,), daemon=True).start()
+                    render_status[n] = {"status": "running", "message": ""}
+                return self.json({"job": f"render-{n}"})
             if u.path == "/api/preset":
                 d = json.loads(self.body()); PRESETS.mkdir(parents=True, exist_ok=True)
                 n = re.sub(r"[^a-z0-9-]+", "-", str(d.get("name", "preset")).lower()).strip("-") or "preset"

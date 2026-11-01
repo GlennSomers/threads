@@ -49,6 +49,9 @@ It is **only saved as a preset when you press Save**, into `luts/`. Pick a saved
 - The LUT grades the **footage only**. Captions, titles and effects are drawn on top and are never graded. Preview: a WebGL shader on the video layer. Render: ffmpeg `lut3d` (tetrahedral) bakes it into the clip before HyperFrames adds the overlay.
 - It is meant for Rec.709 to Rec.709 looks. A name containing log, S-Log, V-Log, C-Log, ARRI, ACES, HLG, PQ or Rec.2020 gets a warning, since those expect different footage.
 - 1D LUTs are not supported. The preview thumbnails use 8-bit precision, so the render is a touch more exact than the preview.
+- **LUT amount** slider (0 to 100%, double-click to reset) mixes the graded footage with the original, like Premiere's Lumetri "Intensity". Saved with the style and used in the render.
+- `luts/` is git-ignored: LUTs are often paid products and this repo may be public. They persist in the hosted app's Blob store, or keep your own copies.
+- Big LUTs work: a 65-point `.cube` (7 MB) parses in under a second. If a GPU's texture limit is too small for the preview, the preview shrinks it to 33 points; the render always uses the full LUT.
 - It stacks with the built-in grades if you pick both. Leave the grade on Raw to use the LUT alone.
 
 ## Render (HyperFrames)
