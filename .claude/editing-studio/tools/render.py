@@ -77,6 +77,29 @@ def src_to_out(t, keep):
     return None
 
 
+VOICE = {"light": dict(hp=70, nr=6, deess=0.1, ratio=2, makeup=1, presence=1.5, warmth=0),
+         "clean": dict(hp=80, nr=12, deess=0.3, ratio=3, makeup=2, presence=3, warmth=0),
+         "podcast": dict(hp=90, nr=18, deess=0.5, ratio=4, makeup=3, presence=4, warmth=2)}
+
+
+def voice_filter(v):
+    """Same numbers as voiceParams() in studio/engine.js, as an ffmpeg audio chain. None when off."""
+    v = v or {}; P = VOICE.get(v.get("preset"))
+    if not P: return None
+    k = max(0.0, min(1.0, float(v.get("amount", 100) if v.get("amount") is not None else 100) / 100))
+    if k <= 0: return None
+    hp = round(30 + (P["hp"] - 30) * k); nr = float(v["nr"]) if v.get("nr") is not None else P["nr"] * k
+    deess, ratio, makeup = P["deess"] * k, 1 + (P["ratio"] - 1) * k, P["makeup"] * k
+    presence, warmth = P["presence"] * k, P["warmth"] * k
+    f = [f"highpass=f={hp}"]
+    if nr >= 1: f.append(f"afftdn=nr={min(97, nr):.1f}:nf=-40")
+    if warmth > 0.05: f.append(f"lowshelf=f=160:g={warmth:.2f}")
+    if presence > 0.05: f.append(f"equalizer=f=3500:t=q:w=1:g={presence:.2f}")
+    if deess > 0.01: f.append(f"deesser=i={deess:.2f}")
+    if ratio > 1.01: f.append(f"acompressor=threshold=-20dB:ratio={ratio:.2f}:attack=10:release=150:makeup={max(1, 10 ** (makeup / 20)):.3f}")
+    return ",".join(f)
+
+
 def build_project(name, style, clip, words, proj):
     """Write the HyperFrames composition: the clip, the sound effects and a seekable overlay."""
     if not (proj / "hyperframes.json").exists():
@@ -113,6 +136,11 @@ def build_project(name, style, clip, words, proj):
             "-color_trc", "bt709", "-color_range", "tv", "-c:a", "copy", proj / "clip.mp4", cwd=proj)
     else:
         shutil.copy(clip, proj / "clip.mp4")
+    vf = voice_filter(style.get("voice"))
+    if vf:   # clean up the voice on the clip itself, so sound effects and music are not processed
+        run("ffmpeg", "-y", "-loglevel", "error", "-i", proj / "clip.mp4", "-map", "0:v", "-map", "0:a?", "-c:v", "copy", "-af", vf,
+            "-c:a", "aac", "-b:a", "192k", proj / "clip-voice.mp4")
+        (proj / "clip-voice.mp4").replace(proj / "clip.mp4")
     shutil.copy(ROOT / "studio" / "engine.js", proj / "engine.js")
     for b in style["beats"]:
         if b.get("shot") and (ROOT / "shots" / b["shot"]).exists():

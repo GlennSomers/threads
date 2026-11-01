@@ -115,7 +115,7 @@ function load(c) {
   S.clip = c; S.words = c.words.map(w => ({ ...w })); S.cuts = (c.cuts || []).map(x => ({ ...x })); S.sugg = []; refreshLive(); S.wordsSaved = JSON.stringify(c.words); TL.peaks = null; TL.fitFor = null;
   const probe = document.createElement('video'); probe.preload = 'metadata'; probe.src = c.proxy;
   probe.onloadedmetadata = () => { S.dur = probe.duration; S.beats = makeBeats(S.words, S.dur); S.fx = {}; S.beats.forEach((_, i) => S.fx[i] = []);
-    S.caption = null; S.capEdit = {}; S.lut = null; S.lutCube = null; S.lutAmount = 100; baseImg = null; S.hook = null; S.whole = new Set(); S.snd = new Set(); S.done = new Set(); S.step = 0; S.beat = 0; show('studio'); build(); renderStep(); };
+    S.caption = null; S.capEdit = {}; S.lut = null; S.lutCube = null; S.lutAmount = 100; S.voice = { preset: 'off', amount: 100, nr: null }; baseImg = null; S.hook = null; S.whole = new Set(); S.snd = new Set(); S.done = new Set(); S.step = 0; S.beat = 0; show('studio'); build(); renderStep(); };
 }
 function build() {
   if (main) main.destroy(); $('#main').innerHTML = '';
@@ -139,7 +139,7 @@ function renderStep() {
   if (id === 'fonts') { grid(); FONTS.forEach((f, i) => card(i, f[1], () => { S.font = f[0]; S.done.add(1); toast('Font: ' + f[1]); renderStep(); }, () => ({ ...baseCfg(), font: f[0], caption: S.caption || 'groups' }), w0, S.font === f[0])); }
   if (id === 'captions') { txEditor(body); grid(); CAPS.forEach((c, i) => card(i, c[1], () => { S.caption = c[0]; S.capEdit = {}; S.done.add(2); toast(`Synced captions to ${S.words.length} words`); renderStep(); }, () => ({ ...baseCfg(), caption: c[0], capOpts: {} }), w0, S.caption === c[0])); capEditor(body); }
   if (id === 'beats') renderBeats(body);
-  if (id === 'sound') { body.insertAdjacentHTML('beforeend', '<div class="sounds"></div>'); SOUNDS.forEach(s => { const b = document.createElement('button'); b.textContent = s[1]; b.className = S.snd.has(s[0]) ? 'on' : '';
+  if (id === 'sound') { voiceSection(body); body.insertAdjacentHTML('beforeend', '<h3>Sound effects and music</h3><div class="sounds"></div>'); SOUNDS.forEach(s => { const b = document.createElement('button'); b.textContent = s[1]; b.className = S.snd.has(s[0]) ? 'on' : '';
     b.onclick = () => { S.snd.has(s[0]) ? S.snd.delete(s[0]) : S.snd.add(s[0]); S.done.add(4); S.sound = true; $('#snd').textContent = '🔊'; snd(s[0]); renderStep(); }; $('.sounds').appendChild(b); }); }
   if (id === 'watch') renderWatch(body);
   tlRender();
@@ -169,7 +169,7 @@ function renderBeats(body) {
     d.onclick = () => { S.whole.has(w[0]) ? S.whole.delete(w[0]) : S.whole.add(w[0]); S.done.add(3); toast(w[1]); renderStep(); }; g2.appendChild(d);
     cards.push(new Stage(d, { cfg: () => ({ ...baseCfg(), whole: new Set([w[0]]) }), win: [b.t0, Math.min(b.t1, b.t0 + 4)] })); });
 }
-function styleObj(name) { return { name, clip: S.clip.name, grade: S.grade, font: S.font, caption: S.caption, hook: S.hook, lut: S.lut ? S.lut.id : null, lutAmount: S.lut ? S.lutAmount : null, capOpts: S.capEdit, cuts: S.cuts.map(c => [+c.a.toFixed(3), +c.b.toFixed(3)]), dur: +S.dur.toFixed(2),
+function styleObj(name) { return { name, clip: S.clip.name, grade: S.grade, font: S.font, caption: S.caption, hook: S.hook, lut: S.lut ? S.lut.id : null, lutAmount: S.lut ? S.lutAmount : null, voice: { ...S.voice }, capOpts: S.capEdit, cuts: S.cuts.map(c => [+c.a.toFixed(3), +c.b.toFixed(3)]), dur: +S.dur.toFixed(2),
   beats: S.beats.map((b, i) => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text, effects: S.fx[i], shot: b.shot || null, shotUrl: b.shotUrl || null })), whole: [...S.whole], sounds: [...S.snd] }; }
 const renderName = () => S.clip.name.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'render';
 async function showRenders(name) {
@@ -212,6 +212,7 @@ async function applyStyle(st) {
   S.grade = st.grade || 'raw'; S.font = st.font || 'inter'; S.caption = st.caption || null; S.capEdit = { ...(st.capOpts || {}) }; S.hook = st.hook || null;
   S.whole = new Set(st.whole || []); S.snd = new Set(st.sounds || []);
   S.beats.forEach((b, i) => { S.fx[i] = ((st.beats || [])[i]?.effects || []).filter(id => FX.some(f => f[0] === id)); });
+  S.voice = { preset: 'off', amount: 100, nr: null, ...(st.voice || {}) }; applyVoice();
   S.lut = null; S.lutCube = null; S.lutAmount = 100;
   if (st.lut) { try { S.lutCube = await loadLut(st.lut); S.lut = { id: st.lut, name: st.lut }; S.lutAmount = st.lutAmount ?? 100;
       const l = (await (await fetch('/api/luts')).json()).find(x => x.id === st.lut); if (l) S.lut.name = l.name; } catch { toast(`LUT "${st.lut}" from this style is missing`); } }
@@ -241,8 +242,8 @@ $('#back').onclick = () => { if (S.step > 0) { S.step--; renderStep(); } };
 $('#play').onclick = () => { const v = main.v; v.paused ? v.play() : v.pause(); $('#play').textContent = v.paused ? '▶' : '❚❚'; };
 $('#scrub').oninput = e => { updateScrub.drag = true; main.v.currentTime = e.target.value / 1000 * S.dur; };
 $('#scrub').onchange = () => updateScrub.drag = false;
-$('#snd').onclick = () => { S.sound = !S.sound; $('#snd').textContent = S.sound ? '🔊' : '🔇'; main.v.muted = !S.sound; };
-document.querySelectorAll('.seg button').forEach(b => b.onclick = () => { S.mode = b.dataset.m; document.querySelectorAll('.seg button').forEach(x => x.classList.toggle('on', x === b)); });
+$('#snd').onclick = () => { S.sound = !S.sound; if (S.sound) applyVoice(); $('#snd').textContent = S.sound ? '🔊' : '🔇'; main.v.muted = !S.sound; };
+document.querySelectorAll('.seg button').forEach(b => b.onclick = () => { S.mode = b.dataset.m; applyVoice(); document.querySelectorAll('.seg button').forEach(x => x.classList.toggle('on', x === b)); });
 $('#exportbtn').onclick = () => { S.step = 5; renderStep(); };
 document.addEventListener('keydown', e => { if (e.key === 'r' && !/INPUT/.test(e.target.tagName)) location.reload(); });
 fetch('/api/config').then(r => r.json()).then(c => { CFG = c; }).catch(() => {}).finally(() => { refresh(); loadStyles(); });
@@ -563,7 +564,8 @@ function tlRender() {
   const look = [G(S.grade)[1], S.lut ? `${S.lut.name} ${S.lutAmount}%` : ''].filter(Boolean).join(' + ');
   tracks.push(['Video', S.beats.map((b, i) => blk('t-vid', b.t0, b.t1, `${i === 0 ? 'Hook' : 'Beat ' + (i + 1)} · ${look}`, `data-beat="${i}"`)).join('')]);
   // A1 voice waveform, A2 sound effects, A3 music
-  tracks.push(['Voice', `<canvas class="tlwave" id="tlwave"></canvas>`, 'wave']);
+  const vp = voiceParams(S.voice);
+  tracks.push([S.voice.preset === 'off' ? 'Voice' : `Voice · ${VOICE[S.voice.preset].name} ${S.voice.amount}%`, `<canvas class="tlwave" id="tlwave"></canvas>`, 'wave']);
   const ev = soundEvents(cfg, S.snd);
   let lastT = -9, lane = 0;
   tracks.push(['SFX', ev.map(e => { lane = e.t - lastT < .6 ? (lane + 1) % 3 : 0; lastT = e.t;
@@ -662,3 +664,43 @@ function addCut(c, quiet) {
 }
 function afterCuts() { refreshLive(); saveCuts(); tlRender(); txDraw(); }
 async function saveCuts() { try { await fetch('/api/cuts?name=' + encodeURIComponent(S.clip.name), { method: 'POST', body: JSON.stringify(S.cuts) }); S.clip.cuts = S.cuts.map(c => ({ ...c })); } catch {} }
+
+
+/* ---------- voice processing ---------- */
+let VA = null;   // the Web Audio chain on the main video (created on first use, needs a click to start)
+function voiceGraph() {
+  if (VA || !main) return VA;
+  AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+  try {
+    const src = AC.createMediaElementSource(main.v), hp = AC.createBiquadFilter(), warm = AC.createBiquadFilter(), pres = AC.createBiquadFilter(),
+      ess = AC.createBiquadFilter(), comp = AC.createDynamicsCompressor(), gain = AC.createGain();
+    hp.type = 'highpass'; warm.type = 'lowshelf'; warm.frequency.value = 160; pres.type = 'peaking'; pres.frequency.value = 3500; pres.Q.value = 1;
+    ess.type = 'peaking'; ess.frequency.value = 7000; ess.Q.value = 2; comp.threshold.value = -20; comp.attack.value = .01; comp.release.value = .15;
+    src.connect(hp).connect(warm).connect(pres).connect(ess).connect(comp).connect(gain).connect(AC.destination);
+    VA = { hp, warm, pres, ess, comp, gain };
+  } catch (e) { console.warn('voice preview unavailable:', e); VA = false; }
+  return VA;
+}
+function applyVoice() {
+  if (!main || (!VA && S.voice.preset === 'off')) return;
+  const g = voiceGraph(); if (!g) return; if (AC.state === 'suspended') AC.resume();
+  const p = S.mode === 'raw' ? voiceParams({ preset: 'off' }) : voiceParams(S.voice), t = AC.currentTime;
+  g.hp.frequency.setTargetAtTime(p.hp || 10, t, .02); g.warm.gain.setTargetAtTime(p.warmth, t, .02); g.pres.gain.setTargetAtTime(p.presence, t, .02);
+  g.ess.gain.setTargetAtTime(-p.deess * 10, t, .02); g.comp.ratio.setTargetAtTime(p.ratio, t, .02); g.comp.threshold.setTargetAtTime(p.ratio > 1 ? -20 : 0, t, .02);
+  g.gain.gain.setTargetAtTime(Math.pow(10, p.makeup / 20), t, .02);
+}
+function voiceSection(body) {
+  const v = S.voice, p = voiceParams(v);
+  body.insertAdjacentHTML('beforeend', `<h3>Voice</h3>
+    <div class="vpre">${Object.entries(VOICE).map(([id, P]) => `<button data-vp="${id}" class="${v.preset === id ? 'on' : ''}">${P.name}</button>`).join('')}</div>
+    ${v.preset !== 'off' ? `<label class="amt">Amount <b id="vamt">${v.amount}%</b><input type="range" id="vamount" min="0" max="100" value="${v.amount}"></label>
+      <label class="amt">Noise reduction <b id="vnr">${p.nr} dB</b><input type="range" id="vnrr" min="0" max="30" step="1" value="${p.nr}"></label>
+      <p class="help">Rumble cut ${p.hp} Hz · de-ess ${p.deess} · compression ${p.ratio}:1 · presence +${p.presence} dB${p.warmth ? ` · warmth +${p.warmth} dB` : ''}.
+      The preview plays this live (turn sound on, flip Raw/Edited to compare). Noise reduction is only heard in the render.</p>` : '<p class="help">Cleans up the voice: cuts rumble, reduces background noise, softens harsh "s" sounds, evens out the level and adds clarity.</p>'}`);
+  body.querySelectorAll('[data-vp]').forEach(b => b.onclick = () => { S.voice = { preset: b.dataset.vp, amount: S.voice.amount || 100, nr: null }; S.done.add(4);
+    if (!S.sound && b.dataset.vp !== 'off') { S.sound = true; $('#snd').textContent = '🔊'; main.v.muted = false; }
+    applyVoice(); renderStep(); toast('Voice: ' + VOICE[b.dataset.vp].name); });
+  const am = $('#vamount'); if (am) am.oninput = () => { S.voice.amount = +am.value; S.voice.nr = null; $('#vamt').textContent = am.value + '%'; const q = voiceParams(S.voice); $('#vnr').textContent = q.nr + ' dB'; $('#vnrr').value = q.nr; applyVoice(); };
+  const nr = $('#vnrr'); if (nr) { nr.oninput = () => { S.voice.nr = +nr.value; $('#vnr').textContent = nr.value + ' dB'; }; nr.onchange = () => tlRender(); }
+  if (am) am.onchange = () => renderStep();
+}

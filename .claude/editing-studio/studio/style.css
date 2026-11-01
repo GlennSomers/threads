@@ -87,3 +87,5 @@ body.demo,body.demo *{cursor:none!important}
 .tlsel{position:absolute;top:0;bottom:0;background:#4da3ff33;border:1px solid var(--acc);pointer-events:none}
 @media(max-width:900px){#studio{grid-template-columns:1fr}.left{position:static;max-height:none}.phone{height:56vh}}
 .tx .w.cutw{text-decoration:line-through;color:#ff8da1;opacity:.7}
+
+.vpre{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}.vpre button.on{background:var(--acc);color:#04101f;border-color:var(--acc);font-weight:700}
