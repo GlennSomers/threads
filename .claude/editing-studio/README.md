@@ -43,6 +43,10 @@ On the Captions step, pick a style, then edit it live: font, weight, size, posit
 highlight mode, animation, timing shift, hold time, outline, case, colours and background box.
 Presets are saved to `styles/captions/` only when you press "Save current as preset". Your edits are saved with the style and used by the render.
 
+## Transcript and timeline
+- **Transcript** (top of the Captions step): click a word to hear it, type to fix it, set its start and end, delete it, or find and replace (for names and products). Captions update live. "Save transcript" writes `clips/<clip>.words.json`, which the render uses.
+- **Timeline** (under the Studio): one track per kind of edit: titles and effects, whole-clip effects, captions (grouped as they show), video split at the beats with the grade and LUT, the voice waveform, sound effects and music. Click or drag to scrub, click a block to jump to it, zoom with the slider. It shows edits; dragging blocks to change them is not built yet.
+
 ## LUTs (Rec.709 .cube)
 On the Colours step, "Add a LUT (.cube)" takes a 3D `.cube` file. It is checked (size, row count, input range) and previewed on your clip first.
 It is **only saved as a preset when you press Save**, into `luts/`. Pick a saved LUT from the grid to use it.

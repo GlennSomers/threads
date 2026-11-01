@@ -24,3 +24,8 @@ http.createServer((req, res) => {
   if (p.startsWith('/data/')) { const f = path.join(DATA, p.slice(6)); return f.startsWith(DATA) ? serve(req, res, f) : (res.statusCode = 403, res.end()); }
   const f = path.join(PUB, p === '/' ? 'index.html' : p); return f.startsWith(PUB) ? serve(req, res, f) : (res.statusCode = 403, res.end());
 }).listen(process.env.PORT || 8766, () => console.log('Studio (local dev) on http://localhost:' + (process.env.PORT || 8766)));
+
+// Optional: also serve the data folder from a second port, to mimic Blob's separate origin (FS_PUBLIC_BASE=http://localhost:<DATA_PORT>/)
+if (process.env.DATA_PORT) http.createServer((req, res) => { res.setHeader('Access-Control-Allow-Origin', '*');
+  const f = path.join(DATA, decodeURIComponent(new URL(req.url, 'http://x').pathname)); return f.startsWith(DATA) ? serve(req, res, f) : (res.statusCode = 403, res.end()); })
+  .listen(+process.env.DATA_PORT, () => console.log('Data (separate origin) on http://localhost:' + process.env.DATA_PORT));
