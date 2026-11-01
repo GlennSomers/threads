@@ -147,7 +147,8 @@ def j_render(a, w):
     clip = safe(style["clip"]); stem = Path(clip).stem
     get(f"clips/{clip}", w / "clips" / clip); get(f"clips/{stem}.words.json", w / "clips" / f"{stem}.words.json")
     for b in style.get("beats", []):
-        if b.get("shot"): get(f"shots/{safe(b['shot'])}", w / "shots" / safe(b["shot"]))
+        for key in ("shot", "image"):
+            if b.get(key): get(f"shots/{safe(b[key])}", w / "shots" / safe(b[key]))
     if style.get("lut"): get(f"luts/{slug(style['lut'])}.cube", w / "luts" / f"{slug(style['lut'])}.cube")
     r = subprocess.run([sys.executable, str(w / "tools" / "render.py"), name], capture_output=True, text=True)
     sys.stdout.write(r.stdout[-2000:])

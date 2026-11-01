@@ -13,6 +13,12 @@ export async function putText(p, text, contentType = 'application/json') {
   await put(p, text, { access: 'public', addRandomSuffix: false, allowOverwrite: true, contentType, cacheControlMaxAge: 60 });
 }
 
+export async function putBuffer(p, buf, contentType) {
+  if (FS) { const f = path.join(DATA, p); await fs.mkdir(path.dirname(f), { recursive: true }); await fs.writeFile(f, buf); return; }
+  const { put } = await B();
+  await put(p, buf, { access: 'public', addRandomSuffix: false, allowOverwrite: true, contentType });
+}
+
 export async function list(prefix) {
   if (FS) {
     const out = [];

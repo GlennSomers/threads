@@ -40,6 +40,11 @@ def synth(kind, path, dur=None):
     elif kind == "ping":
         n = int(SR * .6)
         out = [math.sin(2 * math.pi * 1320 * i / SR) * env(i, n, .005, .6) for i in range(n)]
+    elif kind == "highlight":
+        n = int(SR * .35); lp = 0
+        for i in range(n):
+            f = .25 + .5 * (i / n); lp += f * (random.uniform(-1, 1) - lp)
+            out.append(lp * math.sin(math.pi * i / n) * .9)
     elif kind == "click":
         n = int(SR * .03)
         out = [(1 if (i // 25) % 2 else -1) * env(i, n, .02, 1) * .5 for i in range(n)]
@@ -51,7 +56,7 @@ def synth(kind, path, dur=None):
         w.writeframes(b"".join(struct.pack("<h", int(max(-1, min(1, s)) * 32000)) for s in out))
 
 
-SFX_LEN = {"whoosh": .45, "pop": .12, "ping": .6, "click": .03}
+SFX_LEN = {"whoosh": .45, "pop": .12, "ping": .6, "click": .03, "highlight": .35}
 FONTS = ("Anton&family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;600;800&family=Playfair+Display:ital,wght@0,700;1,700"
          "&family=Montserrat:wght@600;800&family=Space+Grotesk:wght@500;700&family=Poppins:wght@600;800&family=Caveat:wght@700"
          "&family=JetBrains+Mono:wght@500;800&family=Lora:ital,wght@1,600")
@@ -143,8 +148,9 @@ def build_project(name, style, clip, words, proj):
         (proj / "clip-voice.mp4").replace(proj / "clip.mp4")
     shutil.copy(ROOT / "studio" / "engine.js", proj / "engine.js")
     for b in style["beats"]:
-        if b.get("shot") and (ROOT / "shots" / b["shot"]).exists():
-            shutil.copy(ROOT / "shots" / b["shot"], proj / "shots" / b["shot"])
+        for key in ("shot", "image"):
+            if b.get(key) and (ROOT / "shots" / b[key]).exists():
+                shutil.copy(ROOT / "shots" / b[key], proj / "shots" / b[key])
     dur = style["dur"]
     # sound effects: the moves come from the same engine the Studio uses
     ev = json.loads(subprocess.run(["node", "-e", """
@@ -199,7 +205,7 @@ def build_project(name, style, clip, words, proj):
   // output time -> source time: the overlay is drawn in source time, the video has the cuts joined up
   const KEEP = CFG.keep; let acc = 0; const SEG = KEEP.map(([a, b]) => {{ const s0 = {{ a, b, o: acc }}; acc += b - a; return s0; }});
   const srcT = t => {{ for (const s0 of SEG) if (t < s0.o + (s0.b - s0.a) || s0 === SEG[SEG.length - 1]) return s0.a + Math.max(0, t - s0.o); return t; }};
-  S.beats = st.beats.map(b => ({{ t0: b.start, t1: b.end, text: b.text, shot: b.shot }}));
+  S.beats = st.beats.map(b => ({{ t0: b.start, t1: b.end, text: b.text, shot: b.shot, scene: b.scene, sceneOpts: b.sceneOpts || {{}}, image: b.image }}));
   const fx = {{}}; st.beats.forEach((b, i) => fx[i] = b.effects || []);
   const cfg = {{ grade: st.grade, font: st.font, caption: st.caption, capOpts: st.capOpts || {{}}, hook: st.hook, fx, whole: new Set(st.whole || []) }};
   const video = document.getElementById('v'), ov = document.getElementById('ov'), root = document.getElementById('root');

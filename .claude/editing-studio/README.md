@@ -47,6 +47,15 @@ Presets are saved to `styles/captions/` only when you press "Save current as pre
 - **Transcript** (top of the Captions step): click a word to hear it, type to fix it, set its start and end, delete it, or find and replace (for names and products). Captions update live. "Save transcript" writes `clips/<clip>.words.json`, which the render uses.
 - **Timeline** (under the Studio): one track per kind of edit: titles and effects, whole-clip effects, captions (grouped as they show), video split at the beats with the grade and LUT, the voice waveform, sound effects and music. Click or drag to scrub, click a block to jump to it, zoom with the slider. It shows edits; dragging blocks to change them is not built yet.
 
+## Minimal style (from "How to Edit VIRAL Talking Head Videos Using ONLY Claude!")
+Breakdown, transcript and frames: `.claude/reel-to-skill-runs/g9xoKm5DEeU/`. Skill: `.claude/skills/minimal-animation-edit/`.
+- **Cinematic captions** (Captions step, first card): each line of 5 words or fewer, the key word big in the middle (bold Inter or Playfair Italic, alternating, serif in the accent blue), the other words small above and below as they are spoken.
+- **Scenes per beat** (Beats step, "Scene for this beat"): Stay on A-roll, Quote scene (white or blue rough paper, quotation marks), Line + text (blue line drawing with the camera following), Graph (dark grid, glowing line, blue ball; steps / flat / rise / decline, picked from the words), B-roll / photo + text and Painting + text (paper texture, dark and blurred edges, slide-in for paintings), Centre and Side illustration (image turned into a rough blue texture on white paper). Scenes replace the captions during their beat with their own cinematic text.
+- **Three recommendations per beat (A, B, C)** from the source's planning rules (open on the speaker; announcing = stay on the face; numbers = graph; a person = character; a story = painting; a feeling = B-roll; the big point = line; end on a quote), a **plan box** per beat and **Copy plan** to paste into Claude.
+- Images for scenes: upload, or search Wikimedia Commons from the browser (old paintings are usually public domain; check each image's licence). Stored with the screenshots in `shots/`.
+- **Sound**: whoosh into scenes, a click for each text line in a scene, a highlighter sound on graphs (pick Whoosh, Click and Highlighter on the Sound step; picking a scene turns them on if no sounds are picked yet).
+- **Cut padding** defaults to 30 ms (adjustable) as in the source workflow.
+
 ## Cutting
 The timeline sits under the video; every option is on the right.
 - **Find dead air and retakes**: suggests cuts for gaps between words longer than the slider (default 0.4 s, keeping 0.08 s of air either side; the waveform has to be quiet there too) and for repeated lines (the same three words said again, keeping the later take). **Nothing is cut until you pick it**: click a dashed suggestion to cut it, or "Cut all suggestions".
