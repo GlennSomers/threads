@@ -9,3 +9,4 @@ projects/**/*.mp4
 *.wav
 *.mp3
 !.gitkeep
+studio/proxy/
