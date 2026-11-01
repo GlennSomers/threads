@@ -30,9 +30,11 @@ Press **D** for the hands-free demo (a fake cursor clicks through the flow), **R
 On a beat with "Web page slides in", paste the page address and hit Capture. That saves a real screenshot to `shots/`
 (needs Playwright: `npm i -g playwright && npx playwright install chromium`). Without one the card shows a stand-in page.
 
-## Render
+## Render (HyperFrames)
 After saving a style in the Studio: `python3 tools/render.py <style-name>`
-Makes `projects/<style-name>/renders/<style-name>-vN.mp4` (1080x1920, 30 fps, audio mastered to -14 LUFS, sound effects on the
-moves they belong to). Never overwrites an older version. Roughly 5 seconds of render time per second of video.
-It uses the same drawing code as the Studio preview (`studio/engine.js`), so what you pick is what you get.
-Captions and cards stay out of Instagram's top 220 px and bottom 420 px. Faces are not detected: check stills for overlaps.
+It builds a HyperFrames project in `projects/<style-name>/hf/` (regenerated each time, not committed), renders it with
+`npx hyperframes render`, then masters the audio to -14 LUFS. Output: `projects/<style-name>/renders/<style-name>-vN.mp4`
+(1080x1920, 30 fps, never overwrites an older version). Needs Node 22+ and ffmpeg; HyperFrames is fetched by npx on first use.
+The overlay uses the same drawing code as the Studio preview (`studio/engine.js`), driven by a seekable GSAP timeline, so what you pick is what you get.
+Sound effects sit on the moves they belong to. Captions and cards stay out of Instagram's top 220 px and bottom 420 px.
+Faces are not detected: check stills for overlaps.
