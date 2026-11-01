@@ -7,6 +7,13 @@ API
   POST /api/upload?name=x.mp4  raw body -> saved to ../clips/, then processed
   POST /api/import           {"url": "<Google Drive / direct link>"} -> saved to ../clips/
   POST /api/process?name=x   (re)make proxy + transcript for a clip
+  POST /api/shot             {"url": "..."} -> ../shots/<name>.png (needs Playwright)
+  POST /api/ingest-upload?name=x.mp4 | /api/ingest-import   analyse a reference video -> ../references/<name>/
+  GET  /api/ingests          analysed references
+  POST /api/preset           save a caption preset (only when you press Save)
+  GET  /api/presets          saved caption presets
+  POST /api/lut-save         {"name", "text"} -> ../luts/<id>.cube (only when you press Save)
+  GET  /api/luts             saved LUT presets
   POST /save                 {"name": "...", ...} -> ../styles/<name>.json
   GET  /api/styles           saved styles
 """
@@ -16,9 +23,11 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-CLIPS, STYLES, TOOLS = ROOT / "clips", ROOT / "styles", ROOT / "tools"
+CLIPS, STYLES, TOOLS, SHOTS = ROOT / "clips", ROOT / "styles", ROOT / "tools", ROOT / "shots"
+REFS, PRESETS, LUTS = ROOT / "references", ROOT / "styles" / "captions", ROOT / "luts"
 PROXY = HERE / "proxy"
 VIDEO_EXT = {".mp4", ".mov", ".m4v", ".webm", ".mkv"}
+ingest_status = {}
 status = {}  # clip name -> "processing" | "ready" | "error: ..."
 
 
@@ -49,6 +58,25 @@ def process(name):
         status[name] = f"error: {e}"
 
 
+def run_ingest(rid, src):
+    ingest_status[rid] = "processing"
+    r = subprocess.run([sys.executable, str(TOOLS / "ingest.py"), str(src), rid], capture_output=True, text=True)
+    ingest_status[rid] = "ready" if r.returncode == 0 else "error: " + ((r.stderr.strip().splitlines() or ["ingest failed"])[-1])
+
+
+def list_ingests():
+    out = []
+    for d in sorted(REFS.iterdir()) if REFS.exists() else []:
+        if not d.is_dir(): continue
+        m, c = d / "measurements.json", d / "caption.json"
+        st = ingest_status.get(d.name) or ("ready" if m.exists() else "new")
+        if st == "new": continue
+        meas = json.loads(m.read_text()) if m.exists() else None
+        out.append({"id": d.name, "name": (meas or {}).get("source", d.name), "status": st, "measurements": meas,
+                    "caption": json.loads(c.read_text()) if c.exists() else None, "grade_ok": bool(meas)})
+    return out
+
+
 def drive_url(url):
     m = re.search(r"/d/([\w-]+)", url) or re.search(r"[?&]id=([\w-]+)", url)
     return f"https://drive.google.com/uc?export=download&id={m.group(1)}" if m and "drive.google" in url else url
@@ -70,6 +98,18 @@ def list_clips():
 class H(SimpleHTTPRequestHandler):
     def __init__(self, *a, **k):
         super().__init__(*a, directory=str(HERE), **k)
+
+    def translate_path(self, path):
+        p = path.split("?")[0]
+        if p.startswith("/shots/"):
+            return str(SHOTS / Path(p).name)
+        if p.startswith("/luts/"):
+            return str(LUTS / Path(urllib.parse.unquote(p)).name)
+        if p.startswith("/refs/"):
+            parts = urllib.parse.unquote(p).split("/")
+            if len(parts) == 4 and ".." not in parts:
+                return str(REFS / parts[2] / parts[3])
+        return super().translate_path(path)
 
     def json(self, obj, code=200):
         b = json.dumps(obj).encode()
@@ -124,6 +164,13 @@ class H(SimpleHTTPRequestHandler):
     def do_GET(self):
         u = urllib.parse.urlparse(self.path)
         if u.path == "/api/clips": return self.json(list_clips())
+        if u.path == "/api/ingests": return self.json(list_ingests())
+        if u.path == "/api/luts":
+            LUTS.mkdir(exist_ok=True)
+            return self.json([json.loads(p.read_text()) for p in sorted(LUTS.glob("*.json"))])
+        if u.path == "/api/presets":
+            PRESETS.mkdir(parents=True, exist_ok=True)
+            return self.json([json.loads(p.read_text()) for p in sorted(PRESETS.glob("*.json"))])
         if u.path == "/api/styles":
             STYLES.mkdir(exist_ok=True)
             return self.json([json.loads(p.read_text()) for p in sorted(STYLES.glob("*.json"))])
@@ -151,6 +198,49 @@ class H(SimpleHTTPRequestHandler):
                     with open(CLIPS / name, "wb") as f:
                         while chunk := r.read(1 << 20): f.write(chunk)
                 self.start(name); return self.json({"name": name})
+            if u.path == "/api/shot":
+                url = json.loads(self.body())["url"].strip()
+                if not re.match(r"https?://", url): url = "https://" + url
+                SHOTS.mkdir(exist_ok=True)
+                fname = re.sub(r"[^a-z0-9]+", "-", re.sub(r"^https?://", "", url.lower())).strip("-")[:60] + ".png"
+                r = subprocess.run(["node", str(TOOLS / "screenshot.js"), url, str(SHOTS / fname)], capture_output=True, text=True, timeout=90)
+                if r.returncode:
+                    return self.json({"error": "Screenshot failed: " + ((r.stderr.strip().splitlines() or ["?"])[-1])}, 500)
+                return self.json({"file": fname})
+            if u.path in ("/api/ingest-upload", "/api/ingest-import"):
+                if u.path == "/api/ingest-upload":
+                    fname = safe(q.get("name", ["reference.mp4"])[0]); data = self.body()
+                else:
+                    url = drive_url(json.loads(self.body())["url"])
+                    if not url.startswith("https://"): return self.json({"error": "https links only"}, 400)
+                    with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"}), timeout=180) as r:
+                        if "text/html" in r.headers.get("Content-Type", ""):
+                            return self.json({"error": "That link isn't a direct file. Share it as 'anyone with the link' and try again."}, 400)
+                        m = re.search(r'filename="?([^";]+)', r.headers.get("Content-Disposition", ""))
+                        fname = safe(m.group(1) if m else Path(urllib.parse.urlparse(url).path).name or "reference.mp4"); data = r.read()
+                rid = re.sub(r"[^a-z0-9-]+", "-", Path(fname).stem.lower()).strip("-") or "reference"
+                (REFS / rid).mkdir(parents=True, exist_ok=True)
+                src = REFS / rid / ("source" + Path(fname).suffix.lower()); src.write_bytes(data)
+                ingest_status[rid] = "processing"
+                threading.Thread(target=run_ingest, args=(rid, src), daemon=True).start()
+                return self.json({"name": fname})
+            if u.path == "/api/lut-save":
+                d = json.loads(self.body()); text = d["text"]
+                size = re.search(r"^\s*LUT_3D_SIZE\s+(\d+)", text, re.M)
+                rows = sum(1 for l in text.splitlines() if re.match(r"^\s*-?[\d.]+\s+-?[\d.]+\s+-?[\d.]+", l))
+                if not size or rows != int(size.group(1)) ** 3:
+                    return self.json({"error": "Not a valid 3D .cube file."}, 400)
+                lid = re.sub(r"[^a-z0-9-]+", "-", str(d.get("name", "lut")).lower()).strip("-") or "lut"
+                LUTS.mkdir(exist_ok=True)
+                (LUTS / f"{lid}.cube").write_text(text)
+                (LUTS / f"{lid}.json").write_text(json.dumps({"id": lid, "name": str(d.get("name", lid)), "size": int(size.group(1)),
+                                                              "warnings": d.get("warnings", [])}, indent=1))
+                return self.json({"id": lid})
+            if u.path == "/api/preset":
+                d = json.loads(self.body()); PRESETS.mkdir(parents=True, exist_ok=True)
+                n = re.sub(r"[^a-z0-9-]+", "-", str(d.get("name", "preset")).lower()).strip("-") or "preset"
+                d["name"] = n; (PRESETS / f"{n}.json").write_text(json.dumps(d, indent=1))
+                return self.json({"saved": f"styles/captions/{n}.json"})
             if u.path == "/api/process":
                 name = safe(q["name"][0]); self.start(name); return self.json({"name": name})
             if u.path == "/save":

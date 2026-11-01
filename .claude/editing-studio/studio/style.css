@@ -1,3 +1,4 @@
+[hidden]{display:none!important}
 :root{--bg:#0e0f12;--panel:#17181d;--line:#272932;--ink:#f2f3f5;--mut:#9a9ca6;--acc:#4da3ff}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,sans-serif}
@@ -35,3 +36,17 @@ nav{display:flex;gap:6px;flex-wrap:wrap}nav button{padding:7px 12px;border-radiu
 #toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,20px);background:#fff;color:#000;padding:9px 16px;border-radius:20px;opacity:0;transition:.25s;pointer-events:none;font-weight:600}#toast.show{opacity:1;transform:translate(-50%,0)}
 h3{margin:18px 0 8px;font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.6px}
 @media(max-width:800px){#studio{grid-template-columns:1fr}.left{position:static}.phone{max-height:60vh}}
+body.demo,body.demo *{cursor:none!important}
+#fakecur{position:fixed;left:0;top:0;z-index:99;pointer-events:none;transition:transform .75s cubic-bezier(.4,0,.2,1);margin:-3px 0 0 -4px}
+#fakecur.click svg{transform:scale(.8)}
+
+.capedit{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}.capedit label{display:flex;flex-direction:column;gap:4px;color:var(--mut);font-size:12px}
+.capedit select,.capedit input[type=color]{width:100%;height:34px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:4px}.capedit .chk{flex-direction:row;align-items:center;color:var(--ink)}
+.presets{display:flex;gap:8px;flex-wrap:wrap}
+.ing{max-width:900px;margin:0 auto;padding:24px 20px}.ing h1{margin:14px 0 6px}.sum h4{margin:0 0 8px}.sheet{height:120px;border-radius:6px;border:1px solid var(--line)}.sum .row{flex-wrap:wrap;border:0}.sum .row div{border:0}.err{color:#ff7b7b}
+@media(max-width:800px){#ingest .row{flex-wrap:wrap}}
+#iurl{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px;flex:1;min-width:0}
+.sum .row{justify-content:flex-start;gap:10px;padding:8px 0 0}
+
+.glv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.lutc{width:100%;height:100%;object-fit:cover;display:block}.sum .lutc{width:auto;border-radius:8px;margin:8px 0}
