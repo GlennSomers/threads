@@ -30,6 +30,19 @@ Press **D** for the hands-free demo (a fake cursor clicks through the flow), **R
 On a beat with "Web page slides in", paste the page address and hit Capture. That saves a real screenshot to `shots/`
 (needs Playwright: `npm i -g playwright && npx playwright install chromium`). Without one the card shows a stand-in page.
 
+## Ingest a style from a video
+In the Studio, press **Ingest style** and add a reference reel (upload, or a Drive link). Or run `python3 tools/ingest.py <video> [name]`.
+It writes `references/<name>/` with `report.md`, `measurements.json`, `caption.json` and contact sheets (`sheet-N.jpg`, `first3s.jpg`).
+- **Measured automatically:** cuts and shot lengths, cuts in the first 3 seconds, speech pace and pauses (needs the Groq key), loudness, silences, colour grade (closest Studio grade), and the caption's position, size, colour, highlight colour and words per caption.
+- **Needs eyes:** layouts, font family, upper or lower case, caption animation, motion graphics, zooms, transitions, sound design. Ask Claude to read the contact sheets and finish `report.md`.
+- The caption guess is **not saved as a preset** unless you press Save. "Use this caption look" applies it to your session only. Caption detection needs `pip install pillow numpy`; it only finds white or yellow burned-in text, so treat it as a starting point.
+- Reference videos are not committed (only the report, measurements and sheets).
+
+## Editing captions
+On the Captions step, pick a style, then edit it live: font, weight, size, position (kept inside the safe area), alignment, words at a time,
+highlight mode, animation, timing shift, hold time, outline, case, colours and background box.
+Presets are saved to `styles/captions/` only when you press "Save current as preset". Your edits are saved with the style and used by the render.
+
 ## Render (HyperFrames)
 After saving a style in the Studio: `python3 tools/render.py <style-name>`
 It builds a HyperFrames project in `projects/<style-name>/hf/` (regenerated each time, not committed), renders it with

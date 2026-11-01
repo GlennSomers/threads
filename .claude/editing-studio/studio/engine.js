@@ -35,7 +35,7 @@ const STEPS = [
 
 /* ---------- state ---------- */
 const S = { clips: [], clip: null, words: [], dur: 0, step: 0, beat: 0, mode: 'edit',
-  grade: 'raw', font: 'inter', caption: null, hook: null, fx: {}, whole: new Set(), snd: new Set(), done: new Set(), sound: false };
+  grade: 'raw', font: 'inter', caption: null, hook: null, fx: {}, whole: new Set(), snd: new Set(), done: new Set(), sound: false, capEdit: {} };
 const G = id => GRADES.find(g => g[0] === id), F = id => FONTS.find(f => f[0] === id);
 
 /* ---------- beats from the transcript ---------- */
@@ -57,35 +57,49 @@ function makeBeats(words, dur) {
 const keyword = txt => (txt.match(/[A-Za-z']{4,}/g) || ['this']).sort((a, b) => b.length - a.length)[0].toUpperCase();
 const numberIn = txt => { const m = txt.match(/\d[\d,]*/); return m ? +m[0].replace(/,/g, '') : 100; };
 
-/* ---------- caption renderers (pure: time -> html) ---------- */
-function curIdx(t) { let i = -1; for (let k = 0; k < S.words.length; k++) { if (S.words[k].start <= t) i = k; else break; }
-  return i >= 0 && t - S.words[i].end < .5 ? i : -1; }
-function group(i, n) { const g = Math.floor(i / n) * n; return [g, S.words.slice(g, g + n)]; }
-function caption(id, t, acc) {
-  const i = curIdx(t); if (i < 0) return '';
-  const W = S.words, w = W[i];
-  const wrap = (inner, css = '') => `<div class="cap" style="position:absolute;left:6%;right:6%;top:64%;text-align:center;font-family:var(--hf);${css}">${inner}</div>`;
-  const sp = (x, c) => `<span style="color:${c}">${esc(x)} </span>`;
-  switch (id) {
-    case 'groups': { const [g, ws] = group(i, 3);
-      return wrap(ws.map((x, k) => sp(x.word, g + k === i ? acc : '#fff')).join(''), 'font-weight:800;font-size:8cqw;text-shadow:0 .4cqw 1.4cqw #000a'); }
-    case 'karaoke': { const [g, ws] = group(i, 6);
-      return wrap(ws.map((x, k) => sp(x.word, g + k <= i ? acc : '#fff9')).join(''), 'font-weight:800;font-size:6.4cqw;text-shadow:0 .3cqw 1cqw #000'); }
-    case 'big': return wrap(`<span style="animation:none;display:inline-block;transform:scale(${.8 + .2 * ease((t - w.start) / .12)})">${esc(w.word.toUpperCase())}</span>`, 'font-weight:900;font-size:15cqw;color:#fff;text-shadow:0 .6cqw 2cqw #000');
-    case 'boxed': { const [g, ws] = group(i, 3);
-      return wrap(ws.map((x, k) => `<span style="display:inline-block;margin:.5cqw;padding:.6cqw 2cqw;border-radius:1cqw;background:${g + k === i ? acc : '#000c'};color:${g + k === i ? '#000' : '#fff'}">${esc(x.word)}</span>`).join(''), 'font-weight:800;font-size:6.8cqw'); }
-    case 'outline': { const [, ws] = group(i, 3);
-      return wrap(esc(ws.map(x => x.word).join(' ').toUpperCase()), 'font-weight:900;font-size:9cqw;color:#fff;-webkit-text-stroke:.5cqw #000;paint-order:stroke fill;text-shadow:0 .5cqw 0 #000'); }
-    case 'twotone': { const [, ws] = group(i, 3); const k = ws.reduce((b, x, j) => x.word.length > ws[b].word.length ? j : b, 0);
-      return wrap(ws.map((x, j) => j === k ? `<i style="font-family:'DM Serif Display',serif;color:${acc};font-size:1.2em">${esc(x.word)} </i>` : esc(x.word) + ' ').join(''), 'font-weight:700;font-size:7.2cqw;color:#fff;text-shadow:0 .3cqw 1cqw #000'); }
-    case 'mini': { const [, ws] = group(i, 5);
-      return wrap(esc(ws.map(x => x.word).join(' ').toLowerCase()), 'font-weight:600;font-size:4.6cqw;color:#fff;text-shadow:0 .2cqw .8cqw #000'); }
-    case 'type': { const [g, ws] = group(i, 4); const txt = ws.map(x => x.word).join(' ');
-      const done = ws.filter((x, k) => g + k < i).map(x => x.word).join(' '); const frac = clamp((t - w.start) / Math.max(.2, w.end - w.start), 0, 1);
-      const shown = (done ? done + ' ' : '') + w.word.slice(0, Math.ceil(w.word.length * frac));
-      return wrap(esc(shown) + `<span style="opacity:${Math.floor(t * 4) % 2}">▍</span>`, 'font-family:"JetBrains Mono",monospace;font-weight:800;font-size:6cqw;color:#fff;background:#000b;padding:1.5cqw;border-radius:1cqw;left:8%;right:8%;text-align:left'); }
-  }
-  return '';
+/* ---------- captions: every option is editable (S.capEdit overrides the chosen style's defaults) ---------- */
+const CAP_BASE = { group: 3, hl: 'none', size: 8, weight: 800, y: 64, upper: false, lower: false, stroke: 0, box: false, boxColor: '#000000',
+  anim: 'none', align: 'center', color: '#ffffff', accent: null, font: null, offset: 0, linger: .5 };
+const CAP_DEF = {
+  groups: { group: 3, hl: 'current' }, karaoke: { group: 6, hl: 'spoken', size: 6.4 }, big: { group: 1, size: 15, weight: 900, y: 60, upper: true, anim: 'pop' },
+  boxed: { group: 3, hl: 'box', size: 6.8 }, outline: { group: 3, size: 9, weight: 900, upper: true, stroke: .5 },
+  twotone: { group: 3, hl: 'key', size: 7.2, weight: 700 }, mini: { group: 5, size: 4.6, weight: 600, lower: true },
+  type: { group: 4, size: 6, font: 'JetBrains Mono', box: true, anim: 'type', align: 'left' } };
+const CAP_FONTS = ['Inter', 'Anton', 'Bebas Neue', 'DM Serif Display', 'Playfair Display', 'Montserrat', 'Space Grotesk', 'Poppins', 'Caveat', 'JetBrains Mono', 'Lora'];
+function capOpts(id, over) {
+  const o = { ...CAP_BASE, ...(CAP_DEF[id] || {}) };
+  Object.entries(over || {}).forEach(([k, v]) => { if (v !== null && v !== undefined && v !== '') o[k] = v; });
+  return o;
+}
+function curIdx(t, linger) { let i = -1; for (let k = 0; k < S.words.length; k++) { if (S.words[k].start <= t) i = k; else break; }
+  return i >= 0 && t - S.words[i].end < (linger ?? .5) ? i : -1; }
+function caption(id, t, acc, over) {
+  const o = capOpts(id, over), tt = t - o.offset, i = curIdx(tt, o.linger); if (i < 0) return '';
+  const W = S.words, n = Math.max(1, Math.round(o.group)), g = Math.floor(i / n) * n, ws = W.slice(g, g + n), hi = o.accent || acc;
+  const fmt = x => o.upper ? x.toUpperCase() : o.lower ? x.toLowerCase() : x;
+  const key = ws.reduce((b, x, j) => x.word.length > ws[b].word.length ? j : b, 0);
+  let inner;
+  if (o.anim === 'type') {
+    const w = W[i], frac = clamp((tt - w.start) / Math.max(.2, w.end - w.start), 0, 1);
+    inner = esc(fmt(ws.filter((x, k) => g + k < i).map(x => x.word).join(' ') + (i > g ? ' ' : '') + w.word.slice(0, Math.ceil(w.word.length * frac)))) + `<span style="opacity:${Math.floor(t * 4) % 2}">▍</span>`;
+  } else inner = ws.map((x, k) => {
+    const cur = g + k === i, txt = esc(fmt(x.word));
+    if (o.hl === 'current') return `<span style="color:${cur ? hi : o.color}">${txt} </span>`;
+    if (o.hl === 'spoken') return `<span style="color:${g + k <= i ? hi : o.color};opacity:${g + k <= i ? 1 : .6}">${txt} </span>`;
+    if (o.hl === 'key') return k === key ? `<i style="font-family:'DM Serif Display',serif;color:${hi};font-size:1.2em">${txt} </i>` : `<span style="color:${o.color}">${txt} </span>`;
+    if (o.hl === 'box') return `<span style="display:inline-block;margin:.5cqw;padding:.6cqw 2cqw;border-radius:1cqw;background:${cur ? hi : o.boxColor + 'cc'};color:${cur ? '#000' : o.color}">${txt}</span>`;
+    return `<span style="color:${o.color}">${txt} </span>`; }).join('');
+  const ta = tt - (n === 1 ? W[i].start : W[g].start);
+  let tr = '', op = 1;
+  if (o.anim === 'pop') tr = `scale(${.8 + .2 * ease(ta / .12)})`;
+  if (o.anim === 'slide') { tr = `translateY(${(1 - ease(ta / .18)) * 3}cqw)`; op = ease(ta / .18); }
+  if (o.anim === 'fade') op = ease(ta / .15);
+  const y = clamp(o.y, 12, 76), side = o.align === 'left' ? 'left:8%;right:8%' : 'left:6%;right:6%';
+  const css = `position:absolute;${side};top:${y}%;text-align:${o.align};font-family:${o.font ? `'${o.font}'` : 'var(--hf)'},sans-serif;font-weight:${o.weight};font-size:${o.size}cqw;line-height:1.15;` +
+    `text-shadow:${o.stroke ? `0 .5cqw 0 #000` : `0 .3cqw 1.2cqw #000a`};` + (o.stroke ? `-webkit-text-stroke:${o.stroke}cqw #000;paint-order:stroke fill;` : '') +
+    (o.box && o.hl !== 'box' ? `background:${o.boxColor}bb;padding:1.5cqw;border-radius:1cqw;width:fit-content;${o.align === 'left' ? '' : 'margin:0 auto;left:0;right:0;'}` : '') +
+    `transform:${tr || 'none'};opacity:${op}`;
+  return `<div class="cap" style="${css}">${inner}</div>`;
 }
 
 /* ---------- title + beat effects (pure: local time lt since beat start) ---------- */
@@ -129,7 +143,7 @@ function compose(t, cfg, raw) {
   const filter = raw ? 'none' : G(cfg.grade)[2];
   if (!raw) {
     const bs = S.beats, bi = bs.findIndex(x => t >= x.t0 && t < x.t1), bt = bs[bi];
-    if (cfg.caption) html += caption(cfg.caption, t, acc);
+    if (cfg.caption) html += caption(cfg.caption, t, acc, cfg.capOpts);
     if (bt) { const lt = t - bt.t0;
       if (bi === 0 && cfg.hook && lt < 3) html += hookTitle(cfg.hook, lt, S.words.map(w => w.word).join(' ') || 'Your hook here', acc);
       (cfg.fx[bi] || []).forEach(id => { html += beatFx(id, lt, bt, acc); if (id === 'punch') scale *= 1 + .12 * ease(lt / .15); });

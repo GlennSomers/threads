@@ -10,6 +10,7 @@
   <div class="brand">Editing Studio</div>
   <div class="clipname" id="clipname">No clip yet</div>
   <select id="clipsel" hidden></select>
+  <button class="ghost" id="ingestbtn">Ingest style</button>
   <button class="ghost" id="addbtn">+ Add clip</button>
   <button class="primary" id="exportbtn">Export</button>
 </header>
@@ -23,6 +24,17 @@
       <div class="or">or link one from Google Drive</div>
       <form id="linkform"><input id="linkurl" placeholder="Paste a Drive share link (anyone with the link)"><button class="ghost">Import</button></form>
       <div id="msg" class="msg"></div>
+    </div>
+  </section>
+  <section id="ingest" hidden>
+    <div class="ing">
+      <button class="ghost" id="iback">&larr; Back</button>
+      <h1>Ingest an editing style</h1>
+      <p class="help">Add a reel you want to learn from. It is analysed for cuts, pace, loudness, colour and captions. Nothing is saved as a caption preset unless you press Save.</p>
+      <div class="row"><input type="file" id="ifile" accept="video/*" hidden><button class="primary" id="ipick">Choose a reference video</button></div>
+      <form id="ilink" class="row"><input id="iurl" placeholder="Or paste a Drive share link"><button class="ghost">Import</button></form>
+      <div class="msg" id="imsg"></div>
+      <div id="ilist"></div>
     </div>
   </section>
   <section id="studio" hidden>

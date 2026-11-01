@@ -11,3 +11,4 @@ projects/**/*.mp4
 !.gitkeep
 studio/proxy/
 projects/**/hf/
+references/*/source.*

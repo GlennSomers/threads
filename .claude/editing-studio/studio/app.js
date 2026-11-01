@@ -47,7 +47,7 @@ class Stage {
 /* ---------- ui ---------- */
 let main, cards = [];
 function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('show'), 1800); }
-function baseCfg() { return { grade: S.grade, font: S.font, caption: S.caption, hook: S.hook, fx: S.fx, whole: S.whole }; }
+function baseCfg() { return { grade: S.grade, font: S.font, caption: S.caption, capOpts: S.capEdit, hook: S.hook, fx: S.fx, whole: S.whole }; }
 function updateScrub(t) { if (!updateScrub.drag) $('#scrub').value = 1000 * t / (S.dur || 1); }
 
 async function refresh(keep) {
@@ -60,7 +60,7 @@ async function refresh(keep) {
   if (c.status.startsWith('error')) { show('empty'); setMsg(c.status, true); return; }
   load(c);
 }
-function show(w) { $('#empty').hidden = w !== 'empty'; $('#studio').hidden = w !== 'studio'; }
+function show(w) { $('#empty').hidden = w !== 'empty'; $('#studio').hidden = w !== 'studio'; $('#ingest').hidden = w !== 'ingest'; }
 function setMsg(m, err) { const e = $('#msg'); e.textContent = m; e.className = 'msg' + (err ? ' err' : ''); }
 
 function load(c) {
@@ -68,7 +68,7 @@ function load(c) {
   S.clip = c; S.words = c.words;
   const probe = document.createElement('video'); probe.preload = 'metadata'; probe.src = c.proxy;
   probe.onloadedmetadata = () => { S.dur = probe.duration; S.beats = makeBeats(S.words, S.dur); S.fx = {}; S.beats.forEach((_, i) => S.fx[i] = []);
-    S.caption = null; S.hook = null; S.whole = new Set(); S.snd = new Set(); S.done = new Set(); S.step = 0; S.beat = 0; show('studio'); build(); renderStep(); };
+    S.caption = null; S.capEdit = {}; S.hook = null; S.whole = new Set(); S.snd = new Set(); S.done = new Set(); S.step = 0; S.beat = 0; show('studio'); build(); renderStep(); };
 }
 function build() {
   if (main) main.destroy(); $('#main').innerHTML = '';
@@ -90,7 +90,7 @@ function renderStep() {
   const grid = () => body.insertAdjacentHTML('beforeend', '<div class="grid"></div>');
   if (id === 'colours') { grid(); GRADES.forEach((g, i) => card(i, g[1], () => { S.grade = g[0]; S.done.add(0); toast('Grade: ' + g[1]); renderStep(); }, () => ({ ...baseCfg(), grade: g[0] }), w0, S.grade === g[0])); }
   if (id === 'fonts') { grid(); FONTS.forEach((f, i) => card(i, f[1], () => { S.font = f[0]; S.done.add(1); toast('Font: ' + f[1]); renderStep(); }, () => ({ ...baseCfg(), font: f[0], caption: S.caption || 'groups' }), w0, S.font === f[0])); }
-  if (id === 'captions') { grid(); CAPS.forEach((c, i) => card(i, c[1], () => { S.caption = c[0]; S.done.add(2); toast(`Synced captions to ${S.words.length} words`); renderStep(); }, () => ({ ...baseCfg(), caption: c[0] }), w0, S.caption === c[0])); }
+  if (id === 'captions') { grid(); CAPS.forEach((c, i) => card(i, c[1], () => { S.caption = c[0]; S.capEdit = {}; S.done.add(2); toast(`Synced captions to ${S.words.length} words`); renderStep(); }, () => ({ ...baseCfg(), caption: c[0], capOpts: {} }), w0, S.caption === c[0])); capEditor(body); }
   if (id === 'beats') renderBeats(body);
   if (id === 'sound') { body.insertAdjacentHTML('beforeend', '<div class="sounds"></div>'); SOUNDS.forEach(s => { const b = document.createElement('button'); b.textContent = s[1]; b.className = S.snd.has(s[0]) ? 'on' : '';
     b.onclick = () => { S.snd.has(s[0]) ? S.snd.delete(s[0]) : S.snd.add(s[0]); S.done.add(4); S.sound = true; $('#snd').textContent = '🔊'; snd(s[0]); renderStep(); }; $('.sounds').appendChild(b); }); }
@@ -119,7 +119,7 @@ function renderBeats(body) {
     d.onclick = () => { S.whole.has(w[0]) ? S.whole.delete(w[0]) : S.whole.add(w[0]); S.done.add(3); toast(w[1]); renderStep(); }; g2.appendChild(d);
     cards.push(new Stage(d, { cfg: () => ({ ...baseCfg(), whole: new Set([w[0]]) }), win: [b.t0, Math.min(b.t1, b.t0 + 4)] })); });
 }
-function styleObj(name) { return { name, clip: S.clip.name, grade: S.grade, font: S.font, caption: S.caption, hook: S.hook, dur: +S.dur.toFixed(2),
+function styleObj(name) { return { name, clip: S.clip.name, grade: S.grade, font: S.font, caption: S.caption, hook: S.hook, capOpts: S.capEdit, dur: +S.dur.toFixed(2),
   beats: S.beats.map((b, i) => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text, effects: S.fx[i], shot: b.shot || null, shotUrl: b.shotUrl || null })), whole: [...S.whole], sounds: [...S.snd] }; }
 function renderWatch(body) {
   const row = (k, v) => `<div><b>${k}</b><span>${esc(v || 'not picked')}</span></div>`;
@@ -184,3 +184,90 @@ async function demo() {
   await sleep(1500); cur.remove(); document.body.classList.remove('demo'); demoOn = false;
 }
 document.addEventListener('keydown', e => { if ((e.key === 'd' || e.key === 'D') && !/INPUT|TEXTAREA/.test(e.target.tagName)) demo(); });
+
+
+/* ---------- caption editor + presets (nothing is saved unless you press Save) ---------- */
+const HLS = [['none', 'None'], ['current', 'Current word'], ['spoken', 'Spoken words'], ['key', 'Key word (serif)'], ['box', 'Boxed words']];
+const ANIMS = [['none', 'None'], ['pop', 'Pop'], ['slide', 'Slide up'], ['fade', 'Fade'], ['type', 'Typewriter']];
+function capEditor(body) {
+  if (!S.caption) { body.insertAdjacentHTML('beforeend', '<p class="help">Pick a caption style above, then edit it here.</p>'); return; }
+  const o = capOpts(S.caption, S.capEdit), acc = G(S.grade)[3]; o.case = o.upper ? 'upper' : o.lower ? 'lower' : 'as';
+  const set = (k, v) => { S.capEdit[k] = v; S.done.add(2); mark(); };
+  const sel = (k, opts, label) => `<label>${label}<select data-k="${k}">${opts.map(x => `<option value="${x[0]}"${String(o[k]) === String(x[0]) ? ' selected' : ''}>${x[1]}</option>`).join('')}</select></label>`;
+  const rng = (k, min, max, step, label, unit = '') => `<label>${label} <b id="v-${k}">${o[k]}${unit}</b><input type="range" data-k="${k}" min="${min}" max="${max}" step="${step}" value="${o[k]}"></label>`;
+  body.insertAdjacentHTML('beforeend', `<h3>Edit captions</h3><div class="capedit">
+    ${sel('font', [['', 'Pair default'], ...CAP_FONTS.map(f => [f, f])], 'Font')}
+    ${sel('weight', [400, 600, 700, 800, 900].map(w => [w, w]), 'Weight')}
+    ${rng('size', 3, 18, .1, 'Size')}
+    ${rng('y', 12, 76, 1, 'Position from top', '%')}
+    ${sel('align', [['center', 'Centre'], ['left', 'Left']], 'Alignment')}
+    ${rng('group', 1, 6, 1, 'Words at a time')}
+    ${sel('hl', HLS, 'Highlight')}
+    ${sel('anim', ANIMS, 'Animation')}
+    ${rng('offset', -.4, .4, .02, 'Timing shift (s)')}
+    ${rng('linger', 0, 1.5, .05, 'Hold after word (s)')}
+    ${rng('stroke', 0, 1.2, .05, 'Outline width')}
+    ${sel('case', [['as', 'As spoken'], ['upper', 'UPPERCASE'], ['lower', 'lowercase']], 'Case')}
+    <label>Text colour<input type="color" data-k="color" value="${o.color}"></label>
+    <label>Highlight colour<input type="color" data-k="accent" value="${o.accent || acc}"></label>
+    <label class="chk"><input type="checkbox" data-k="box" ${o.box ? 'checked' : ''}> Background box</label>
+    <label>Box colour<input type="color" data-k="boxColor" value="${o.boxColor}"></label>
+  </div>
+  <p class="help">Position is kept inside Instagram's safe area (12% to 76% from the top). Changes show live in the big preview.</p>
+  <div class="row"><button id="capreset">Reset to style defaults</button></div>
+  <h3>Caption presets</h3><div id="presets" class="presets"></div>
+  <div class="row"><input type="text" id="pname" placeholder="Preset name"><button class="primary" id="psave">Save current as preset</button></div>`);
+  body.querySelectorAll('.capedit [data-k]').forEach(el => el.oninput = () => {
+    const k = el.dataset.k, v = el.type === 'checkbox' ? el.checked : el.type === 'range' ? +el.value : el.value;
+    if (k === 'case') { set('upper', v === 'upper'); set('lower', v === 'lower'); }
+    else set(k, ['weight'].includes(k) ? +v : v);
+    const lab = $('#v-' + k); if (lab) lab.textContent = v + (k === 'y' ? '%' : ''); });
+  $('#capreset').onclick = () => { S.capEdit = {}; renderStep(); };
+  $('#psave').onclick = async () => { const n = $('#pname').value.trim(); if (!n) return toast('Name the preset first');
+    const r = await (await fetch('/api/preset', { method: 'POST', body: JSON.stringify({ name: n, base: S.caption, opts: S.capEdit }) })).json();
+    toast('Saved preset ' + r.saved); capEditor.presets(); };
+  capEditor.presets = async () => { const ps = await (await fetch('/api/presets')).json(); const box = $('#presets'); if (!box) return;
+    box.innerHTML = ps.length ? '' : '<span class="help">No presets saved yet.</span>';
+    ps.forEach(p => { const b = document.createElement('button'); b.textContent = p.name; b.onclick = () => usePreset(p); box.appendChild(b); }); };
+  capEditor.presets();
+}
+function usePreset(p) { S.caption = p.base || 'groups'; S.capEdit = { ...(p.opts || {}) }; S.done.add(2); S.step = 2; show('studio'); renderStep(); toast('Using caption preset: ' + p.name); }
+
+
+/* ---------- ingest: copy the editing style of a reference video ---------- */
+let ingestTimer;
+async function ingestList() {
+  const list = await (await fetch('/api/ingests')).json(); const box = $('#ilist'); box.innerHTML = '';
+  if (!list.length) box.innerHTML = '<p class="help">No references yet. Add one above.</p>';
+  list.forEach(r => { const d = document.createElement('div'); d.className = 'sum ref';
+    if (r.status === 'processing') { d.innerHTML = `<b>${esc(r.name)}</b> <span>Analysing... (cuts, pace, colour, captions)</span>`; box.appendChild(d); return; }
+    if (r.status && r.status.startsWith('error')) { d.innerHTML = `<b>${esc(r.name)}</b> <span class="err">${esc(r.status)}</span>`; box.appendChild(d); return; }
+    const m = r.measurements || {}, sh = m.shots || {}, sp = m.speech || {}, g = m.grade || {}, c = r.caption;
+    const row = (k, v) => `<div><b>${k}</b><span>${esc(v ?? 'n/a')}</span></div>`;
+    d.innerHTML = `<h4>${esc(r.id)}</h4>
+      ${row('Cuts', `${(m.cuts || []).length} (${sh.cuts_per_10s} per 10 s), average shot ${sh.average_s} s`)}
+      ${row('First 3 seconds', (m.first_3_seconds?.cuts || []).length ? 'cuts at ' + m.first_3_seconds.cuts.join(', ') + ' s' : 'one held shot')}
+      ${row('Speech', sp.words_per_minute ? sp.words_per_minute + ' words per minute, ' + sp['pauses_over_0.25s'] + ' pauses' : 'not transcribed')}
+      ${row('Loudness', m.audio?.loudness_lufs != null ? m.audio.loudness_lufs + ' LUFS' : 'no audio')}
+      ${row('Closest grade', (GRADES.find(x => x[0] === g.grade_guess) || [])[1])}
+      ${row('Captions', c ? `about ${c.opts.y}% from top, size ${c.opts.size}, ${c.opts.color}${c.opts.accent ? ', highlight ' + c.opts.accent : ''}${c.opts.group ? ', ' + c.opts.group + ' word(s) at a time' : ''}` : (m.caption_note || 'none found'))}
+      <div class="row">${(m.sheets || []).map(f => `<a href="/refs/${encodeURIComponent(r.id)}/${f}" target="_blank"><img class="sheet" src="/refs/${encodeURIComponent(r.id)}/${f}"></a>`).join('')}</div>
+      <p class="help">Layouts, font family, case, animation, motion graphics and sound design need eyes: ask Claude to read these sheets and finish <code>references/${esc(r.id)}/report.md</code>.</p>
+      <div class="row">${r.grade_ok ? '<button data-a="grade">Use this grade</button>' : ''}${c ? '<button class="primary" data-a="use">Use this caption look</button><button data-a="save">Save as caption preset</button>' : ''}</div>`;
+    d.querySelector('[data-a=grade]')?.addEventListener('click', () => { S.grade = g.grade_guess; toast('Grade: ' + G(S.grade)[1]); });
+    d.querySelector('[data-a=use]')?.addEventListener('click', () => { if (!S.clip) return toast('Add a clip first, then use the look'); usePreset({ name: c.name, base: c.base, opts: c.opts }); });
+    d.querySelector('[data-a=save]')?.addEventListener('click', async () => { const n = prompt('Preset name', c.name); if (!n) return;
+      const r2 = await (await fetch('/api/preset', { method: 'POST', body: JSON.stringify({ name: n, base: c.base, opts: c.opts, source: r.name }) })).json(); toast('Saved preset ' + r2.saved); });
+    box.appendChild(d); });
+  if (list.some(r => r.status === 'processing')) { clearTimeout(ingestTimer); ingestTimer = setTimeout(ingestList, 2000); }
+}
+async function ingestUpload(file) { $('#imsg').textContent = 'Uploading ' + file.name + '...';
+  const d = await (await fetch('/api/ingest-upload?name=' + encodeURIComponent(file.name), { method: 'POST', body: file })).json();
+  $('#imsg').textContent = d.error || 'Analysing ' + d.name; ingestList(); }
+$('#ingestbtn').onclick = () => { show('ingest'); ingestList(); };
+$('#iback').onclick = () => S.clip && main ? show('studio') : refresh();
+$('#ipick').onclick = () => $('#ifile').click();
+$('#ifile').onchange = e => e.target.files[0] && ingestUpload(e.target.files[0]);
+$('#ilink').onsubmit = async e => { e.preventDefault(); $('#imsg').textContent = 'Fetching...';
+  const d = await (await fetch('/api/ingest-import', { method: 'POST', body: JSON.stringify({ url: $('#iurl').value.trim() }) })).json();
+  $('#imsg').textContent = d.error || 'Analysing ' + d.name; ingestList(); };

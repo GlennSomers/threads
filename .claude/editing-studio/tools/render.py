@@ -120,7 +120,7 @@ def build_project(name, style, clip, words, proj):
   S.words = CFG.words; S.dur = st.dur;
   S.beats = st.beats.map(b => ({{ t0: b.start, t1: b.end, text: b.text, shot: b.shot }}));
   const fx = {{}}; st.beats.forEach((b, i) => fx[i] = b.effects || []);
-  const cfg = {{ grade: st.grade, font: st.font, caption: st.caption, hook: st.hook, fx, whole: new Set(st.whole || []) }};
+  const cfg = {{ grade: st.grade, font: st.font, caption: st.caption, capOpts: st.capOpts || {{}}, hook: st.hook, fx, whole: new Set(st.whole || []) }};
   const video = document.getElementById('v'), ov = document.getElementById('ov'), root = document.getElementById('root');
   // The overlay is a pure function of time, so it is safe to seek.
   function draw(t) {{
