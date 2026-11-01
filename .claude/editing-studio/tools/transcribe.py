@@ -41,6 +41,7 @@ def groq(audio, key):
              "Content-Type: audio/flac\r\n\r\n").encode() + audio.read_bytes() + f"\r\n--{boundary}--\r\n".encode()
     req = request.Request("https://api.groq.com/openai/v1/audio/transcriptions", data=body, headers={
         "Authorization": f"Bearer {key}",
+        "User-Agent": "editing-studio/1.0",   # Groq sits behind Cloudflare, which blocks Python's default user agent with a 403
         "Content-Type": f"multipart/form-data; boundary={boundary}"})
     with request.urlopen(req) as r:
         data = json.load(r)
