@@ -7,6 +7,7 @@ API
   POST /api/upload?name=x.mp4  raw body -> saved to ../clips/, then processed
   POST /api/import           {"url": "<Google Drive / direct link>"} -> saved to ../clips/
   POST /api/process?name=x   (re)make proxy + transcript for a clip
+  POST /api/shot             {"url": "..."} -> ../shots/<name>.png (needs Playwright)
   POST /save                 {"name": "...", ...} -> ../styles/<name>.json
   GET  /api/styles           saved styles
 """
@@ -16,7 +17,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-CLIPS, STYLES, TOOLS = ROOT / "clips", ROOT / "styles", ROOT / "tools"
+CLIPS, STYLES, TOOLS, SHOTS = ROOT / "clips", ROOT / "styles", ROOT / "tools", ROOT / "shots"
 PROXY = HERE / "proxy"
 VIDEO_EXT = {".mp4", ".mov", ".m4v", ".webm", ".mkv"}
 status = {}  # clip name -> "processing" | "ready" | "error: ..."
@@ -70,6 +71,11 @@ def list_clips():
 class H(SimpleHTTPRequestHandler):
     def __init__(self, *a, **k):
         super().__init__(*a, directory=str(HERE), **k)
+
+    def translate_path(self, path):
+        if path.split("?")[0].startswith("/shots/"):
+            return str(SHOTS / Path(path.split("?")[0]).name)
+        return super().translate_path(path)
 
     def json(self, obj, code=200):
         b = json.dumps(obj).encode()
@@ -151,6 +157,15 @@ class H(SimpleHTTPRequestHandler):
                     with open(CLIPS / name, "wb") as f:
                         while chunk := r.read(1 << 20): f.write(chunk)
                 self.start(name); return self.json({"name": name})
+            if u.path == "/api/shot":
+                url = json.loads(self.body())["url"].strip()
+                if not re.match(r"https?://", url): url = "https://" + url
+                SHOTS.mkdir(exist_ok=True)
+                fname = re.sub(r"[^a-z0-9]+", "-", re.sub(r"^https?://", "", url.lower())).strip("-")[:60] + ".png"
+                r = subprocess.run(["node", str(TOOLS / "screenshot.js"), url, str(SHOTS / fname)], capture_output=True, text=True, timeout=90)
+                if r.returncode:
+                    return self.json({"error": "Screenshot failed: " + ((r.stderr.strip().splitlines() or ["?"])[-1])}, 500)
+                return self.json({"file": fname})
             if u.path == "/api/process":
                 name = safe(q["name"][0]); self.start(name); return self.json({"name": name})
             if u.path == "/save":

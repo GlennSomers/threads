@@ -35,3 +35,6 @@ nav{display:flex;gap:6px;flex-wrap:wrap}nav button{padding:7px 12px;border-radiu
 #toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,20px);background:#fff;color:#000;padding:9px 16px;border-radius:20px;opacity:0;transition:.25s;pointer-events:none;font-weight:600}#toast.show{opacity:1;transform:translate(-50%,0)}
 h3{margin:18px 0 8px;font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.6px}
 @media(max-width:800px){#studio{grid-template-columns:1fr}.left{position:static}.phone{max-height:60vh}}
+body.demo,body.demo *{cursor:none!important}
+#fakecur{position:fixed;left:0;top:0;z-index:99;pointer-events:none;transition:transform .75s cubic-bezier(.4,0,.2,1);margin:-3px 0 0 -4px}
+#fakecur.click svg{transform:scale(.8)}

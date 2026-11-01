@@ -26,4 +26,13 @@ ffmpeg, Python 3, Node.js (all present in the cloud container).
 `python3 studio/server.py` then open http://localhost:8765. With no clip it shows an upload screen:
 drop a video (saved to `clips/`, small preview and transcript made automatically) or paste a Google Drive
 share link ("anyone with the link"). Picks save to `styles/<name>.json`.
-Not built yet: the D-key demo mode, real page screenshots on beats (cards use a stylised page), final render.
+Press **D** for the hands-free demo (a fake cursor clicks through the flow), **R** to reset.
+On a beat with "Web page slides in", paste the page address and hit Capture. That saves a real screenshot to `shots/`
+(needs Playwright: `npm i -g playwright && npx playwright install chromium`). Without one the card shows a stand-in page.
+
+## Render
+After saving a style in the Studio: `python3 tools/render.py <style-name>`
+Makes `projects/<style-name>/renders/<style-name>-vN.mp4` (1080x1920, 30 fps, audio mastered to -14 LUFS, sound effects on the
+moves they belong to). Never overwrites an older version. Roughly 5 seconds of render time per second of video.
+It uses the same drawing code as the Studio preview (`studio/engine.js`), so what you pick is what you get.
+Captions and cards stay out of Instagram's top 220 px and bottom 420 px. Faces are not detected: check stills for overlaps.

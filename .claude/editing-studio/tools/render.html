@@ -1,0 +1,28 @@
+<!doctype html><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&family=Montserrat:wght@600;800&family=Space+Grotesk:wght@500;700&family=Poppins:wght@600;800&family=Caveat:wght@700&family=JetBrains+Mono:wght@500;800&family=Lora:ital,wght@1,600&display=swap" rel="stylesheet">
+<style>html,body{margin:0;background:#000}#stage{position:relative;width:1080px;height:1920px;overflow:hidden;container-type:size}
+#stage img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.ov{position:absolute;inset:0;overflow:hidden}</style>
+<div id="stage"><img class="bg" id="bg"><div class="ov" id="ov"></div></div>
+<script src="../studio/engine.js"></script>
+<script>
+let CFG, SEL;
+window.setup = (style, words, shotBase) => {
+  window.SHOT_BASE = shotBase;
+  S.words = words; S.dur = style.dur;
+  S.beats = style.beats.map(b => ({ t0: b.start, t1: b.end, text: b.text, shot: b.shot }));
+  const fx = {}; style.beats.forEach((b, i) => fx[i] = b.effects || []);
+  CFG = { grade: style.grade, font: style.font, caption: style.caption, hook: style.hook, fx, whole: new Set(style.whole || []) };
+  SEL = new Set(style.sounds || []);
+  return document.fonts.ready.then(() => true);
+};
+window.events = () => soundEvents(CFG, SEL);
+window.draw = async (t, src) => {
+  const bg = document.getElementById('bg'); bg.src = src; await bg.decode();
+  const f = compose(t, CFG, false);
+  bg.style.filter = f.filter; bg.style.transform = `scale(${f.scale})`;
+  const st = document.getElementById('stage'); st.style.setProperty('--hf', f.font);
+  document.getElementById('ov').innerHTML = f.html;
+  await Promise.all([...document.images].map(i => i.complete ? 0 : i.decode().catch(() => 0)));
+  return true;
+};
+</script>
