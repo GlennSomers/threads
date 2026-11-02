@@ -89,3 +89,12 @@ body.demo,body.demo *{cursor:none!important}
 .tx .w.cutw{text-decoration:line-through;color:#ff8da1;opacity:.7}
 
 .vpre{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}.vpre button.on{background:var(--acc);color:#04101f;border-color:var(--acc);font-weight:700}
+
+/* minimal-style planning */
+.planbox{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}.planscript{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:13px}.planscript b{display:block;font-size:11px;color:var(--mut);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em}
+.planbox textarea{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;min-height:84px;resize:vertical}
+.recs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.rec{text-align:left;display:flex;flex-direction:column;gap:3px;padding:10px}.rec small{color:var(--acc);font-size:11px}.rec span{color:var(--mut);font-size:12px}.rec.on{border-color:var(--acc);background:#16243a}
+.imgpick .row input[type=text]{flex:1;min-width:0;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px}
+.wmgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;margin-top:8px}.wmgrid img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid var(--line)}.wmgrid img:hover{border-color:var(--acc)}
+.t-scene{background:#7b61ff;color:#fff}
+@media(max-width:900px){.planbox,.recs{grid-template-columns:1fr}}

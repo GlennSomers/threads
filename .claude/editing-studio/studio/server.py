@@ -257,6 +257,19 @@ class H(SimpleHTTPRequestHandler):
                 (LUTS / f"{lid}.json").write_text(json.dumps({"id": lid, "name": str(d.get("name", lid)), "size": int(size.group(1)),
                                                               "warnings": d.get("warnings", [])}, indent=1))
                 return self.json({"id": lid})
+            if u.path in ("/api/asset-upload", "/api/asset-fetch"):   # images for scenes, kept with the screenshots
+                SHOTS.mkdir(exist_ok=True)
+                if u.path == "/api/asset-upload":
+                    fname = re.sub(r"[^A-Za-z0-9._-]+", "_", Path(q.get("name", ["image.jpg"])[0]).name) or "image.jpg"; data = self.body()
+                else:
+                    url = json.loads(self.body())["url"]
+                    if not url.startswith("https://"): return self.json({"error": "https links only"}, 400)
+                    with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "editing-studio/1.0"}), timeout=60) as r:
+                        data = r.read()
+                    fname = re.sub(r"[^A-Za-z0-9._-]+", "_", Path(urllib.parse.urlparse(url).path).name)[-80:] or "image.jpg"
+                if len(data) > 25e6: return self.json({"error": "Image too large (25 MB max)"}, 400)
+                (SHOTS / fname).write_bytes(data)
+                return self.json({"file": fname})
             if u.path == "/api/cuts":
                 name = safe(q["name"][0]); cuts = json.loads(self.body())
                 if not isinstance(cuts, list) or not all(isinstance(c, dict) and float(c["b"]) > float(c["a"]) >= 0 for c in cuts):

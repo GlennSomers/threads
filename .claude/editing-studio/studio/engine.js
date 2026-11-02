@@ -17,14 +17,14 @@ const FONTS = [
   ['inter','Inter','Inter','Inter'],['anton','Anton + Inter','Anton','Inter'],['bebas','Bebas + Lora','"Bebas Neue"','Lora'],
   ['serif','DM Serif + Inter','"DM Serif Display"','Inter'],['play','Playfair + Montserrat','"Playfair Display"','Montserrat'],
   ['grot','Space Grotesk','"Space Grotesk"','"Space Grotesk"'],['pop','Poppins','Poppins','Poppins'],['mono','JetBrains Mono','"JetBrains Mono"','"JetBrains Mono"']];
-const CAPS = [['groups','1 to 3 words'],['karaoke','Karaoke'],['big','One big word'],['boxed','Boxed words'],
+const CAPS = [['cinematic','Cinematic (minimal)'],['groups','1 to 3 words'],['karaoke','Karaoke'],['big','One big word'],['boxed','Boxed words'],
   ['outline','Bold outline'],['twotone','Two-tone key words'],['mini','Minimal lowercase'],['type','Typewriter']];
 const HOOKS = [['center','Big centre title'],['lower','Lower third'],['boxed','Boxed title'],['outline','Outline slam'],
   ['left','Slide in left'],['type','Typewriter'],['stack','Stacked words'],['stamp','Question stamp']];
 const FX = [['chat','Chat window typing'],['page','Web page slides in'],['kw','Keyword slam'],
   ['num','Number counts up'],['emoji','Emoji pops'],['punch','Punch-in']];
 const WHOLE = [['bar','Progress bar'],['zoomcut','Zoom on every cut'],['flash','Flash on every cut'],['push','Slow push']];
-const SOUNDS = [['whoosh','Whoosh'],['pop','Pop'],['ping','Ping'],['typing','Typing'],['click','Click'],['music','Soft music bed']];
+const SOUNDS = [['whoosh','Whoosh'],['pop','Pop'],['ping','Ping'],['typing','Typing'],['click','Click'],['highlight','Highlighter'],['music','Soft music bed']];
 const STEPS = [
   ['colours','Colours','Pick the grade. Every card plays your clip with that look.'],
   ['fonts','Fonts','Pick the font pair for captions and titles.'],
@@ -105,6 +105,91 @@ function caption(id, t, acc, over) {
   return `<div class="cap" style="${css}">${inner}</div>`;
 }
 
+/* ---------- minimal style: cinematic text (two fonts, key word big in the middle, the rest small around it) ---------- */
+const STOP = new Set('the a an and or but of to in on at for with is are was were be been it its this that these those i you he she we they my your his her our their me him them as so if then than just like really very kind there here what when who which how do does did have has had not no yes up all can will would could should into out about from by even also only actually gonna going really still some any every each more most just'.split(' '));
+function keyIndex(ws) {   // the word that carries the line: numbers first, then the longest non-filler word
+  let best = 0, score = -1;
+  ws.forEach((w, i) => { const c = w.word.replace(/[^\w']/g, ''), lc = c.toLowerCase(); let s = c.length + (/\d/.test(c) ? 20 : 0) - (STOP.has(lc) ? 10 : 0); if (s > score) { score = s; best = i; } });
+  return best;
+}
+function cineGroups(W) {   // lines of 5 words or fewer, breaking on punctuation and pauses
+  const out = []; let cur = [];
+  W.forEach((w, i) => { cur.push(i); const nx = W[i + 1]; if (cur.length >= 5 || /[.?!,;:]$/.test(w.word) || !nx || nx.start - w.end > .45) { out.push(cur); cur = []; } });
+  return out;
+}
+function cineBlock(t, opt = {}) {
+  const W = liveWords(); if (!W.length) return '';
+  const groups = S._cineG && S._cineW === W ? S._cineG : (S._cineW = W, S._cineG = cineGroups(W));
+  const gi = groups.findIndex(g => t >= W[g[0]].start - .05 && t < (groups[groups.indexOf(g) + 1] ? W[groups[groups.indexOf(g) + 1][0]].start - .05 : W[g[g.length - 1]].end + .6));
+  if (gi < 0) return '';
+  const g = groups[gi], ws = g.map(i => W[i]), k = keyIndex(ws), serif = gi % 2 === 1 || /[!?]$/.test(ws[k].word);
+  const ink = opt.ink || '#ffffff', accent = opt.accent || '#2f6bff', y = opt.y ?? 62, ta = t - ws[0].start;
+  const fmt = w => esc(w.word.replace(/[,;:]$/, ''));
+  const seen = w => t >= w.start - .03 ? 1 : .0;
+  const small = list => list.map(w => `<span style="opacity:${seen(w)};transition:none">${fmt(w)}</span>`).join(' ');
+  const before = ws.slice(0, k), after = ws.slice(k + 1), kw = ws[k], kIn = ease((t - kw.start + .05) / .22);
+  const big = serif ? `font-family:'Playfair Display',serif;font-style:italic;font-weight:700;color:${opt.serifInk || accent}`
+                    : `font-family:Inter,sans-serif;font-weight:800;color:${ink};letter-spacing:-.02em`;
+  return `<div style="position:absolute;left:6%;right:6%;top:${y}%;transform:translateY(-50%);text-align:center;color:${ink};font-family:Inter,sans-serif;text-shadow:${opt.shadow ?? '0 .3cqw 1.4cqw #0008'};opacity:${ease(ta / .15)}">
+    ${before.length ? `<div style="font-size:4.2cqw;font-weight:500;opacity:.92;margin-bottom:.6cqw">${small(before)}</div>` : ''}
+    <div style="font-size:${opt.size || 13}cqw;line-height:.95;${big};opacity:${kIn};transform:scale(${1.08 - .08 * kIn})">${fmt(kw)}</div>
+    ${after.length ? `<div style="font-size:4.2cqw;font-weight:500;opacity:.92;margin-top:.8cqw">${small(after)}</div>` : ''}</div>`;
+}
+
+/* ---------- minimal style: full-screen cut-away scenes per beat ---------- */
+const SCENES = [['aroll', 'Stay on A-roll'], ['quote', 'Quote scene'], ['line', 'Line + text'], ['graph', 'Graph'],
+  ['broll', 'B-roll / photo + text'], ['painting', 'Painting + text'], ['center', 'Centre illustration'], ['side', 'Side illustration + text']];
+const SCENE_INFO = { aroll: 'On-screen text (captions) · A-roll', quote: 'Text-centric · Cut-away scene', line: 'Line + text · Cut-away scene',
+  graph: 'Graphs + visual representations · Cut-away scene', broll: 'B-roll + text · Cut-away scene', painting: 'Paintings + text · Cut-away scene',
+  center: 'Centre illustration · Cut-away scene', side: 'Side illustration + text · Cut-away scene' };
+const NEEDS_IMAGE = new Set(['broll', 'painting', 'center', 'side']);
+const PAPER = (o = .35) => `<div style="position:absolute;inset:0;opacity:${o};mix-blend-mode:multiply;pointer-events:none;background-image:url(&quot;data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35  0 0 0 0 .35  0 0 0 0 .35  0 0 0 2.4 -1.05'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>&quot;);background-size:240px"></div>`;
+const GRAIN = (o = .18) => PAPER(o).replace('multiply', 'overlay');
+function graphKind(text) { const s = (text || '').toLowerCase();
+  if (/\bup\b|grow|climb|more and more|increase|rise/.test(s)) return 'steps';
+  if (/slow|steady|same|flat|stable|secure/.test(s)) return 'flat';
+  if (/down|declin|less|lose|drop|fall/.test(s)) return 'down';
+  return 'rise'; }
+function sceneHtml(sc, lt, bt, t, acc) {
+  const id = sc.scene, o = sc.sceneOpts || {}, d = Math.max(.5, bt.t1 - bt.t0), p = clamp(lt / d, 0, 1), blue = '#1d4fff';
+  const img = sc.image ? `${shotBase()}${esc(sc.image)}` : null, fadeIn = ease(lt / .25);
+  const wrap = (bg, inner) => `<div style="position:absolute;inset:0;overflow:hidden;background:${bg};opacity:${fadeIn}">${inner}</div>`;
+  const noImg = '<div style="position:absolute;left:8%;right:8%;top:45%;text-align:center;color:#888;font:600 3.6cqw Inter,sans-serif">Add an image for this scene</div>';
+  if (id === 'quote') { const bgc = o.bg === 'blue' ? blue : '#f2f1ec', ink = o.bg === 'blue' ? '#fff' : '#111';
+    const q = (c, s) => `<div style="position:absolute;${s};font:700 16cqw/1 'Playfair Display',serif;color:${o.bg === 'blue' ? '#ffffff' : blue};opacity:${ease((lt - .1) / .3)}">${c}</div>`;
+    return wrap(bgc, PAPER(o.bg === 'blue' ? .9 : .5) + q('\u201c', 'left:7%;top:38%') + q('\u201d', 'right:7%;top:38%') + cineBlock(t, { ink, accent: o.bg === 'blue' ? '#ffffff' : blue, y: 50, size: 11, shadow: 'none' })); }
+  if (id === 'line') { const dark = o.bg !== 'white', bgc = dark ? '#0b0b0d' : '#f4f3ef', ink = dark ? '#fff' : '#111', len = 1400;
+    const cam = -18 * p;   // the camera tracks the line upwards
+    return wrap(bgc, PAPER(dark ? .25 : .4) + `<svg viewBox="0 0 100 178" preserveAspectRatio="none" style="position:absolute;left:0;top:0;width:100%;height:120%;transform:translateY(${cam}%)"><path d="M -5 170 C 30 150, 10 110, 50 100 S 95 60, 70 30 S 20 0, 105 -10" fill="none" stroke="${blue}" stroke-width="2.4" stroke-linecap="round" pathLength="${len}" stroke-dasharray="${len}" stroke-dashoffset="${len * (1 - ease(p * 1.15))}"/></svg>`
+      + cineBlock(t, { ink, accent: blue, y: 52, shadow: dark ? '0 .3cqw 1.4cqw #000a' : 'none' })); }
+  if (id === 'graph') { const kind = o.graph || graphKind(bt.text), q = ease(p * 1.1);
+    let pts; const n = Math.max(3, Math.min(8, ((bt.text || '').match(/\bup\b/gi) || []).length || 5));
+    if (kind === 'steps') { pts = [[10, 150]]; for (let i = 0; i < n; i++) { const x = 10 + (i + 1) * 80 / n, y = 150 - (i + 1) * 110 / n; pts.push([x - 80 / n, y], [x, y]); } }
+    else if (kind === 'flat') pts = [[8, 112], [92, 108]]; else if (kind === 'down') pts = [[10, 40], [35, 70], [55, 95], [90, 150]]; else pts = [[10, 150], [40, 120], [65, 70], [90, 30]];
+    const seg = pts.slice(1).map((pt, i) => Math.hypot(pt[0] - pts[i][0], pt[1] - pts[i][1])), tot = seg.reduce((a, b) => a + b, 0);
+    let rem = tot * q, ball = pts[0]; const drawn = [pts[0]];
+    for (let i = 0; i < seg.length; i++) { if (rem >= seg[i]) { rem -= seg[i]; drawn.push(pts[i + 1]); ball = pts[i + 1]; } else { const f = rem / seg[i]; ball = [pts[i][0] + (pts[i + 1][0] - pts[i][0]) * f, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * f]; drawn.push(ball); break; } }
+    let grid = ''; for (let x = 10; x <= 90; x += 20) grid += `<line x1="${x}" y1="20" x2="${x}" y2="160" stroke="#ffffff22" stroke-width=".25"/>`; for (let y = 20; y <= 160; y += 20) grid += `<line x1="5" y1="${y}" x2="95" y2="${y}" stroke="#ffffff22" stroke-width=".25"/>`;
+    const camX = (50 - ball[0]) * .25, camY = (95 - ball[1]) * .2;
+    return wrap('#0c0d10', GRAIN(.35) + `<svg viewBox="0 0 100 178" style="position:absolute;inset:0;width:100%;height:100%;transform:translate(${camX}%,${camY * .56}%) scale(1.1)"><defs><filter id="gl"><feGaussianBlur stdDeviation=".8"/></filter></defs>${grid}
+      <polyline points="${drawn.map(pt => pt.join(',')).join(' ')}" fill="none" stroke="#ffffff" stroke-width="1" stroke-linejoin="round"/><polyline points="${drawn.map(pt => pt.join(',')).join(' ')}" fill="none" stroke="#ffffff" stroke-width="1.6" opacity=".35" filter="url(#gl)"/>
+      <circle cx="${ball[0]}" cy="${ball[1]}" r="2.4" fill="${blue}" filter="url(#gl)"/><circle cx="${ball[0]}" cy="${ball[1]}" r="1.6" fill="#4d7dff"/></svg>`
+      + cineBlock(t, { ink: '#fff', accent: '#4d7dff', y: 22, size: 11 })); }
+  if (id === 'broll' || id === 'painting') { const paint = id === 'painting', a = ease(lt / 1.1);
+    const cam = paint ? `translateX(${(1 - a) * 8}%) scale(${1.14 - .08 * a})` : `scale(${1.04 + .05 * p})`;
+    return wrap('#000', (img ? `<img src="${img}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:${cam};filter:${paint ? 'sepia(.25) contrast(1.05) saturate(.9)' : 'contrast(1.05) brightness(.92)'}">` : noImg)
+      + `<div style="position:absolute;inset:0;backdrop-filter:blur(5px);-webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 45%,transparent 55%,#000 100%);mask-image:radial-gradient(ellipse 70% 60% at 50% 45%,transparent 55%,#000 100%)"></div>`
+      + `<div style="position:absolute;inset:0;background:radial-gradient(ellipse 75% 65% at 50% 45%,transparent 45%,#000c 100%)"></div>` + PAPER(paint ? .55 : .3)
+      + cineBlock(t, { ink: '#fff', accent: '#ffffff', serifInk: '#ffffff', y: paint ? 30 : 60 })); }
+  if (id === 'center' || id === 'side') { const side = id === 'side', a = ease(lt / .9);
+    const pos = side ? 'left:-6%;width:62%;top:22%;height:72%' : 'left:8%;width:84%;top:38%;height:60%';
+    const art = img ? `<div style="position:absolute;${pos};opacity:${a};transform:translateY(${(1 - a) * 4}%);-webkit-mask-image:radial-gradient(ellipse 58% 52% at 50% 55%,#000 45%,transparent 100%);mask-image:radial-gradient(ellipse 58% 52% at 50% 55%,#000 45%,transparent 100%)">
+        <img src="${img}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:grayscale(1) contrast(1.6) brightness(1.05)">
+        <div style="position:absolute;inset:0;background:${blue};mix-blend-mode:screen"></div>${PAPER(.6)}</div>` : noImg;
+    return wrap('#f3f2ee', PAPER(.45) + art + cineBlock(t, { ink: '#111', accent: blue, y: side ? 45 : 22, shadow: 'none', size: side ? 10 : 12 }).replace('left:6%;right:6%', side ? 'left:52%;right:4%' : 'left:6%;right:6%')); }
+  return '';
+}
+
 /* ---------- title + beat effects (pure: local time lt since beat start) ---------- */
 function hookTitle(id, lt, text, acc) {
   const words = text.split(' ').slice(0, 6).join(' '); if (!words) return '';
@@ -146,7 +231,10 @@ function compose(t, cfg, raw) {
   const filter = raw ? 'none' : G(cfg.grade)[2];
   if (!raw) {
     const bs = S.beats, bi = bs.findIndex(x => t >= x.t0 && t < x.t1), bt = bs[bi];
-    if (cfg.caption) html += caption(cfg.caption, t, acc, cfg.capOpts);
+    const sc = bt ? ((cfg.scenes && cfg.scenes[bi]) || bt) : null, scene = sc && sc.scene && sc.scene !== 'aroll' ? sc : null;
+    if (scene) html += sceneHtml(scene, t - bt.t0, bt, t, acc);
+    else if (cfg.caption === 'cinematic') html += cineBlock(t, { accent: acc === '#ffffff' ? '#4d7dff' : acc, y: capOpts('cinematic', cfg.capOpts).y });
+    else if (cfg.caption) html += caption(cfg.caption, t, acc, cfg.capOpts);
     if (bt) { const lt = t - bt.t0;
       if (bi === 0 && cfg.hook && lt < 3) html += hookTitle(cfg.hook, lt, S.words.map(w => w.word).join(' ') || 'Your hook here', acc);
       (cfg.fx[bi] || []).forEach(id => { html += beatFx(id, lt, bt, acc); if (id === 'punch') scale *= 1 + .12 * ease(lt / .15); });
@@ -166,7 +254,13 @@ function soundEvents(cfg, sel) {
     if (ids.includes('chat') && sel.has('typing')) ev.push({ t: b.t0 + .2, snd: 'typing' });
     if (ids.some(x => x === 'kw' || x === 'emoji' || x === 'page') && sel.has('pop')) ev.push({ t: b.t0 + .15, snd: 'pop' });
     if (ids.includes('num') && sel.has('ping')) ev.push({ t: b.t0 + 1.2, snd: 'ping' });
-    if (cfg.whole.has('flash') && sel.has('click')) ev.push({ t: b.t0, snd: 'click' }); });
+    if (cfg.whole.has('flash') && sel.has('click')) ev.push({ t: b.t0, snd: 'click' });
+    const sc = (cfg.scenes && cfg.scenes[i]) || b;
+    if (sc.scene && sc.scene !== 'aroll') {
+      if (i === 0 && sel.has('whoosh')) ev.push({ t: b.t0, snd: 'whoosh' });
+      if (sc.scene === 'graph' && sel.has('highlight')) ev.push({ t: b.t0 + .25, snd: 'highlight' });
+      if (sel.has('click')) cineGroups(liveWords()).forEach(g => { const w = liveWords()[g[0]]; if (w.start >= b.t0 && w.start < b.t1) ev.push({ t: w.start, snd: 'click' }); });
+    } });
   return ev.sort((a, b) => a.t - b.t);
 }
 

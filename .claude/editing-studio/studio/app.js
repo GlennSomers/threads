@@ -41,6 +41,7 @@ function snd(kind) {
   if (kind === 'whoosh') noise(.45, 300, 4000, .5);
   else if (kind === 'pop') osc('sine', 700, 180, .12, .5);
   else if (kind === 'ping') osc('sine', 1320, 1320, .5, .3);
+  else if (kind === 'highlight') noise(.35, 2500, 7000, .25);
   else if (kind === 'click') osc('square', 1800, 900, .03, .15);
   else if (kind === 'typing') for (let k = 0; k < 6; k++) setTimeout(() => snd('click'), k * 70);
   else if (kind === 'music') {
@@ -124,10 +125,10 @@ function build() {
 }
 function mark() { document.querySelectorAll('#tabs button').forEach((b, i) => { b.classList.toggle('on', i === S.step); b.classList.toggle('done', S.done.has(i)); }); }
 
-function card(i, label, onc, cfgFn, win, selected) {
+function card(i, label, onc, cfgFn, win, selected, into) {
   const d = document.createElement('div'); d.className = 'card' + (selected ? ' on' : '');
   d.innerHTML = `<span class="num">${i + 1}</span><span class="pk">Picked</span><span class="lbl">${esc(label)}</span>`;
-  d.onclick = onc; $('#body .grid').appendChild(d); cards.push(new Stage(d, { cfg: cfgFn, win })); return d;
+  d.onclick = onc; (into || $('#body .grid')).appendChild(d); cards.push(new Stage(d, { cfg: cfgFn, win })); return d;
 }
 function renderStep() {
   cards.forEach(c => c.destroy()); cards = []; mark();
@@ -146,9 +147,12 @@ function renderStep() {
 }
 function renderBeats(body) {
   const total = S.dur || 1;
-  body.insertAdjacentHTML('beforeend', `<div class="timeline">${S.beats.map((b, i) => `<div class="seg-b${i === S.beat ? ' on' : ''}" data-i="${i}" style="flex:${(b.t1 - b.t0) / total}"><b>${i === 0 ? 'Hook' : 'Beat ' + (i + 1)}</b><small>${esc(b.text || '(no transcript)')}</small><small>${i === 0 ? (S.hook ? HOOKS.find(h => h[0] === S.hook)[1] : '') : (S.fx[i].length ? S.fx[i].map(x => FX.find(f => f[0] === x)[1]).join(', ') : '')}</small></div>`).join('')}</div>`);
+  body.insertAdjacentHTML('beforeend', `<div class="timeline">${S.beats.map((b, i) => `<div class="seg-b${i === S.beat ? ' on' : ''}" data-i="${i}" style="flex:${(b.t1 - b.t0) / total}"><b>${i === 0 ? 'Hook' : 'Beat ' + (i + 1)}</b><small>${esc(b.text || '(no transcript)')}</small><small>${b.scene && b.scene !== 'aroll' ? SCENES.find(s => s[0] === b.scene)[1] : i === 0 ? (S.hook ? HOOKS.find(h => h[0] === S.hook)[1] : '') : (S.fx[i].length ? S.fx[i].map(x => FX.find(f => f[0] === x)[1]).join(', ') : '')}</small></div>`).join('')}</div>
+    <div class="row"><button id="copyplan">Copy plan</button><span class="help">Exports every beat's script, chosen scene, effects and notes, ready to paste into Claude.</span></div>`);
+  $('#copyplan').onclick = copyPlan;
   body.querySelectorAll('.seg-b').forEach(e => e.onclick = () => { S.beat = +e.dataset.i; renderStep(); });
   const b = S.beats[S.beat], win = [b.t0, Math.min(b.t1, b.t0 + 4)]; main.win = [b.t0, b.t1]; main.v.currentTime = b.t0; main.v.play().catch(() => {}); $('#play').textContent = '❚❚';
+  sceneSection(body, b, win);
   if (S.beat > 0 && S.fx[S.beat].includes('page')) {
     body.insertAdjacentHTML('beforeend', `<h3>Page for this beat</h3><div class="row"><input type="text" id="shoturl" placeholder="https://the-page-you-mention.com" value="${esc(b.shotUrl || '')}"><button id="shotbtn">${b.shot ? 'Recapture' : 'Capture'}</button></div><div class="help" id="shotmsg">${b.shot ? 'Using a real screenshot: ' + esc(b.shot) : 'Until you capture one, the card shows a stand-in page.'}</div>`);
     $('#shotbtn').onclick = async () => { const u = $('#shoturl').value.trim(); if (!u) return; $('#shotmsg').textContent = 'Taking a screenshot...';
@@ -170,7 +174,7 @@ function renderBeats(body) {
     cards.push(new Stage(d, { cfg: () => ({ ...baseCfg(), whole: new Set([w[0]]) }), win: [b.t0, Math.min(b.t1, b.t0 + 4)] })); });
 }
 function styleObj(name) { return { name, clip: S.clip.name, grade: S.grade, font: S.font, caption: S.caption, hook: S.hook, lut: S.lut ? S.lut.id : null, lutAmount: S.lut ? S.lutAmount : null, voice: { ...S.voice }, capOpts: S.capEdit, cuts: S.cuts.map(c => [+c.a.toFixed(3), +c.b.toFixed(3)]), dur: +S.dur.toFixed(2),
-  beats: S.beats.map((b, i) => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text, effects: S.fx[i], shot: b.shot || null, shotUrl: b.shotUrl || null })), whole: [...S.whole], sounds: [...S.snd] }; }
+  beats: S.beats.map((b, i) => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text, effects: S.fx[i], shot: b.shot || null, shotUrl: b.shotUrl || null, scene: b.scene || 'aroll', sceneOpts: b.sceneOpts || {}, image: b.image || null, note: b.note || '' })), whole: [...S.whole], sounds: [...S.snd] }; }
 const renderName = () => S.clip.name.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'render';
 async function showRenders(name) {
   const d = await (await fetch('/api/renders?name=' + encodeURIComponent(name))).json(), el = $('#rlist'), st = $('#rstat'); if (!el) return d.job;
@@ -211,7 +215,7 @@ async function loadStyles() {
 async function applyStyle(st) {
   S.grade = st.grade || 'raw'; S.font = st.font || 'inter'; S.caption = st.caption || null; S.capEdit = { ...(st.capOpts || {}) }; S.hook = st.hook || null;
   S.whole = new Set(st.whole || []); S.snd = new Set(st.sounds || []);
-  S.beats.forEach((b, i) => { S.fx[i] = ((st.beats || [])[i]?.effects || []).filter(id => FX.some(f => f[0] === id)); });
+  S.beats.forEach((b, i) => { const sb = (st.beats || [])[i] || {}; S.fx[i] = (sb.effects || []).filter(id => FX.some(f => f[0] === id)); if (sb.scene && !NEEDS_IMAGE.has(sb.scene)) { b.scene = sb.scene; b.sceneOpts = { ...(sb.sceneOpts || {}) }; } });
   S.voice = { preset: 'off', amount: 100, nr: null, ...(st.voice || {}) }; applyVoice();
   S.lut = null; S.lutCube = null; S.lutAmount = 100;
   if (st.lut) { try { S.lutCube = await loadLut(st.lut); S.lut = { id: st.lut, name: st.lut }; S.lutAmount = st.lutAmount ?? 100;
@@ -562,7 +566,7 @@ function tlRender() {
   tracks.push(['Captions', c1]);
   // V1 video, split at the beats (the cuts)
   const look = [G(S.grade)[1], S.lut ? `${S.lut.name} ${S.lutAmount}%` : ''].filter(Boolean).join(' + ');
-  tracks.push(['Video', S.beats.map((b, i) => blk('t-vid', b.t0, b.t1, `${i === 0 ? 'Hook' : 'Beat ' + (i + 1)} · ${look}`, `data-beat="${i}"`)).join('')]);
+  tracks.push(['Video', S.beats.map((b, i) => blk(b.scene && b.scene !== 'aroll' ? 't-scene' : 't-vid', b.t0, b.t1, `${i === 0 ? 'Hook' : 'Beat ' + (i + 1)} · ${b.scene && b.scene !== 'aroll' ? SCENES.find(s => s[0] === b.scene)[1] : look}`, `data-beat="${i}"`)).join('')]);
   // A1 voice waveform, A2 sound effects, A3 music
   const vp = voiceParams(S.voice);
   tracks.push([S.voice.preset === 'off' ? 'Voice' : `Voice · ${VOICE[S.voice.preset].name} ${S.voice.amount}%`, `<canvas class="tlwave" id="tlwave"></canvas>`, 'wave']);
@@ -584,6 +588,7 @@ function tlRender() {
   const sc = el.querySelector('.tlscroll'), keep = sc ? sc.scrollLeft : 0;
   el.innerHTML = `<div class="tlbar"><b>Timeline</b><span class="help" id="tltime"></span><span class="help">Edited length ${(S.dur - cutLen).toFixed(2)}s${cutLen ? ` (${cutLen.toFixed(2)}s cut)` : ''}</span><label class="help">Zoom <input type="range" id="tlzoom" min="20" max="400" value="${TL.pps}"></label></div>
     <div class="tlcuts"><label>Dead air longer than <b id="gapv">${S.cutGap.toFixed(2)}s</b><input type="range" id="gap" min="0.2" max="1.5" step="0.05" value="${S.cutGap}"></label>
+      <label>Padding <b id="padv">${Math.round(S.cutPad * 1000)} ms</b><input type="range" id="pad" min="0.01" max="0.2" step="0.01" value="${S.cutPad}"></label>
       <button id="finddead">Find dead air and retakes</button>
       ${S.sugg.length ? `<span class="help">${S.sugg.length} suggestion${S.sugg.length > 1 ? 's' : ''}: click one to cut it, or</span><button id="applyall">Cut all suggestions</button><button id="clearsug">Dismiss</button>` : ''}
       <button id="rangetool" class="${TL.range ? 'on' : ''}">Range tool</button>${TL.sel ? '<button id="cutsel">Cut selection</button>' : ''}
@@ -601,6 +606,7 @@ function tlRender() {
   inner.onpointermove = e => { if (!drag) return; if (TL.range) { TL.sel[1] = tAt(e); const s = el.querySelector('.tlsel'); if (s) { s.style.left = (Math.min(...TL.sel) / S.dur * 100) + '%'; s.style.width = (Math.abs(TL.sel[1] - TL.sel[0]) / S.dur * 100) + '%'; } } else seek(e); };
   inner.onpointerup = () => { if (drag && TL.range) { if (Math.abs(TL.sel[1] - TL.sel[0]) < .05) TL.sel = null; tlRender(); } drag = false; };
   $('#gap').oninput = e => { S.cutGap = +e.target.value; $('#gapv').textContent = S.cutGap.toFixed(2) + 's'; };
+  $('#pad').oninput = e => { S.cutPad = +e.target.value; $('#padv').textContent = Math.round(S.cutPad * 1000) + ' ms'; };
   $('#finddead').onclick = () => { findSuggestions(); toast(S.sugg.length ? `${S.sugg.length} suggested cut${S.sugg.length > 1 ? 's' : ''}. Nothing is cut until you pick them.` : 'No dead air or retakes found at this setting'); tlRender(); };
   $('#applyall') && ($('#applyall').onclick = () => { S.sugg.slice().forEach(c => addCut(c, true)); S.sugg = []; saveCuts(); tlRender(); });
   $('#clearsug') && ($('#clearsug').onclick = () => { S.sugg = []; tlRender(); });
@@ -632,7 +638,7 @@ async function tlWave() {
 
 /* ---------- cuts: suggestions never apply themselves; you pick them ---------- */
 S.cutGap = .4; S.sugg = [];
-const PAD = .08;   // keep a little air either side of speech
+S.cutPad = .03;   // air kept either side of speech (30 ms, as in the minimal-style workflow)
 function quietBetween(a, b) {   // is the audio in [a,b] actually quiet? (uses the waveform once it's loaded)
   const pk = TL.peaks; if (!pk || !pk.length || !S.dur) return true;
   const i0 = Math.floor(a / S.dur * pk.length), i1 = Math.ceil(b / S.dur * pk.length); let s = 0, n = 0;
@@ -644,7 +650,7 @@ function findSuggestions() {
   if (!W.length) { S.sugg = []; return; }
   const gaps = [[0, W[0].start, 'Silence at the start'], ...W.slice(1).map((w, i) => [W[i].end, w.start, 'Dead air']), [W[W.length - 1].end, S.dur, 'Silence at the end']];
   gaps.forEach(([p, q, label], k) => { const edgeStart = k === 0, edgeEnd = k === gaps.length - 1;
-    if (q - p < g) return; const a = edgeStart ? 0 : p + PAD, b = edgeEnd ? S.dur : q - PAD;
+    if (q - p < g) return; const a = edgeStart ? 0 : p + S.cutPad, b = edgeEnd ? S.dur : q - S.cutPad;
     if (b - a > .05 && quietBetween(a, b) && !overlapsCut(a, b)) out.push({ a, b, kind: 'silence', label: `${label} ${(b - a).toFixed(2)}s` }); });
   // retakes: the same 3 words said again soon after; suggest keeping the later take
   const norm = s => s.toLowerCase().replace(/[^a-z0-9']/g, '');
@@ -704,3 +710,72 @@ function voiceSection(body) {
   const nr = $('#vnrr'); if (nr) { nr.oninput = () => { S.voice.nr = +nr.value; $('#vnr').textContent = nr.value + ' dB'; }; nr.onchange = () => tlRender(); }
   if (am) am.onchange = () => renderStep();
 }
+
+
+/* ---------- minimal style: scenes per beat, three recommendations, plan notes ---------- */
+function recommend(b, i) {   // the planning rules from the minimal-style workflow
+  const s = (b.text || '').toLowerCase(), last = i === S.beats.length - 1, out = [];
+  const add = (id, why) => { if (!out.some(o => o[0] === id)) out.push([id, why]); };
+  if (i === 0) add('aroll', 'Open on the speaker so the viewer connects first');
+  if (/\b(there are|there's|there is|first|second|third|next|the (first|second|third))\b/.test(s)) add('aroll', 'Announcing a new idea: stay on the face');
+  if (/\d|percent|\bup\b|grow|more|less|years|times|steady|slow|declin|rise/.test(s)) add('graph', 'Numbers or progression: show it as a graph');
+  if (/\b(my (dad|mum|mom|wife|friend|boss)|he|she|people|person|guy|girl|man|woman|someone)\b/.test(s)) add('center', 'A person being described: character illustration');
+  if (/\b(fell|love|story|went|remember|when i|once|girl|journey|paint|dream)\b/.test(s)) add('painting', 'A story: a painting shows it');
+  if (/\b(feel|felt|fight|run|work|hard|brutal|again|start|walk|build)\b/.test(s)) add('broll', 'A feeling or action: B-roll with text');
+  if (last) add('quote', 'End on a quote scene');
+  if (/\b(calling|courage|meaning|purpose|life|truth|freedom|agility|why)\b/.test(s)) add('line', 'The big point: a line through the key words');
+  ['aroll', 'quote', 'line', 'graph'].forEach(id => add(id, SCENE_INFO[id]));
+  return out.slice(0, 3);
+}
+function sceneSection(body, b, win) {
+  const rec = recommend(b, S.beat), cur = b.scene || 'aroll', o = b.sceneOpts || (b.sceneOpts = {});
+  body.insertAdjacentHTML('beforeend', `<h3>Scene for this beat</h3>
+    <div class="planbox"><div class="planscript"><b>Script</b><span>${esc(b.text || '(no transcript)')}</span></div>
+      <textarea id="bnote" placeholder="Write your plan for this beat, or pick a design below and edit it.">${esc(b.note || '')}</textarea></div>
+    <div class="recs">${rec.map((r, k) => `<button class="rec${cur === r[0] ? ' on' : ''}" data-sc="${r[0]}"><b>${'ABC'[k]} · ${SCENES.find(s => s[0] === r[0])[1]}</b><small>${esc(SCENE_INFO[r[0]])}</small><span>${esc(r[1])}</span></button>`).join('')}</div>
+    <div class="grid" id="gsc"></div><div id="scopts"></div>`);
+  $('#bnote').oninput = e => { b.note = e.target.value; };
+  body.querySelectorAll('.rec').forEach(x => x.onclick = () => pickScene(b, x.dataset.sc));
+  const g = $('#gsc');
+  SCENES.forEach((s2, k) => card(k, s2[1] + (rec.some(r => r[0] === s2[0]) ? ' ★' : ''), () => pickScene(b, s2[0]),
+    () => ({ ...baseCfg(), scenes: { [S.beat]: { ...b, scene: s2[0] } } }), win, cur === s2[0], g));
+  const box = $('#scopts');
+  if (cur === 'quote' || cur === 'line') box.innerHTML = `<div class="row"><label class="help">Background <select id="scbg">${(cur === 'quote' ? [['white', 'White paper'], ['blue', 'Blue paper']] : [['black', 'Black paper'], ['white', 'White paper']]).map(x => `<option value="${x[0]}"${(o.bg || (cur === 'quote' ? 'white' : 'black')) === x[0] ? ' selected' : ''}>${x[1]}</option>`).join('')}</select></label></div>`;
+  if (cur === 'graph') box.innerHTML = `<div class="row"><label class="help">Line <select id="scgraph">${[['', 'Auto from the words (' + graphKind(b.text) + ')'], ['steps', 'Steps up (one per "up")'], ['flat', 'Long flat line (slow and steady)'], ['rise', 'Rising curve'], ['down', 'Decline']].map(x => `<option value="${x[0]}"${(o.graph || '') === x[0] ? ' selected' : ''}>${x[1]}</option>`).join('')}</select></label></div>`;
+  if (NEEDS_IMAGE.has(cur)) box.innerHTML = `<div class="imgpick"><div class="row"><input type="file" id="scfile" accept="image/*" hidden><button id="scup">${b.image ? 'Replace image' : 'Upload image'}</button>
+      <input type="text" id="scq" placeholder="${cur === 'painting' ? 'Search paintings, e.g. lovers kissing' : 'Search Wikimedia Commons'}"><button id="scsearch">Search</button></div>
+      <div class="help">${b.image ? 'Using ' + esc(b.image) + '.' : 'No image yet.'} ${cur === 'center' || cur === 'side' ? 'A clean cut-out or simple illustration works best; it is turned into the rough blue texture.' : ''} Wikimedia images carry their own licences; old paintings are usually public domain.</div>
+      <div class="wmgrid" id="wm"></div></div>`;
+  $('#scbg') && ($('#scbg').onchange = e => { o.bg = e.target.value; renderStep(); });
+  $('#scgraph') && ($('#scgraph').onchange = e => { o.graph = e.target.value || undefined; renderStep(); });
+  if ($('#scup')) {
+    $('#scup').onclick = () => $('#scfile').click();
+    $('#scfile').onchange = async e => { const f = e.target.files[0]; if (!f) return; toast('Uploading image...');
+      const r = await sendAsset(f); if (r.error) return toast(r.error); b.image = r.file; renderStep(); };
+    const search = async () => { const q = $('#scq').value.trim(); if (!q) return; $('#wm').innerHTML = '<span class="help">Searching...</span>';
+      try { const u = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrlimit=12&gsrsearch=${encodeURIComponent((cur === 'painting' ? 'painting ' : '') + q + ' filetype:bitmap')}&prop=imageinfo&iiprop=url&iiurlwidth=1080&format=json&origin=*`;
+        const d = await (await fetch(u)).json(), pages = Object.values((d.query || {}).pages || {}).filter(x => x.imageinfo);
+        $('#wm').innerHTML = pages.length ? pages.map((x, k) => `<img src="${x.imageinfo[0].thumburl}" data-k="${k}" title="${esc(x.title)}">`).join('') : '<span class="help">Nothing found. Try other words.</span>';
+        $('#wm').querySelectorAll('img').forEach(im => im.onclick = async () => { toast('Saving image...');
+          const r = await (await fetch('/api/asset-fetch', { method: 'POST', body: JSON.stringify({ url: im.src }) })).json();
+          if (r.error) return toast(r.error); b.image = r.file; renderStep(); });
+      } catch (err) { $('#wm').innerHTML = '<span class="help">Search failed: ' + esc(err.message) + '</span>'; } };
+    $('#scsearch').onclick = search; $('#scq').onkeydown = e => { if (e.key === 'Enter') search(); };
+  }
+}
+function pickScene(b, id) { b.scene = id; S.done.add(3); if (id !== 'aroll' && !S.snd.size) { ['whoosh', 'click', 'highlight'].forEach(x => S.snd.add(x)); }
+  toast('Scene: ' + SCENES.find(s => s[0] === id)[1]); renderStep(); }
+async function sendAsset(file) {
+  const name = cleanName(file.name);
+  if (CFG.blob) { const { upload } = await import('https://esm.sh/@vercel/blob@0.27.3/client');
+    await upload('shots/' + name, file, { access: 'public', handleUploadUrl: '/api/blob-token', contentType: file.type || 'image/jpeg' }); return { file: name }; }
+  return (await fetch('/api/asset-upload?name=' + encodeURIComponent(name), { method: 'POST', body: file })).json();
+}
+function planText() {
+  const fmtT = s => `${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, '0')}`;
+  return [`# Edit plan: ${S.clip.name}`, `Captions: ${(CAPS.find(c => c[0] === S.caption) || [, 'none'])[1]} · Colour: ${G(S.grade)[1]}${S.lut ? ' + LUT ' + S.lut.name : ''} · Cuts: ${S.cuts.length}`, '',
+    ...S.beats.map((b, i) => [`## Beat ${i + 1} (${fmtT(b.t0)}–${fmtT(b.t1)})`, `Script: "${b.text || ''}"`,
+      `Scene: ${SCENES.find(s => s[0] === (b.scene || 'aroll'))[1]}${b.image ? ` (image: ${b.image})` : ''}${b.sceneOpts && (b.sceneOpts.bg || b.sceneOpts.graph) ? ` [${[b.sceneOpts.bg, b.sceneOpts.graph].filter(Boolean).join(', ')}]` : ''}`,
+      (S.fx[i] || []).length ? `Effects: ${S.fx[i].map(FXN).join(', ')}` : '', b.note ? `Plan: ${b.note}` : '', ''].filter(x => x !== null).join('\n'))].join('\n');
+}
+async function copyPlan() { const txt = planText(); try { await navigator.clipboard.writeText(txt); toast('Plan copied'); } catch { prompt('Copy the plan:', txt); } }

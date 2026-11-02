@@ -1,5 +1,5 @@
 // One handler for every endpoint, so the hosted app and the local dev server behave the same.
-import { FS, putText, getJSON, getText, list, urlOf } from './store.js';
+import { FS, putText, putBuffer, getJSON, getText, list, urlOf } from './store.js';
 import { dispatch, jobStatus } from './jobs.js';
 import { authOn, checkPassword, cookieFor, isAuthed } from './auth.js';
 import fs from 'node:fs/promises';
@@ -65,8 +65,8 @@ export async function handle(req, res) {
     if (route === '/api/blob-token' && M === 'POST' && !FS) {
       const { handleUpload } = await import('@vercel/blob/client');
       const json = await handleUpload({ body: await body(req), request: req, onBeforeGenerateToken: async pathname => {
-        if (!/^(clips|references-src|luts)\/[A-Za-z0-9._-]+$/.test(pathname)) throw new Error('Bad upload path');
-        return { allowedContentTypes: pathname.startsWith('luts/') ? ['text/plain', 'application/octet-stream'] : ['video/*', 'application/octet-stream'], addRandomSuffix: false, allowOverwrite: true, maximumSizeInBytes: 3e9 }; },
+        if (!/^(clips|references-src|luts|shots)\/[A-Za-z0-9._-]+$/.test(pathname)) throw new Error('Bad upload path');
+        return { allowedContentTypes: pathname.startsWith('luts/') ? ['text/plain', 'application/octet-stream'] : pathname.startsWith('shots/') ? ['image/*'] : ['video/*', 'application/octet-stream'], addRandomSuffix: false, allowOverwrite: true, maximumSizeInBytes: 3e9 }; },
         onUploadCompleted: async () => {} });
       return send(res, 200, json);
     }
@@ -85,6 +85,15 @@ export async function handle(req, res) {
       return send(res, 200, { name });
     }
     if (route === '/api/clips') return send(res, 200, await clips());
+    if ((route === '/api/asset-upload' || route === '/api/asset-fetch') && M === 'POST') {
+      let name, buf;
+      if (route === '/api/asset-upload') { name = safe(q.get('name') || 'image.jpg'); buf = await raw(req); }
+      else { const { url } = await body(req); if (!/^https:\/\//.test(String(url || ''))) return send(res, 400, { error: 'https links only' });
+        const r2 = await fetch(url, { headers: { 'User-Agent': 'editing-studio/1.0' } }); if (!r2.ok) return send(res, 400, { error: 'Could not fetch the image (' + r2.status + ')' });
+        buf = Buffer.from(await r2.arrayBuffer()); name = safe(decodeURIComponent(new URL(url).pathname.split('/').pop() || 'image.jpg')).slice(-80); }
+      if (buf.length > 25e6) return send(res, 400, { error: 'Image too large (25 MB max)' });
+      await putBuffer(`shots/${name}`, buf, 'image/' + (/\.png$/i.test(name) ? 'png' : 'jpeg')); return send(res, 200, { file: name });
+    }
     if (route === '/api/cuts' && M === 'POST') {
       const name = safe(q.get('name') || ''), cuts = await body(req);
       if (!Array.isArray(cuts) || !cuts.every(c => c && +c.b > +c.a && +c.a >= 0)) return send(res, 400, { error: 'Expected a list of {a, b}' });
