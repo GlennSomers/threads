@@ -143,7 +143,7 @@ function renderStep() {
   const w0 = [0, Math.min(3, S.dur)]; main.win = null;
   const grid = () => body.insertAdjacentHTML('beforeend', '<div class="grid"></div>');
   if (id === 'colours') { grid(); GRADES.forEach((g, i) => card(i, g[1], () => { S.grade = g[0]; S.done.add(0); toast('Grade: ' + g[1]); renderStep(); }, () => ({ ...baseCfg(), grade: g[0] }), w0, S.grade === g[0])); lutSection(body); }
-  if (id === 'fonts') { fontUploads(body); grid(); FONTS.forEach((f, i) => card(i, f[1], () => { S.font = f[0]; S.done.add(1); toast('Font: ' + f[1]); renderStep(); }, () => ({ ...baseCfg(), font: f[0], caption: S.caption || 'groups' }), w0, S.font === f[0])); }
+  if (id === 'fonts') { fontUploads(body); grid(); FONTS.filter(f => !f[4]).forEach((f, i) => card(i, f[1], () => { S.font = f[0]; S.done.add(1); toast('Font: ' + f[1]); renderStep(); }, () => ({ ...baseCfg(), font: f[0], caption: S.caption || 'groups' }), w0, S.font === f[0])); }
   if (id === 'captions') { txEditor(body); grid(); CAPS.forEach((c, i) => card(i, c[1], () => { S.caption = c[0]; S.capEdit = {}; S.done.add(2); toast(`Synced captions to ${S.words.length} words`); renderStep(); }, () => ({ ...baseCfg(), caption: c[0], capOpts: {} }), w0, S.caption === c[0])); capEditor(body); }
   if (id === 'beats') renderBeats(body);
   if (id === 'sound') { voiceSection(body); body.insertAdjacentHTML('beforeend', '<h3>Sound effects and music</h3><div class="sounds"></div>'); SOUNDS.forEach(s => { const b = document.createElement('button'); b.textContent = s[1]; b.className = S.snd.has(s[0]) ? 'on' : '';
@@ -315,8 +315,8 @@ document.addEventListener('keydown', e => { if ((e.key === 'd' || e.key === 'D')
 
 
 /* ---------- caption editor + presets (nothing is saved unless you press Save) ---------- */
-const HLS = [['none', 'None'], ['current', 'Current word'], ['spoken', 'Spoken words'], ['key', 'Key word (serif)'], ['box', 'Boxed words']];
-const ANIMS = [['none', 'None'], ['pop', 'Pop'], ['slide', 'Slide up'], ['fade', 'Fade'], ['type', 'Typewriter']];
+const HLS = [['none', 'None'], ['current', 'Current word'], ['spoken', 'Spoken words'], ['key', 'Key word (serif)'], ['keycolor', 'Key word (colour)'], ['box', 'Boxed words'], ['boxactive', 'Box on current word'], ['dim', 'Dim to bright'], ['weight', 'Light to bold']];
+const ANIMS = [['none', 'None'], ['pop', 'Pop'], ['wordpop', 'Word pop (each word)'], ['bounce', 'Bounce'], ['flash', 'Flash scale-up'], ['slide', 'Slide up'], ['fade', 'Fade'], ['type', 'Typewriter']];
 function capEditor(body) {
   if (!S.caption) { body.insertAdjacentHTML('beforeend', '<p class="help">Pick a caption style above, then edit it here.</p>'); return; }
   const o = capOpts(S.caption, S.capEdit), acc = G(S.grade)[3]; o.case = o.upper ? 'upper' : o.lower ? 'lower' : 'as';
@@ -325,11 +325,11 @@ function capEditor(body) {
   const rng = (k, min, max, step, label, unit = '') => `<label>${label} <b id="v-${k}">${o[k]}${unit}</b><input type="range" data-k="${k}" min="${min}" max="${max}" step="${step}" value="${o[k]}"></label>`;
   body.insertAdjacentHTML('beforeend', `<h3>Edit captions</h3><div class="capedit">
     ${sel('font', [['', 'Pair default'], ...CAP_FONTS.map(f => [f, f])], 'Font')}
-    ${sel('weight', [400, 600, 700, 800, 900].map(w => [w, w]), 'Weight')}
+    ${sel('weight', [300, 400, 500, 600, 700, 800, 900].map(w => [w, w]), 'Weight')}
     ${rng('size', 3, 18, .1, 'Size')}
     ${rng('y', 12, 76, 1, 'Position from top', '%')}
     ${sel('align', [['center', 'Centre'], ['left', 'Left']], 'Alignment')}
-    ${rng('group', 1, 6, 1, 'Words at a time')}
+    ${rng('group', 1, 8, 1, 'Words at a time')}
     ${sel('hl', HLS, 'Highlight')}
     ${sel('anim', ANIMS, 'Animation')}
     ${rng('offset', -.4, .4, .02, 'Timing shift (s)')}
@@ -340,6 +340,7 @@ function capEditor(body) {
     <label>Highlight colour<input type="color" data-k="accent" value="${o.accent || acc}"></label>
     <label class="chk"><input type="checkbox" data-k="box" ${o.box ? 'checked' : ''}> Background box</label>
     <label>Box colour<input type="color" data-k="boxColor" value="${o.boxColor}"></label>
+    ${rng('boxAlpha', .1, 1, .01, 'Box opacity')}
   </div>
   <p class="help">Position is kept inside Instagram's safe area (12% to 76% from the top). Changes show live in the big preview.</p>
   <div class="row"><button id="capreset">Reset to style defaults</button></div>
@@ -1235,7 +1236,10 @@ async function sendFont(file) {
 }
 function fontUploads(body) {
   body.insertAdjacentHTML('beforeend', `<h3>Your fonts</h3><div class="myfonts">${MYFONTS.map(f => `<div class="myfont"><span style="font-family:'${esc(f.family)}'">${esc(f.family)}</span><button data-use="${esc(f.id)}">Use</button><button data-del="${esc(f.id)}">×</button></div>`).join('') || '<p class="help">None yet. Upload .ttf, .otf, .woff or .woff2 files you have the rights to use.</p>'}</div>
-    <div class="row"><input type="file" id="fontfile" accept=".ttf,.otf,.woff,.woff2" multiple hidden><button id="fontup">Upload fonts</button><span class="help" id="fontmsg"></span></div><h3>Font pairs</h3>`);
+    <div class="row"><input type="file" id="fontfile" accept=".ttf,.otf,.woff,.woff2" multiple hidden><button id="fontup">Upload fonts</button><span class="help" id="fontmsg"></span></div>
+    <h3>All fonts</h3>${[...new Set(GFONTS.map(f => f[2]))].map(cat => `<div class="fcat"><small>${esc(cat)}</small><div class="fpick">${FONTS.filter(f => f[4] === cat).map(f => `<button class="${S.font === f[0] ? 'on' : ''}" data-gf="${f[0]}" style="font-family:${esc(f[2])}">${esc(f[1])}</button>`).join('')}</div></div>`).join('')}
+    <h3>Font pairs</h3>`);
+  body.querySelectorAll('[data-gf]').forEach(b => b.onclick = () => { S.font = b.dataset.gf; S.done.add(1); toast('Font: ' + F(S.font)[1]); renderStep(); });
   $('#fontup').onclick = () => $('#fontfile').click();
   $('#fontfile').onchange = async ev => {
     for (const file of [...ev.target.files]) {

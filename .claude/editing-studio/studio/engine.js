@@ -17,7 +17,7 @@ const FONTS = [
   ['inter','Inter','Inter','Inter'],['anton','Anton + Inter','Anton','Inter'],['bebas','Bebas + Lora','"Bebas Neue"','Lora'],
   ['serif','DM Serif + Inter','"DM Serif Display"','Inter'],['play','Playfair + Montserrat','"Playfair Display"','Montserrat'],
   ['grot','Space Grotesk','"Space Grotesk"','"Space Grotesk"'],['pop','Poppins','Poppins','Poppins'],['mono','JetBrains Mono','"JetBrains Mono"','"JetBrains Mono"']];
-const CAPS = [['cinematic','Cinematic (minimal)'],['groups','1 to 3 words'],['karaoke','Karaoke'],['big','One big word'],['boxed','Boxed words'],
+const CAPS = [['cinematic','Cinematic (minimal)'],['photography_educator','Photography educator'],['hormozi','Hormozi (word pop)'],['mrbeast','MrBeast (flash)'],['karaoke_gold','Karaoke gold'],['ali_abdaal','Ali Abdaal (dim to bright)'],['iman_gadzhi','Iman Gadzhi (weight)'],['minimal_cinematic','Minimal cinematic'],['podcast_clip','Podcast clip'],['groups','1 to 3 words'],['karaoke','Karaoke'],['big','One big word'],['boxed','Boxed words'],
   ['outline','Bold outline'],['twotone','Two-tone key words'],['mini','Minimal lowercase'],['type','Typewriter']];
 const HOOKS = [['center','Big centre title'],['lower','Lower third'],['boxed','Boxed title'],['outline','Outline slam'],
   ['left','Slide in left'],['type','Typewriter'],['stack','Stacked words'],['stamp','Question stamp']];
@@ -58,14 +58,39 @@ const keyword = txt => (txt.match(/[A-Za-z']{4,}/g) || ['this']).sort((a, b) => 
 const numberIn = txt => { const m = txt.match(/\d[\d,]*/); return m ? +m[0].replace(/,/g, '') : 100; };
 
 /* ---------- captions: every option is editable (S.capEdit overrides the chosen style's defaults) ---------- */
-const CAP_BASE = { group: 3, hl: 'none', size: 8, weight: 800, y: 64, upper: false, lower: false, stroke: 0, box: false, boxColor: '#000000',
+const CAP_BASE = { group: 3, hl: 'none', size: 8, weight: 800, y: 64, upper: false, lower: false, stroke: 0, box: false, boxColor: '#000000', boxAlpha: .73,
   anim: 'none', align: 'center', color: '#ffffff', accent: null, font: null, offset: 0, linger: .5 };
 const CAP_DEF = {
   groups: { group: 3, hl: 'current' }, karaoke: { group: 6, hl: 'spoken', size: 6.4 }, big: { group: 1, size: 15, weight: 900, y: 60, upper: true, anim: 'pop' },
   boxed: { group: 3, hl: 'box', size: 6.8 }, outline: { group: 3, size: 9, weight: 900, upper: true, stroke: .5 },
   twotone: { group: 3, hl: 'key', size: 7.2, weight: 700 }, mini: { group: 5, size: 4.6, weight: 600, lower: true },
-  type: { group: 4, size: 6, font: 'JetBrains Mono', box: true, anim: 'type', align: 'left' } };
-const CAP_FONTS = ['Inter', 'Anton', 'Bebas Neue', 'DM Serif Display', 'Playfair Display', 'Montserrat', 'Space Grotesk', 'Poppins', 'Caveat', 'JetBrains Mono', 'Lora'];
+  type: { group: 4, size: 6, font: 'JetBrains Mono', box: true, anim: 'type', align: 'left' },
+  // creator-style presets from reel-fonts-and-caption-animations.md (§6); sizes are px on a 1080-wide frame / 10.8
+  hormozi: { font: 'Anton', weight: 400, upper: true, size: 15.7, color: '#ffffff', accent: '#FF6B00', stroke: .46, group: 2, anim: 'wordpop', hl: 'keycolor', y: 62 },
+  mrbeast: { font: 'Bangers', weight: 400, upper: true, size: 14.8, color: '#ffffff', accent: '#FFE600', stroke: .56, group: 3, anim: 'flash', hl: 'keycolor', y: 50 },
+  karaoke_gold: { font: 'Montserrat', weight: 800, size: 13, color: '#ffffff', accent: '#FFD400', stroke: .19, box: true, boxColor: '#000000', boxAlpha: .32, group: 6, hl: 'current', y: 64 },
+  ali_abdaal: { font: 'Inter', weight: 700, size: 7.2, color: '#ffffff', group: 8, hl: 'dim', y: 70 },
+  iman_gadzhi: { font: 'Montserrat', weight: 300, lower: true, size: 11.1, color: '#ffffff', group: 5, hl: 'weight', y: 66 },
+  minimal_cinematic: { font: 'DM Sans', weight: 600, size: 10.2, color: '#F5F5F5', group: 5, anim: 'fade', y: 72 },
+  podcast_clip: { font: 'Inter', weight: 700, size: 12, color: '#ffffff', accent: '#7CFF6B', stroke: .28, box: true, boxColor: '#000000', boxAlpha: .4, group: 7, hl: 'boxactive', y: 60 },
+  photography_educator: { font: 'Montserrat', weight: 700, size: 12.5, color: '#ffffff', accent: '#FFC857', stroke: .28, group: 4, anim: 'bounce', hl: 'keycolor', y: 63 } };
+// Google Fonts loaded by the Studio and the render: [family, axes, category]. From reel-fonts-and-caption-animations.md (§2, free/OFL only).
+const GFONTS = /*GFONTS*/[
+ ["Montserrat","wght@300;600;700;800;900","Bold caption"],["Anton","","Bold caption"],["Bebas Neue","","Bold caption"],["Bangers","","Bold caption"],
+ ["Oswald","wght@600;700","Bold caption"],["League Spartan","wght@700;800","Bold caption"],["Fira Sans Condensed","wght@700;800","Bold caption"],
+ ["Gabarito","wght@700;800;900","Bold caption"],["Barlow Condensed","wght@700;800","Bold caption"],
+ ["Poppins","wght@600;700;800","Clean sans"],["Inter","wght@300;400;600;700;800","Clean sans"],["Rubik","wght@700;800","Clean sans"],["Outfit","wght@700;800","Clean sans"],
+ ["DM Sans","wght@500;600;700","Clean sans"],["Manrope","wght@600;700;800","Clean sans"],["Nunito Sans","wght@700;800","Clean sans"],["Archivo","wght@700;800","Clean sans"],
+ ["Roboto","wght@700;900","Clean sans"],["Open Sans","wght@700;800","Clean sans"],["TikTok Sans","wght@400;700","Clean sans"],["Space Grotesk","wght@500;700","Clean sans"],
+ ["Shrikhand","","Display"],["Jomhuria","","Display"],
+ ["Caveat","wght@400;700","Handwritten"],["Permanent Marker","","Handwritten"],["Pacifico","","Handwritten"],
+ ["DM Serif Display","ital@0;1","Serif"],["Playfair Display","ital,wght@0,700;1,700","Serif"],["Lora","ital,wght@0,600;0,700;1,600","Serif"],
+ ["Space Mono","wght@400;700","Mono"],["JetBrains Mono","wght@400;500;700;800","Mono"],["IBM Plex Mono","wght@400;700","Mono"]]/*END*/;
+const gfontsUrl = () => 'https://fonts.googleapis.com/css2?' + GFONTS.map(([f, ax]) => 'family=' + f.replace(/ /g, '+') + (ax ? ':' + ax : '')).join('&') + '&display=swap';
+if (typeof document !== 'undefined' && document.head && !document.getElementById('gfonts')) document.head.insertAdjacentHTML('beforeend', `<link id="gfonts" rel="stylesheet" href="${gfontsUrl()}">`);
+const CAP_FONTS = GFONTS.map(f => f[0]);
+// every family as a single-font choice too (the pairs above stay as the Font pair cards)
+GFONTS.forEach(([f, , cat]) => FONTS.push(['g:' + f.toLowerCase().replace(/[^a-z0-9]+/g, '-'), f, `"${f}"`, `"${f}"`, cat]));
 function capOpts(id, over) {
   const o = { ...CAP_BASE, ...(CAP_DEF[id] || {}) };
   Object.entries(over || {}).forEach(([k, v]) => { if (v !== null && v !== undefined && v !== '') o[k] = v; });
@@ -80,28 +105,40 @@ function caption(id, t, acc, over) {
   const o = capOpts(id, over), tt = t - o.offset, i = curIdx(tt, o.linger); if (i < 0) return '';
   const W = liveWords(), n = Math.max(1, Math.round(o.group)), g = Math.floor(i / n) * n, ws = W.slice(g, g + n), hi = o.accent || acc;
   const fmt = x => o.upper ? x.toUpperCase() : o.lower ? x.toLowerCase() : x;
-  const key = ws.reduce((b, x, j) => x.word.length > ws[b].word.length ? j : b, 0);
+  const key = o.hl === 'keycolor' ? keyIndex(ws) : ws.reduce((b, x, j) => x.word.length > ws[b].word.length ? j : b, 0);
+  const plate = o.boxColor + Math.round(clamp(o.boxAlpha ?? .73, 0, 1) * 255).toString(16).padStart(2, '0');
+  // word pop (Hormozi): words show as they are spoken, each scaling 0.7 -> 1.08 -> 1 over 150 ms
+  const wpop = (x, k, html) => { if (o.anim !== 'wordpop') return html; const d = tt - x.start; html = html.replace(/ (<\/(span|i)>)$/, '$1');   // the space goes outside the scaled word
+    if (g + k > i || d < 0) return `<span style="opacity:0">${html}</span> `;
+    const p = clamp(d / .15, 0, 1), sc = p < .7 ? .7 + .38 * ease(p / .7) : 1.08 - .08 * ease((p - .7) / .3);
+    return `<span style="display:inline-block;transform:scale(${sc.toFixed(3)});opacity:${clamp(d / .06, 0, 1).toFixed(2)}">${html}</span> `; };
   let inner;
   if (o.anim === 'type') {
     const w = W[i], frac = clamp((tt - w.start) / Math.max(.2, w.end - w.start), 0, 1);
     inner = esc(fmt(ws.filter((x, k) => g + k < i).map(x => x.word).join(' ') + (i > g ? ' ' : '') + w.word.slice(0, Math.ceil(w.word.length * frac)))) + `<span style="opacity:${Math.floor(t * 4) % 2}">▍</span>`;
-  } else inner = ws.map((x, k) => {
+  } else inner = ws.map((x, k) => wpop(x, k, (() => {
     const cur = g + k === i, txt = esc(fmt(x.word));
     if (wordAnimFor(x)) return wordAnimWrap(x, tt, `<span style="color:${o.hl === 'current' && cur || o.hl === 'spoken' && g + k <= i ? hi : o.color}">${txt}</span>`) + ' ';
     if (o.hl === 'current') return `<span style="color:${cur ? hi : o.color}">${txt} </span>`;
     if (o.hl === 'spoken') return `<span style="color:${g + k <= i ? hi : o.color};opacity:${g + k <= i ? 1 : .6}">${txt} </span>`;
     if (o.hl === 'key') return k === key ? `<i style="font-family:'DM Serif Display',serif;color:${hi};font-size:1.2em">${txt} </i>` : `<span style="color:${o.color}">${txt} </span>`;
     if (o.hl === 'box') return `<span style="display:inline-block;margin:.5cqw;padding:.6cqw 2cqw;border-radius:1cqw;background:${cur ? hi : o.boxColor + 'cc'};color:${cur ? '#000' : o.color}">${txt}</span>`;
-    return `<span style="color:${o.color}">${txt} </span>`; }).join('');
+    if (o.hl === 'boxactive') return `<span style="display:inline-block;padding:.2cqw 1cqw;border-radius:1cqw;background:${cur ? hi : 'transparent'};color:${cur ? '#000' : o.color}">${txt}</span> `;
+    if (o.hl === 'keycolor') return `<span style="color:${k === key ? hi : o.color}">${txt} </span>`;
+    if (o.hl === 'dim') return `<span style="color:${o.color};opacity:${cur ? 1 : .4}">${txt} </span>`;
+    if (o.hl === 'weight') return `<span style="color:${o.color};font-weight:${cur ? 700 : o.weight}">${txt} </span>`;
+    return `<span style="color:${o.color}">${txt} </span>`; })())).join('');
   const ta = tt - (n === 1 ? W[i].start : W[g].start);
   let tr = '', op = 1;
   if (o.anim === 'pop') tr = `scale(${.8 + .2 * ease(ta / .12)})`;
   if (o.anim === 'slide') { tr = `translateY(${(1 - ease(ta / .18)) * 3}cqw)`; op = ease(ta / .18); }
-  if (o.anim === 'fade') op = ease(ta / .15);
+  if (o.anim === 'fade') op = ease(ta / .3);
+  if (o.anim === 'flash') { const p = clamp(ta / .35, 0, 1); tr = `scale(${(p < .6 ? .8 + .25 * ease(p / .6) : 1.05 - .05 * ease((p - .6) / .4)).toFixed(3)})`; op = clamp(ta / .05, 0, 1); }
+  if (o.anim === 'bounce') { const [, y, sc, o2] = animAt(animById('bounce-in'), ta / .45); tr = `translateY(${y.toFixed(2)}%) scale(${sc.toFixed(3)})`; op = o2; }
   const y = clamp(o.y, 12, 76), side = o.align === 'left' ? 'left:8%;right:8%' : 'left:6%;right:6%';
   const css = `position:absolute;${side};top:${y}%;text-align:${o.align};font-family:${o.font ? `'${o.font}'` : 'var(--hf)'},sans-serif;font-weight:${o.weight};font-size:${o.size}cqw;line-height:1.15;` +
     `text-shadow:${o.stroke ? `0 .5cqw 0 #000` : `0 .3cqw 1.2cqw #000a`};` + (o.stroke ? `-webkit-text-stroke:${o.stroke}cqw #000;paint-order:stroke fill;` : '') +
-    (o.box && o.hl !== 'box' ? `background:${o.boxColor}bb;padding:1.5cqw;border-radius:1cqw;width:fit-content;${o.align === 'left' ? '' : 'margin:0 auto;left:0;right:0;'}` : '') +
+    (o.box && o.hl !== 'box' ? `background:${plate};padding:1.5cqw;border-radius:1cqw;width:fit-content;${o.align === 'left' ? '' : 'margin:0 auto;left:0;right:0;'}` : '') +
     `transform:${tr || 'none'};opacity:${op}`;
   return `<div class="cap" style="${css}">${inner}</div>`;
 }
@@ -292,6 +329,10 @@ const ANIM_BUILTIN = [
   { id: 'zoom-punch', name: 'Zoom punch', dur: .25, ease: 'easeOutCubic', keys: curve(p => [0, 0, 1.8 - .8 * easeOutCubicA(p), Math.min(1, p * 3), 0]) },
   { id: 'swing', name: 'Swing in', dur: .45, ease: 'easeOutBack', keys: curve(p => [0, 0, .7 + .3 * easeOutBack(p), Math.min(1, p * 3), -18 * (1 - easeOutBack(p))]) },
   { id: 'slide-left', name: 'Slide from right', dur: .4, ease: 'easeOutCubic', keys: curve(p => [120 * (1 - easeOutCubicA(p)), 0, 1, Math.min(1, p * 2.5), 0]) },
+  // from reel-fonts-and-caption-animations.md: CapCut bounce keyframes (§4.3), Hormozi word pop (§4.1), shake (§4.7)
+  { id: 'bounce-in', name: 'Bounce in (CapCut)', dur: .7, ease: 'keyframes', keys: [[0, 0, 27, .9, 0, 0], [.43, 0, -8, 1.05, 1, 0], [.71, 0, 2.7, .98, 1, 0], [1, 0, 0, 1, 1, 0]] },
+  { id: 'word-pop', name: 'Word pop (Hormozi)', dur: .15, ease: 'cubic-bezier(0.34,1.56,0.64,1)', keys: [[0, 0, 0, .7, 0, 0], [.4, 0, 0, .95, 1, 0], [.7, 0, 0, 1.08, 1, 0], [1, 0, 0, 1, 1, 0]] },
+  { id: 'shake', name: 'Shake', dur: .2, ease: 'decaying jitter', keys: curve(p => [Math.sin(p * Math.PI * 8) * 6 * (1 - p), 0, 1, 1, 0], 24) },
   { id: 'stamp', name: 'Stamp', dur: .3, ease: 'easeOutBack', keys: curve(p => [0, 0, 2.4 - 1.4 * easeOutBack(p), Math.min(1, p * 5), -8 * (1 - p)]) },
 ];
 const animLib = () => (S.anims && S.anims.length ? S.anims : ANIM_BUILTIN);

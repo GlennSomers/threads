@@ -57,9 +57,11 @@ def synth(kind, path, dur=None):
 
 
 SFX_LEN = {"whoosh": .45, "pop": .12, "ping": .6, "click": .03, "highlight": .35}
-FONTS = ("Anton&family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;600;800&family=Playfair+Display:ital,wght@0,700;1,700"
-         "&family=Montserrat:wght@600;800&family=Space+Grotesk:wght@500;700&family=Poppins:wght@600;800&family=Caveat:wght@700"
-         "&family=JetBrains+Mono:wght@500;800&family=Lora:ital,wght@1,600")
+def gfonts_url():
+    """The Google Fonts the Studio loads: the GFONTS list in studio/engine.js, so preview and render always match."""
+    js = (ROOT / "studio" / "engine.js").read_text()
+    fams = json.loads(re.search(r"/\*GFONTS\*/(.*?)/\*END\*/", js, re.S).group(1))
+    return "https://fonts.googleapis.com/css2?" + "&".join("family=" + f.replace(" ", "+") + (":" + ax if ax else "") for f, ax, _ in fams) + "&display=swap"
 
 
 def keep_segments(style):
@@ -228,7 +230,7 @@ def build_project(name, style, clip, words, proj):
 <head>
 <meta charset="UTF-8" /><meta name="viewport" content="width=1080, height=1920" />
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family={FONTS}&display=swap" rel="stylesheet">
+<link href="{gfonts_url()}" rel="stylesheet">
 <style>
 {font_css}  * {{ margin: 0; padding: 0; box-sizing: border-box; }}
   html, body {{ width: 1080px; height: 1920px; overflow: hidden; background: #000; }}
