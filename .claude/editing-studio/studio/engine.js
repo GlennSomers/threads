@@ -393,10 +393,13 @@ function elementHtml(e, t) {
 }
 const elementsHtml = (t, els) => (els || []).map(e => elementHtml(e, t)).join('');
 
-/* ---------- safe zones (px on 1080x1920, from reel-fonts-and-caption-animations.md §3.2), as % of the frame ---------- */
+/* ---------- safe zones for normal (organic) posts, px on 1080x1920 as % of the frame ----------
+   From vidova.ai/blog/instagram-reels-tiktok-youtube-shorts-safe-zones (Nov 2026). The apps don't publish these for normal posts;
+   check a real post on a phone. "Ads" is Meta's Reels ad guidance (14% top, 35% bottom, 6% sides), much larger because ads add buttons. */
 const SAFE_ZONES = {
-  all: { name: 'All socials', t: 288 / 19.2, b: 672 / 19.2, l: 120 / 10.8, r: 192 / 10.8 },
-  instagram: { name: 'Instagram Reels', t: 269 / 19.2, b: 672 / 19.2, l: 65 / 10.8, r: 65 / 10.8 },
-  tiktok: { name: 'TikTok', t: 240 / 19.2, b: 660 / 19.2, l: 120 / 10.8, r: 120 / 10.8 },
-  youtube: { name: 'YouTube Shorts', t: 192 / 19.2, b: 480 / 19.2, l: 0, r: 108 / 10.8 } };
+  all: { name: 'All socials', t: 180 / 19.2, b: 380 / 19.2, l: 60 / 10.8, r: 150 / 10.8 },
+  instagram: { name: 'Instagram Reels', t: 108 / 19.2, b: 320 / 19.2, l: 60 / 10.8, r: 120 / 10.8 },
+  tiktok: { name: 'TikTok', t: 130 / 19.2, b: 320 / 19.2, l: 44 / 10.8, r: 140 / 10.8 },
+  youtube: { name: 'YouTube Shorts', t: 180 / 19.2, b: 380 / 19.2, l: 60 / 10.8, r: 150 / 10.8 },
+  ads: { name: 'Ads (Meta Reels)', t: 269 / 19.2, b: 672 / 19.2, l: 65 / 10.8, r: 65 / 10.8 } };
 let SAFE_ON = false;   // set by compose while it draws the parts that live inside the zone
