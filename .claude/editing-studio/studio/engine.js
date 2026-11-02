@@ -35,7 +35,7 @@ const STEPS = [
 
 /* ---------- state ---------- */
 const S = { clips: [], clip: null, words: [], dur: 0, step: 0, beat: 0, mode: 'edit',
-  grade: 'raw', font: 'inter', caption: null, hook: null, fx: {}, whole: new Set(), snd: new Set(), done: new Set(), sound: false, capEdit: {}, lutAmount: 100, cuts: [], wordsLive: null, voice: { preset: 'off', amount: 100, nr: null } };
+  grade: 'raw', font: 'inter', caption: null, hook: null, fx: {}, whole: new Set(), snd: new Set(), done: new Set(), sound: false, capEdit: {}, lutAmount: 100, cuts: [], trans: [], wordsLive: null, voice: { preset: 'off', amount: 100, nr: null } };
 const G = id => GRADES.find(g => g[0] === id), F = id => FONTS.find(f => f[0] === id) || FONTS[0];   // an uploaded font that isn't loaded falls back to the first pair
 
 /* ---------- beats from the transcript ---------- */
@@ -84,7 +84,7 @@ const GFONTS = /*GFONTS*/[
  ["Roboto","wght@700;900","Clean sans"],["Open Sans","wght@700;800","Clean sans"],["TikTok Sans","wght@400;700","Clean sans"],["Space Grotesk","wght@500;700","Clean sans"],
  ["Shrikhand","","Display"],["Jomhuria","","Display"],
  ["Caveat","wght@400;700","Handwritten"],["Permanent Marker","","Handwritten"],["Pacifico","","Handwritten"],
- ["DM Serif Display","ital@0;1","Serif"],["Playfair Display","ital,wght@0,700;1,700","Serif"],["Lora","ital,wght@0,600;0,700;1,600","Serif"],
+ ["DM Serif Display","ital@0;1","Serif"],["Cormorant Garamond","wght@500;600;700","Serif"],["Playfair Display","ital,wght@0,700;1,700","Serif"],["Lora","ital,wght@0,600;0,700;1,600","Serif"],
  ["Space Mono","wght@400;700","Mono"],["JetBrains Mono","wght@400;500;700;800","Mono"],["IBM Plex Mono","wght@400;700","Mono"]]/*END*/;
 const gfontsUrl = () => 'https://fonts.googleapis.com/css2?' + GFONTS.map(([f, ax]) => 'family=' + f.replace(/ /g, '+') + (ax ? ':' + ax : '')).join('&') + '&display=swap';
 if (typeof document !== 'undefined' && document.head && !document.getElementById('gfonts')) document.head.insertAdjacentHTML('beforeend', `<link id="gfonts" rel="stylesheet" href="${gfontsUrl()}">`);
@@ -114,13 +114,36 @@ function caption(id, t, acc, over) {
     if (g + k > i || d < 0) return `<span style="opacity:0">${html}</span> `;
     const p = clamp(d / .15, 0, 1), sc = p < .7 ? .7 + .38 * ease(p / .7) : 1.08 - .08 * ease((p - .7) / .3);
     return `<span style="display:inline-block;transform:scale(${sc.toFixed(3)});opacity:${clamp(d / .06, 0, 1).toFixed(2)}">${html}</span> `; };
+  const libA = /^lib:/.test(o.anim || '') ? animById(o.anim.slice(4)) : null;
+  // colour and highlight of word k of the group, for words drawn by an animation and the newer highlight modes
+  const hlSty = (x, k) => { const cur = g + k === i, past = g + k <= i, dw = tt - x.start;
+    switch (o.hl) {
+      case 'current': return `color:${cur ? hi : o.color}`;
+      case 'spoken': return `color:${past ? hi : o.color};opacity:${past ? 1 : .6}`;
+      case 'keycolor': return `color:${k === key ? hi : o.color}`;
+      case 'key': return k === key ? `font-family:'DM Serif Display',serif;font-style:italic;color:${hi};font-size:1.2em` : `color:${o.color}`;
+      case 'dim': return `color:${o.color};opacity:${cur ? 1 : .4}`;
+      case 'weight': return `color:${o.color};font-weight:${cur ? 700 : o.weight}`;
+      case 'box': case 'boxactive': return `display:inline-block;padding:.2cqw 1cqw;border-radius:1cqw;background:${cur ? hi : 'transparent'};color:${cur ? '#000' : o.color}`;
+      case 'glow': { if (!cur) return `color:${o.color};opacity:.45`;   // active word: fill + outer glow + micro-scale, the rest dim
+        const q = clamp(dw / .22, 0, 1), gl = q < .6 ? .7 * ease(q / .6) : .7 - .35 * ease((q - .6) / .4), sc = q < .6 ? 1 + .06 * ease(q / .6) : 1.06 - .04 * ease((q - .6) / .4);
+        return `display:inline-block;color:${o.color};transform:scale(${sc.toFixed(3)});text-shadow:0 0 ${(gl * 3).toFixed(2)}cqw ${hi},0 0 ${(gl * 1.2).toFixed(2)}cqw ${hi}`; }
+      case 'wipe': { const q = g + k < i ? 1 : cur ? clamp(dw / Math.max(.18, x.end - x.start), 0, 1) : 0, pc = (q * 100).toFixed(1);   // accent fill wipes across as it's said
+        return `background:linear-gradient(90deg,${hi} ${pc}%,${o.color} ${pc}%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none`; }
+      case 'dimlift': { const q = cur ? ease(clamp(dw / .18, 0, 1)) : 0;
+        return `display:inline-block;color:${o.color};opacity:${(.38 + .62 * q).toFixed(2)};transform:translateY(${(-.28 * q).toFixed(3)}cqw)`; }
+      default: return `color:${o.color}`;
+    } };
   let inner;
   if (o.anim === 'type') {
     const w = W[i], frac = clamp((tt - w.start) / Math.max(.2, w.end - w.start), 0, 1);
     inner = esc(fmt(ws.filter((x, k) => g + k < i).map(x => x.word).join(' ') + (i > g ? ' ' : '') + w.word.slice(0, Math.ceil(w.word.length * frac)))) + `<span style="opacity:${Math.floor(t * 4) % 2}">▍</span>`;
   } else inner = ws.map((x, k) => wpop(x, k, (() => {
-    const cur = g + k === i, txt = esc(fmt(x.word));
-    if (wordAnimFor(x)) return wordAnimWrap(x, tt, `<span style="color:${o.hl === 'current' && cur || o.hl === 'spoken' && g + k <= i ? hi : o.color}">${txt}</span>`) + ' ';
+    const cur = g + k === i, txt = esc(fmt(x.word)), wa = wordAnimFor(x), la = wa ? animById(wa.anim) : libA;
+    if (la) { const d = wa ? tt - x.start : (tt - x.start) * sp;   // a library animation on every word (lib:<id>) or on these words
+      if (!wa && d < 0 && !la.proc) return `<span style="opacity:0">${txt}</span> `;
+      return animWord(la, d, fmt(x.word), hlSty(x, k), hi) + ' '; }
+    if (['glow', 'wipe', 'dimlift'].includes(o.hl)) return `<span style="${hlSty(x, k)}">${txt}</span> `;
     if (o.hl === 'current') return `<span style="color:${cur ? hi : o.color}">${txt} </span>`;
     if (o.hl === 'spoken') return `<span style="color:${g + k <= i ? hi : o.color};opacity:${g + k <= i ? 1 : .6}">${txt} </span>`;
     if (o.hl === 'key') return k === key ? `<i style="font-family:'DM Serif Display',serif;color:${hi};font-size:1.2em">${txt} </i>` : `<span style="color:${o.color}">${txt} </span>`;
@@ -136,7 +159,7 @@ function caption(id, t, acc, over) {
   if (o.anim === 'slide') { tr = `translateY(${(1 - ease(ta / .18)) * 3}cqw)`; op = ease(ta / .18); }
   if (o.anim === 'fade') op = ease(ta / .3);
   if (o.anim === 'flash') { const p = clamp(ta / .35, 0, 1); tr = `scale(${(p < .6 ? .8 + .25 * ease(p / .6) : 1.05 - .05 * ease((p - .6) / .4)).toFixed(3)})`; op = clamp(ta / .05, 0, 1); }
-  if (o.anim === 'bounce') { const [, y, sc, o2] = animAt(animById('bounce-in'), ta / .45); tr = `translateY(${y.toFixed(2)}%) scale(${sc.toFixed(3)})`; op = o2; }
+  if (o.anim === 'bounce') { const b = animAt(animById('bounce-in'), ta / .45); tr = `translateY(${b.y.toFixed(2)}%) scale(${b.s.toFixed(3)})`; op = b.o; }
   // position: y is the top edge (% from the top, kept in Instagram's band); inside a safe zone it is 0..100 of the zone and the block never leaves it
   const width = clamp(+o.width || (o.align === 'left' ? 84 : 88), 30, 100), x = clamp(+o.x || 0, -40, 40);
   const L = clamp((100 - width) / 2 + x, 0, 100 - width), R = 100 - width - L;
@@ -171,13 +194,13 @@ function cineBlock(t, opt = {}) {
   const ink = opt.ink || '#ffffff', accent = opt.accent || '#2f6bff', y = opt.y ?? 62, ta = t - ws[0].start;
   const fmt = w => esc(w.word.replace(/[,;:]$/, ''));
   const seen = w => t >= w.start - .03 ? 1 : .0;
-  const small = list => list.map(w => wordAnimFor(w) ? wordAnimWrap(w, t, fmt(w)) : `<span style="opacity:${seen(w)};transition:none">${fmt(w)}</span>`).join(' ');
+  const small = list => list.map(w => wordAnimFor(w) ? wordAnimWrap(w, t, fmt(w), w.word.replace(/[,;:]$/, '')) : `<span style="opacity:${seen(w)};transition:none">${fmt(w)}</span>`).join(' ');
   const before = ws.slice(0, k), after = ws.slice(k + 1), kw = ws[k], kIn = ease((t - kw.start + .05) / .22);
   const big = serif ? `font-family:'Playfair Display',serif;font-style:italic;font-weight:700;color:${opt.serifInk || accent}`
                     : `font-family:Inter,sans-serif;font-weight:800;color:${ink};letter-spacing:-.02em`;
   return `<div style="position:absolute;left:6%;right:6%;top:${y}%;transform:translateY(-50%);text-align:center;color:${ink};font-family:Inter,sans-serif;text-shadow:${opt.shadow ?? '0 .3cqw 1.4cqw #0008'};opacity:${ease(ta / .15)}">
     ${before.length ? `<div style="font-size:4.2cqw;font-weight:500;opacity:.92;margin-bottom:.6cqw">${small(before)}</div>` : ''}
-    <div style="font-size:${opt.size || 13}cqw;line-height:.95;${big};${wordAnimFor(kw) ? '' : `opacity:${kIn};transform:scale(${1.08 - .08 * kIn})`}">${wordAnimFor(kw) ? wordAnimWrap(kw, t, fmt(kw)) : fmt(kw)}</div>
+    <div style="font-size:${opt.size || 13}cqw;line-height:.95;${big};${wordAnimFor(kw) ? '' : `opacity:${kIn};transform:scale(${1.08 - .08 * kIn})`}">${wordAnimFor(kw) ? wordAnimWrap(kw, t, fmt(kw), kw.word.replace(/[,;:]$/, '')) : fmt(kw)}</div>
     ${after.length ? `<div style="font-size:4.2cqw;font-weight:500;opacity:.92;margin-top:.8cqw">${small(after)}</div>` : ''}</div>`;
 }
 
@@ -293,10 +316,12 @@ function compose(t, cfg, raw) {
     if (cfg.whole.has('push')) scale *= 1 + .06 * (t / (S.dur || 1));
     if (cfg.whole.has('bar')) html += `<div style="position:absolute;left:0;top:11.5%;height:.8cqw;width:${100 * t / (S.dur || 1)}%;background:${acc}"></div>`;
   }
+  let vt = '', vblur = 0;
+  if (!raw) (cfg.trans || []).forEach(it => { const r = frameFx(it, t, cfg); if (!r) return; html += r.html; scale *= r.scale; vt += ' ' + r.vt; vblur += r.blur; });
   const fe = F(cfg.font);
   html += zone ? `<div style="position:absolute;left:${zone.l}%;right:${zone.r}%;top:${zone.t}%;bottom:${zone.b}%">${safe}</div>` : safe;
   SAFE_ON = false;
-  return { html, scale, filter, font: fe[2] + ',sans-serif', tfont: (fe[5] || fe[2]) + ',sans-serif' };
+  return { html, scale, vt: vt.trim(), filter: vblur > .01 ? (filter === 'none' ? '' : filter + ' ') + `blur(${vblur.toFixed(2)}cqw)` : filter, font: fe[2] + ',sans-serif', tfont: (fe[5] || fe[2]) + ',sans-serif' };
 }
 /* sound events: [{t, snd}] each tied to the move it belongs to */
 function soundEvents(cfg, sel) {
@@ -348,50 +373,173 @@ const ANIM_BUILTIN = [
   { id: 'shake', name: 'Shake', dur: .2, ease: 'decaying jitter', keys: curve(p => [Math.sin(p * Math.PI * 8) * 6 * (1 - p), 0, 1, 1, 0], 24) },
   { id: 'stamp', name: 'Stamp', dur: .3, ease: 'easeOutBack', keys: curve(p => [0, 0, 2.4 - 1.4 * easeOutBack(p), Math.min(1, p * 5), -8 * (1 - p)]) },
 ];
+const MLIB = () => (typeof MOTION_LIB !== 'undefined' ? MOTION_LIB : []);   // the reel motion library (motion.js)
 const animLib = () => (S.anims && S.anims.length ? S.anims : ANIM_BUILTIN);
-const animById = id => animLib().find(a => a.id === id) || ANIM_BUILTIN.find(a => a.id === id);
-function animAt(a, p) {   // state of animation a at progress p (0..1), linear between its keys
-  const K = a.keys; if (!K || !K.length) return [0, 0, 1, 1, 0];
-  if (p <= K[0][0]) return K[0].slice(1); if (p >= K[K.length - 1][0]) return K[K.length - 1].slice(1);
-  let i = 1; while (K[i][0] < p) i++;
-  const [p0, ...A] = K[i - 1], [p1, ...B] = K[i], f = (p - p0) / Math.max(1e-6, p1 - p0);
-  return A.map((v, j) => v + (B[j] - v) * f);
+const animById = id => animLib().find(a => a.id === id) || ANIM_BUILTIN.find(a => a.id === id) || MLIB().find(a => a.id === id);
+// easing: CSS names, cubic-bezier(...) and spring(stiffness,damping,mass), applied to each step between keyframes as CSS does
+function bez(x1, y1, x2, y2) {
+  return x => { if (x <= 0) return 0; if (x >= 1) return 1; let t = x;
+    for (let i = 0; i < 10; i++) { const cx = 3 * x1 * t * (1 - t) ** 2 + 3 * x2 * t * t * (1 - t) + t ** 3 - x, dx = 3 * x1 * (1 - t) ** 2 + 6 * (x2 - x1) * t * (1 - t) + 3 * (1 - x2) * t * t;
+      if (Math.abs(cx) < 1e-5 || Math.abs(dx) < 1e-6) break; t = clamp(t - cx / dx, 0, 1); }
+    return 3 * y1 * t * (1 - t) ** 2 + 3 * y2 * t * t * (1 - t) + t ** 3; };
 }
-const animCss = ([x, y, s, o, r]) => `transform:translate(${x.toFixed(2)}%,${y.toFixed(2)}%) scale(${s.toFixed(3)}) rotate(${r.toFixed(2)}deg);opacity:${clamp(o, 0, 1).toFixed(3)}`;
+const EASE_C = {};
+function easeFn(e) {
+  e = e || 'linear'; if (EASE_C[e]) return EASE_C[e]; let f = x => x; const m = /^cubic-bezier\(([^)]+)\)$/.exec(e), sp = /^spring\(([^)]+)\)$/.exec(e);
+  if (m) { const [a, b, c, d] = m[1].split(',').map(Number); f = bez(a, b, c, d); }
+  else if (sp) { const [k, d, ms] = sp[1].split(',').map(Number), w0 = Math.sqrt(k / ms), z = Math.min(.99, d / (2 * Math.sqrt(k * ms))), wd = w0 * Math.sqrt(1 - z * z), T = Math.log(1000) / (z * w0);
+    f = x => x >= 1 ? 1 : 1 - Math.exp(-z * w0 * x * T) * (Math.cos(wd * x * T) + z * w0 / wd * Math.sin(wd * x * T)); }
+  else f = { ease: bez(.25, .1, .25, 1), 'ease-in': bez(.42, 0, 1, 1), 'ease-out': bez(0, 0, .58, 1), 'ease-in-out': bez(.42, 0, .58, 1) }[e] || f;
+  return (EASE_C[e] = f);
+}
+function trackAt(K, p, f) {
+  const n = K.length; if (p <= K[0][0]) return K[0][1]; if (p >= K[n - 1][0]) return K[n - 1][1];
+  let i = 1; while (K[i][0] < p) i++; const [p0, a] = K[i - 1], [p1, b] = K[i]; return a + (b - a) * f((p - p0) / Math.max(1e-6, p1 - p0));
+}
+/* the state of something being animated. x/y: % of its own size; X/Y: cqw; s/sx/sy scale; o opacity; r/ry degrees; blur cqw; glow 0..1;
+   clip: share hidden from the right; circ: circle mask 0..1.2; sweep: share drawn round the centre; rgb: colour split cqw; ls: letter spacing em;
+   sho/shy/shb: drop shadow; g1x/g1o, g2x/g2o: ghost copies */
+const ANIM_ID = { x: 0, y: 0, X: 0, Y: 0, s: 1, sx: 1, sy: 1, o: 1, r: 0, ry: 0, blur: 0, glow: 0, clip: 0, circ: null, sweep: null, rgb: 0, ls: null, sho: 0, shy: 0, shb: 0, g1x: null, g1o: 0, g2x: null, g2o: 0 };
+function animAt(a, p) {
+  const st = { ...ANIM_ID }; if (!a) return st;
+  if (a.keys && a.keys.length) {   // [p, x, y, s, o, r], linear between keys
+    const K = a.keys; let v;
+    if (p <= K[0][0]) v = K[0].slice(1); else if (p >= K[K.length - 1][0]) v = K[K.length - 1].slice(1);
+    else { let i = 1; while (K[i][0] < p) i++; const [p0, ...A] = K[i - 1], [p1, ...B] = K[i], f = (p - p0) / Math.max(1e-6, p1 - p0); v = A.map((x, j) => x + (B[j] - x) * f); }
+    [st.x, st.y, st.s, st.o, st.r] = v; return st;
+  }
+  if (a.T) { const f = easeFn(a.ease); for (const k in a.T) st[k] = trackAt(a.T[k], p, f);
+    if (a.shake) { const q = (p * a.dur - a.dur * .55) / (a.shake.ms / 1000); if (q > 0 && q < 1) st.X += Math.sin(q * Math.PI * 6) * a.shake.amp * (1 - q); } }
+  return st;
+}
+function animCss(st) {
+  if (Array.isArray(st)) { const [x, y, s, o, r] = st; st = { ...ANIM_ID, x, y, s, o, r }; }
+  const n = v => +(+v).toFixed(3);
+  let tf = `translate(${n(st.x)}%,${n(st.y)}%)`;
+  if (st.X || st.Y) tf += ` translate(${n(st.X)}cqw,${n(st.Y)}cqw)`;
+  if (st.ry) tf += ` perspective(60cqw) rotateY(${n(st.ry)}deg)`;
+  tf += ` scale(${n(st.s)})`; if (st.sx !== 1 || st.sy !== 1) tf += ` scale(${n(st.sx)},${n(st.sy)})`; if (st.r) tf += ` rotate(${n(st.r)}deg)`;
+  const fl = [];
+  if (st.blur > .01) fl.push(`blur(${n(st.blur)}cqw)`);
+  if (st.glow > .01) fl.push(`drop-shadow(0 0 ${n(st.glow * 2.4)}cqw currentColor)`);
+  if (st.sho > .01) fl.push(`drop-shadow(0 ${n(st.shy)}cqw ${n(st.shb)}cqw rgba(0,0,0,${n(st.sho)}))`);
+  if (st.rgb > .01) fl.push(`drop-shadow(${n(st.rgb)}cqw 0 0 rgba(255,0,80,.75)) drop-shadow(${n(-st.rgb)}cqw 0 0 rgba(0,225,255,.75))`);
+  ['g1', 'g2'].forEach(g => { if (st[g + 'x'] != null && st[g + 'o'] > .01) fl.push(`drop-shadow(${n(st[g + 'x'] - st.X)}cqw 0 0 rgba(255,255,255,${n(st[g + 'o'])}))`); });
+  let css = `transform:${tf};opacity:${n(clamp(st.o, 0, 1))}`;
+  if (fl.length) css += `;filter:${fl.join(' ')}`;
+  if (st.clip > .001) css += `;clip-path:inset(-30% ${n(clamp(st.clip, 0, 1) * 100)}% -30% -30%)`;
+  else if (st.circ != null && st.circ < 1.15) css += `;clip-path:circle(${n(Math.max(0, st.circ) * 75)}% at 50% 50%)`;
+  if (st.sweep != null && st.sweep < .999) { const m = `conic-gradient(from 0deg,#000 ${n(Math.max(0, st.sweep) * 360)}deg,transparent 0)`; css += `;-webkit-mask-image:${m};mask-image:${m}`; }
+  if (st.ls != null) css += `;letter-spacing:${n(st.ls)}em`;
+  return css;
+}
 // state of an in/out pair for something on screen from a to b, at time t
 function inOut(t, a, b, inId, outId, inDur, outDur) {
-  let st = [0, 0, 1, 1, 0];
+  let st = animAt(null, 0);
   const ai = inId && animById(inId), ao = outId && animById(outId);
   if (ai) { const d = inDur || ai.dur; if (t < a + d) st = animAt(ai, (t - a) / d); }
   if (ao) { const d = outDur || ao.dur; if (t > b - d) st = animAt(ao, (b - t) / d); }
   return st;
 }
+/* one caption word animated: d is seconds since the word started, raw its text, sty its colour/highlight style, hi the accent.
+   Handles the code-drawn ones (typewriter, scramble, glitch, number roll, marker, underline, shake, glint) and per-letter stagger. */
+const SCRAMBLE = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#%&@$';
+function animWord(a, d, raw, sty, hi) {
+  const box = (css, inner) => `<span style="display:inline-block;${css}">${inner}</span>`, col = inner => `<span style="${sty || ''}">${inner}</span>`;
+  if (!a) return col(esc(raw));
+  const p = clamp(d / (a.dur || .4), 0, 1), f = Math.floor(d * 30), acc = /^#[0-9a-f]{6}$/i.test(hi || '') ? hi : '#FFD400';
+  if (a.stagger && a.stagger.unit === 'letter') {
+    const ms = (a.stagger.ms || 40) / 1000;
+    return col(`<span style="white-space:nowrap">${[...raw].map((ch, i) => ch === ' ' ? ' ' : box(animCss(animAt(a, (d - i * ms) / a.dur)), esc(ch))).join('')}</span>`);
+  }
+  switch (a.proc) {
+    case 'type': { if (d < 0) return box('opacity:0', col(esc(raw))); const k = clamp(Math.floor(d / (a.cps || .035)) + 1, 0, raw.length);
+      return col(esc(raw.slice(0, k))) + (k < raw.length || d < raw.length * (a.cps || .035) + .4 ? `<span style="opacity:${Math.floor(d * 3.8) % 2 ? 0 : 1}">▍</span>` : ''); }
+    case 'scramble': { if (d < 0) return box('opacity:0', col(esc(raw))); const k = Math.floor(raw.length * p);
+      return col(esc([...raw].map((ch, i) => i < k || ch === ' ' ? ch : SCRAMBLE[(i * 7919 + Math.floor(d / .032) * 104729) % SCRAMBLE.length]).join(''))); }
+    case 'glitch': { if (d < 0) return box('opacity:0', col(esc(raw))); if (d > a.dur) return col(esc(raw));
+      const st = { ...ANIM_ID, X: (((f * 13) % 5) - 2) * .25, rgb: .55 * (1 - p) * (f % 2 ? 1 : .5) }; return box(animCss(st), col(esc(raw))); }
+    case 'count': { const m = /\d[\d,]*(\.\d+)?/.exec(raw); if (d < 0) return box('opacity:0', col(esc(raw)));
+      if (!m) return box(`opacity:${p.toFixed(2)}`, col(esc(raw)));
+      const v = parseFloat(m[0].replace(/,/g, '')), dec = (m[1] || '').length - (m[1] ? 1 : 0), cur = v * easeOutCubicA(p);
+      let s2 = cur.toFixed(Math.max(0, dec)); if (/,/.test(m[0])) s2 = s2.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return col(esc(raw.replace(m[0], s2))); }
+    case 'marker': return col(`<span style="background:linear-gradient(${acc}8c,${acc}8c) no-repeat 0 70%/${(ease(p) * 100).toFixed(1)}% 55%;padding:0 .06em">${esc(raw)}</span>`);
+    case 'underline': return col(`<span style="background:linear-gradient(currentColor,currentColor) no-repeat 0 100%/${(ease(p) * 100).toFixed(1)}% .09em;padding-bottom:.05em">${esc(raw)}</span>`);
+    case 'shake': return box(animCss({ ...ANIM_ID, X: d > 0 && d < a.dur ? Math.sin(d * Math.PI * 50) * (a.amp || .55) * (1 - p) : 0 }), col(esc(raw)));
+    case 'glint': { const x = -30 + 160 * ease(p), op = d < 0 || d > a.dur ? 0 : Math.sin(Math.PI * p);
+      return `<span style="position:relative;display:inline-block">${col(esc(raw))}<span style="position:absolute;left:0;top:0;white-space:nowrap;background:linear-gradient(110deg,transparent ${x - 14}%,#fff ${x}%,transparent ${x + 14}%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:0;text-shadow:none;opacity:${op.toFixed(2)}">${esc(raw)}</span></span>`; }
+  }
+  return box(animCss(animAt(a, d / a.dur)), col(esc(raw)));
+}
 // caption words with an animation: S.wordAnims = [{a, b, anim}] (seconds); a word animates when it starts inside a range
 const wordAnimFor = w => (S.wordAnims || []).find(r => w.start >= r.a - .01 && w.start <= r.b + .01);
-function wordAnimWrap(w, t, inner) {
+function wordAnimWrap(w, t, inner, raw, sty) {
   const r = wordAnimFor(w), a = r && animById(r.anim); if (!a) return inner;
+  if (raw != null && (a.proc || a.stagger)) return animWord(a, t - w.start, raw, sty);
   return `<span style="display:inline-block;${animCss(animAt(a, (t - w.start) / a.dur))}">${inner}</span>`;
 }
 /* ---------- elements: uploaded images placed on the video ----------
    el: {id, file, start, end, x, y (centre, % of frame), w (% of frame width), rot, look, loop, in, out} */
 const LOOKS_EL = [['plain', 'Plain'], ['round', 'Rounded'], ['shadow', 'Shadow'], ['card', 'White card'], ['glass', 'Glass frame'], ['sticker', 'Sticker outline'], ['circle', 'Circle']];
-const LOOPS_EL = [['none', 'Still'], ['float', 'Float'], ['pulse', 'Pulse'], ['wobble', 'Wobble'], ['spin', 'Slow spin']];
+const LOOPS_EL = [['none', 'Still'], ['float', 'Float'], ['pulse', 'Pulse'], ['wobble', 'Wobble'], ['spin', 'Slow spin'], ['kenburns', 'Ken Burns (slow push)'], ['breathe', 'Breathe'], ['glow', 'Glow breathe']];
 function elementHtml(e, t) {
   if (t < e.start || t > e.end) return '';
-  const [x, y, s, o, r] = inOut(t, e.start, e.end, e.in, e.out), lt = t - e.start;
+  const st = inOut(t, e.start, e.end, e.in, e.out), lt = t - e.start;
   let lx = 0, ly = 0, ls = 1, lr = 0;
   if (e.loop === 'float') ly = Math.sin(lt * 2.2) * 3; if (e.loop === 'pulse') ls = 1 + .04 * Math.sin(lt * 5);
   if (e.loop === 'wobble') lr = Math.sin(lt * 3) * 4; if (e.loop === 'spin') lr = lt * 40;
+  if (e.loop === 'kenburns') ls = 1 + .18 * bez(.45, 0, .55, 1)(clamp(lt / Math.max(1, e.end - e.start), 0, 1));
+  if (e.loop === 'breathe') ls = 1 + .0125 * (1 - Math.cos(lt * Math.PI * 2 / 2.4));
+  const lg = e.loop === 'glow' ? `filter:drop-shadow(0 0 ${(1 + 1.6 * (.5 - .5 * Math.cos(lt * Math.PI * 2 / 1.8))).toFixed(2)}cqw #fffc);` : '';
   const look = { plain: '', round: 'border-radius:3cqw;', shadow: 'filter:drop-shadow(0 1.2cqw 2.4cqw #000a);', card: 'background:#fff;padding:1.4cqw;border-radius:2.4cqw;box-shadow:0 1.4cqw 3cqw #0008;',
     glass: 'background:#ffffff26;padding:1.6cqw;border-radius:3cqw;border:.3cqw solid #ffffff66;box-shadow:0 1.4cqw 3cqw #0006;backdrop-filter:blur(2cqw);-webkit-backdrop-filter:blur(2cqw);',
     sticker: 'filter:drop-shadow(.7cqw 0 0 #fff) drop-shadow(-.7cqw 0 0 #fff) drop-shadow(0 .7cqw 0 #fff) drop-shadow(0 -.7cqw 0 #fff) drop-shadow(0 1cqw 1.6cqw #0008);',
     circle: 'border-radius:50%;aspect-ratio:1;object-fit:cover;' }[e.look || 'plain'] || '';
   const inner = look.startsWith('background') ? `<div style="${look}"><img src="${shotBase()}${encodeURIComponent(e.file)}" style="display:block;width:100%;border-radius:1.6cqw"></div>`
     : `<img src="${shotBase()}${encodeURIComponent(e.file)}" style="display:block;width:100%;${look}">`;
-  return `<div style="position:absolute;left:${e.x}%;top:${e.y}%;width:${e.w}%;transform:translate(-${SAFE_ON ? e.x : 50}%,-${SAFE_ON ? e.y : 50}%) rotate(${(e.rot || 0) + lr}deg) translateY(${ly}cqw) scale(${ls})">` +
-    `<div style="${animCss([x, y, s, o, r])};transform-origin:50% 50%">${inner}</div></div>`;
+  return `<div style="position:absolute;left:${e.x}%;top:${e.y}%;width:${e.w}%;transform:translate(-${SAFE_ON ? e.x : 50}%,-${SAFE_ON ? e.y : 50}%) rotate(${(e.rot || 0) + lr}deg) translateY(${ly}cqw) scale(${ls});${lg}">` +
+    `<div style="${animCss(st)};transform-origin:50% 50%">${inner}</div></div>`;
 }
 const elementsHtml = (t, els) => (els || []).map(e => elementHtml(e, t)).join('');
+
+/* ---------- transitions and overlays on the whole frame (MOTION_FRAME in motion.js): cfg.trans = [{id, a, b}]
+   a transition plays from a for its own length; an overlay (span) shows from a to b */
+const frameDef = id => (typeof MOTION_FRAME !== 'undefined' ? MOTION_FRAME : []).find(d => d.id === id);
+function frameFx(it, t, cfg) {
+  const d = frameDef(it.id); if (!d) return null;
+  const len = d.span ? null : d.dur + (d.kind === 'flash' ? .14 : 0), b = d.span ? (it.b ?? S.dur ?? 1e9) : it.a + len;
+  if (t < it.a || t > b) return null;
+  const lt = t - it.a, p = d.span ? 0 : clamp(lt / d.dur, 0, 1), f = Math.floor(lt * 30), out = { html: '', scale: 1, vt: '', blur: 0 };
+  const box = css => `<div style="position:absolute;pointer-events:none;${css}"></div>`;
+  const z = SAFE_ZONES[cfg.safe] || SAFE_ZONES.all;
+  switch (d.kind) {
+    case 'flash': out.html = box(`inset:0;background:${d.color};opacity:${(d.o * (lt < d.dur ? 1 : 1 - ease((lt - d.dur) / .14))).toFixed(3)}`); break;
+    case 'leak': { const q = Math.sin(Math.PI * p), x = -20 + 50 * ease(p);
+      out.html = box(`inset:-10%;mix-blend-mode:screen;opacity:${(q * (d.o || .7)).toFixed(3)};background:radial-gradient(ellipse 55% 42% at ${30 + x}% 38%,rgba(255,150,60,.95),rgba(255,80,40,.45) 45%,transparent 72%),radial-gradient(ellipse 38% 60% at ${72 + x * .6}% 72%,rgba(255,210,120,.75),transparent 70%)`); break; }
+    case 'glitch': { const k = d.i || .4;
+      for (let j = 0; j < 5; j++) out.html += box(`left:0;right:0;top:${(f * 31 + j * 17) % 92}%;height:${3 + (f * 7 + j * 5) % 9}%;background:${j % 2 ? 'rgba(0,225,255,.28)' : 'rgba(255,0,80,.28)'};mix-blend-mode:screen;backdrop-filter:hue-rotate(${(f * 47 + j * 60) % 360}deg) saturate(2);transform:translateX(${(((f * 13 + j * 29) % 21) - 10) * k}%)`);
+      out.vt = `translate(${((((f * 17) % 9) - 4) * k * .8).toFixed(2)}%,0)`; break; }
+    case 'whip': { const q = Math.sin(Math.PI * p); out.scale = 1 + .3 * q; out.blur = (d.blur || 30) / 10.8 * q; out.vt = `translateX(${((.5 - p) * 50 * q).toFixed(2)}%)`; break; }
+    case 'iris': { const r = 1.2 * bez(.22, 1, .36, 1)(p) * 70; out.html = box(`inset:0;background:radial-gradient(circle at 50% 50%,transparent ${r.toFixed(2)}%,#000 ${(r + .6).toFixed(2)}%)`); break; }
+    case 'tear': { const x = 100 * bez(.22, 1, .36, 1)(p), pts = o => Array.from({ length: 13 }, (_, k) => `${(x + o + (k % 2 ? 2.4 : -2.4) + ((k * 37) % 5) * .4).toFixed(2)}% ${(k * 100 / 12).toFixed(2)}%`).join(',');
+      out.html = box(`inset:0;background:#f4efe6;clip-path:polygon(${pts(-1.4)},100% 100%,100% 0)`) + box(`inset:0;background:#000;clip-path:polygon(${pts(0)},100% 100%,100% 0)`); break; }
+    case 'shake': { const a = (d.amp || 10) / 10.8 * (1 - p); out.scale = 1.03; out.vt = `translate(${(Math.sin(lt * 90) * a).toFixed(3)}cqw,${(Math.cos(lt * 70) * a * .6).toFixed(3)}cqw)`; break; }
+    case 'grain': out.html = GRAIN(d.o || .18).replace('background-size:240px', `background-size:240px;background-position:${(f * 37) % 240}px ${(f * 53) % 240}px`) +
+      box('inset:0;background:radial-gradient(ellipse at 50% 50%,transparent 55%,rgba(0,0,0,.45))'); break;
+    case 'hud': { const tc = n => String(n).padStart(2, '0'), s0 = Math.floor(t), rec = Math.floor(t / .5) % 2 === 0;
+      const txt = `font-family:'Space Mono',monospace;font-size:3.2cqw;color:#fff;opacity:.88;text-shadow:0 .2cqw .6cqw #000a;position:absolute`;
+      out.html = `<div style="position:absolute;left:${z.l}%;right:${z.r}%;top:${z.t}%;bottom:${z.b}%;pointer-events:none">
+        <div style="${txt};left:0;top:0"><span style="color:#ff3b30;opacity:${rec ? 1 : 0}">●</span> REC</div>
+        <div style="${txt};right:0;top:0">${tc(Math.floor(s0 / 3600))}:${tc(Math.floor(s0 / 60) % 60)}:${tc(s0 % 60)}:${tc(Math.floor((t % 1) * 24))}</div>
+        <div style="${txt};left:0;bottom:0">ISO 400 · 1/50 · f/2.8</div><div style="${txt};right:0;bottom:0">4K 24 ▮▮▮▯</div>
+        ${d.af ? ['left:38%;top:42%;border-width:.35cqw 0 0 .35cqw', 'right:38%;top:42%;border-width:.35cqw .35cqw 0 0', 'left:38%;bottom:42%;border-width:0 0 .35cqw .35cqw', 'right:38%;bottom:42%;border-width:0 .35cqw .35cqw 0'].map(c => `<div style="position:absolute;${c};width:4cqw;height:4cqw;border-style:solid;border-color:#fff;opacity:.8"></div>`).join('') : ''}</div>`; break; }
+    case 'bar': { const dur = S.dur || 1, acc = G(cfg.grade)[3];
+      out.html = box(`left:${z.l}%;right:${z.r}%;top:${z.t}%;height:.75cqw;border-radius:.4cqw;background:#ffffff40`) + box(`left:${z.l}%;top:${z.t}%;height:.75cqw;border-radius:.4cqw;width:${((100 - z.l - z.r) * clamp(t / dur, 0, 1)).toFixed(2)}%;background:${acc}`) +
+        (d.ticks ? (S.beats || []).slice(1).map(bt => box(`left:${(z.l + (100 - z.l - z.r) * bt.t0 / dur).toFixed(2)}%;top:${z.t}%;width:.4cqw;height:.75cqw;background:#000a`)).join('') : ''); break; }
+  }
+  return out;
+}
 
 /* ---------- safe zones for normal (organic) posts, px on 1080x1920 as % of the frame ----------
    From vidova.ai/blog/instagram-reels-tiktok-youtube-shorts-safe-zones (Nov 2026). The apps don't publish these for normal posts;

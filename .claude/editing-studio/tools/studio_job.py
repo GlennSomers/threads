@@ -81,7 +81,7 @@ def workspace():
     for f in TOOLS.glob("*"):
         if f.suffix in (".py", ".js", ".html"):
             shutil.copy(f, w / "tools" / f.name)
-    (w / "studio").mkdir(); shutil.copy(EDIT / "studio" / "engine.js", w / "studio" / "engine.js")
+    (w / "studio").mkdir(); shutil.copy(EDIT / "studio" / "engine.js", w / "studio" / "engine.js"); shutil.copy(EDIT / "studio" / "motion.js", w / "studio" / "motion.js")
     for d in ("clips", "references", "styles", "shots", "luts", "projects", "fonts"):
         (w / d).mkdir()
     return w

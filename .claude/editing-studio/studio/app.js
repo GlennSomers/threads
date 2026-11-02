@@ -79,7 +79,7 @@ class Stage {
     if (this.main && !this.win && v.ended) { v.currentTime = 0; }
     if (this.main && S.mode !== 'raw' && !v.paused) { const c = (S.cuts || []).find(c => t >= c.a && t < c.b - .02); if (c) { v.currentTime = Math.min(c.b + .001, S.dur); t = c.b; } }
     const cfg = this.cfg(), raw = this.main && S.mode === 'raw', f = compose(t, cfg, raw);
-    v.style.filter = f.filter; v.style.transform = `scale(${f.scale})`; this.el.style.setProperty('--hf', f.font); this.el.style.setProperty('--tf', f.tfont);
+    v.style.filter = f.filter; v.style.transform = `scale(${f.scale}) ${f.vt || ''}`; this.el.style.setProperty('--hf', f.font); this.el.style.setProperty('--tf', f.tfont);
     if (this.main) this.drawLut(raw, f);
     if (f.html !== this.last) { this.ov.innerHTML = f.html; this.last = f.html; }
     if (this.main) fxMark(t, raw);
@@ -97,7 +97,7 @@ class Stage {
 { let step = S.step; Object.defineProperty(S, 'step', { get: () => step, set: v => { step = v; S.panel = null; }, enumerable: true, configurable: true }); }
 let main, cards = [];
 function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('show'), 1800); }
-function baseCfg() { return { grade: S.grade, font: S.font, caption: S.caption, capOpts: S.capEdit, hook: S.hook, hookEdit: S.hookEdit, fx: S.fx, whole: S.whole, els: S.els, safe: S.safe, safeLock: S.safeLock }; }
+function baseCfg() { return { grade: S.grade, font: S.font, caption: S.caption, capOpts: S.capEdit, hook: S.hook, hookEdit: S.hookEdit, fx: S.fx, whole: S.whole, els: S.els, safe: S.safe, safeLock: S.safeLock, trans: S.trans }; }
 function updateScrub(t) { if (!updateScrub.drag) $('#scrub').value = 1000 * t / (S.dur || 1); tlPlayhead(t); txNow(t); }
 
 async function refresh(keep) {
@@ -181,7 +181,7 @@ function renderBeats(body) {
     cards.push(new Stage(d, { cfg: () => ({ ...baseCfg(), whole: new Set([w[0]]) }), win: [b.t0, Math.min(b.t1, b.t0 + 4)] })); });
 }
 function styleObj(name) { return { name, clip: S.clip.name, grade: S.grade, font: S.font, caption: S.caption, hook: S.hook, lut: S.lut ? S.lut.id : null, lutAmount: S.lut ? S.lutAmount : null, voice: { ...S.voice }, capOpts: S.capEdit, cuts: S.cuts.map(c => [+c.a.toFixed(3), +c.b.toFixed(3)]), dur: +S.dur.toFixed(2),
-  beats: S.beats.map((b, i) => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text, effects: S.fx[i], shot: b.shot || null, shotUrl: b.shotUrl || null, scene: b.scene || 'aroll', sceneOpts: b.sceneOpts || {}, image: b.image || null, note: b.note || '' })), whole: [...S.whole], sounds: [...S.snd], vfx: vfxOut(), fonts: usedFonts(), fontPair: S.font === 'custom' ? S.fontPair : null, hookEdit: S.hookEdit, safe: S.safe, safeLock: S.safeLock, els: (S.els || []).map(({ id, ...e }) => e), wordAnims: S.wordAnims || [], anims: usedAnims() }; }
+  beats: S.beats.map((b, i) => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text, effects: S.fx[i], shot: b.shot || null, shotUrl: b.shotUrl || null, scene: b.scene || 'aroll', sceneOpts: b.sceneOpts || {}, image: b.image || null, note: b.note || '' })), whole: [...S.whole], sounds: [...S.snd], vfx: vfxOut(), fonts: usedFonts(), fontPair: S.font === 'custom' ? S.fontPair : null, hookEdit: S.hookEdit, safe: S.safe, safeLock: S.safeLock, els: (S.els || []).map(({ id, ...e }) => e), wordAnims: S.wordAnims || [], trans: S.trans || [], anims: usedAnims() }; }
 const renderName = () => S.clip.name.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'render';
 const dlUrl = u => CFG.blob ? u + (u.includes('?') ? '&' : '?') + 'download=1' : u;   // Blob serves ?download=1 as a file download
 async function showRenders(name) {
@@ -253,7 +253,7 @@ async function applyStyle(st) {
   if (st.lut) { try { S.lutCube = await loadLut(st.lut); S.lut = { id: st.lut, name: st.lut }; S.lutAmount = st.lutAmount ?? 100;
       const l = (await (await fetch('/api/luts')).json()).find(x => x.id === st.lut); if (l) S.lut.name = l.name; } catch { toast(`LUT "${st.lut}" from this style is missing`); } }
   S.hookEdit = { ...(st.hookEdit || {}) }; if (st.fontPair) setFontPair(st.fontPair.cap, st.fontPair.title, true); if (st.safe) { S.safe = st.safe; S.safeLock = !!st.safeLock; renderSafe(); }
-  if (Array.isArray(st.els)) S.els = st.els.map(e => ({ ...e, id: vfxId() })); if (Array.isArray(st.wordAnims)) S.wordAnims = st.wordAnims.map(r => ({ ...r }));
+  if (Array.isArray(st.els)) S.els = st.els.map(e => ({ ...e, id: vfxId() })); if (Array.isArray(st.wordAnims)) S.wordAnims = st.wordAnims.map(r => ({ ...r })); if (Array.isArray(st.trans)) S.trans = st.trans.filter(x => frameDef(x.id)).map(x => ({ ...x }));
   (st.anims || []).forEach(a => { if (!animById(a.id)) S.anims.push(a); });
   if (Array.isArray(st.vfx)) { S.vfx = st.vfx.filter(e => VFXN(e.fx)).map(e => ({ id: vfxId(), fx: e.fx, start: +e.start, end: +e.end, opts: { ...(e.opts || {}) } })); S.sel = null; vfxSave(); }
   [0, 1, 2, 3, 4].forEach(i => S.done.add(i)); renderStep(); toast('Applied style: ' + st.name);
@@ -317,8 +317,9 @@ document.addEventListener('keydown', e => { if ((e.key === 'd' || e.key === 'D')
 
 
 /* ---------- caption editor + presets (nothing is saved unless you press Save) ---------- */
-const HLS = [['none', 'None'], ['current', 'Current word'], ['spoken', 'Spoken words'], ['key', 'Key word (serif)'], ['keycolor', 'Key word (colour)'], ['box', 'Boxed words'], ['boxactive', 'Box on current word'], ['dim', 'Dim to bright'], ['weight', 'Light to bold']];
-const ANIMS = [['none', 'None'], ['pop', 'Pop'], ['wordpop', 'Word pop (each word)'], ['bounce', 'Bounce'], ['flash', 'Flash scale-up'], ['slide', 'Slide up'], ['fade', 'Fade'], ['type', 'Typewriter']];
+const HLS = [['none', 'None'], ['current', 'Current word'], ['spoken', 'Spoken words'], ['key', 'Key word (serif)'], ['keycolor', 'Key word (colour)'], ['box', 'Boxed words'], ['boxactive', 'Box on current word'], ['dim', 'Dim to bright'], ['weight', 'Light to bold'], ['glow', 'Glow karaoke (premium)'], ['wipe', 'Colour wipe karaoke (premium)'], ['dimlift', 'Dim chorus + lift (premium)']];
+const ANIMS = [['none', 'None'], ['pop', 'Pop'], ['wordpop', 'Word pop (each word)'], ['bounce', 'Bounce'], ['flash', 'Flash scale-up'], ['slide', 'Slide up'], ['fade', 'Fade'], ['type', 'Typewriter'],
+  ...MLIB().filter(a => ['Caption', 'Title'].includes(a.cat)).map(a => ['lib:' + a.id, (a.tier === 'premium' ? '★ ' : '') + a.name + ' (each word)'])];
 function capEditor(body) {
   if (!S.caption) { body.insertAdjacentHTML('beforeend', '<p class="help">Pick a caption style above, then edit it here.</p>'); return; }
   const o = capOpts(S.caption, S.capEdit), acc = G(S.grade)[3]; o.case = o.upper ? 'upper' : o.lower ? 'lower' : 'as'; o.width = o.width || (o.align === 'left' ? 84 : 88);
@@ -600,6 +601,7 @@ function tlRender() {
   { const lanes = vfxLanes(), n = Math.max(1, ...lanes.map(l => l + 1));
     tracks.push(['Elements', (S.els || []).map(e => blk('t-el' + (e.id === S.selEl ? ' sel' : ''), e.start, e.end, e.file.replace(/^el-/, ''), `data-el="${e.id}"`).replace('</span></div>', '</span><i class="hnd l"></i><i class="hnd r"></i></div>')).join('') || '<div class="tlnone">No elements. Upload one in Elements.</div>']);
     tracks.push(['Word anims', (S.wordAnims || []).map((r, k) => blk('t-wa', r.a, Math.max(r.b, r.a + .25), (animById(r.anim) || { name: r.anim }).name, `data-wa="${k}"`)).join('') || '<div class="tlnone">No animated words. Use Animate.</div>']);
+    tracks.push(['Transitions', (S.trans || []).map((x, k) => { const d = frameDef(x.id); return blk('t-tr', x.a, d.span ? (x.b ?? S.dur) : x.a + Math.max(.25, d.dur), d.name, `data-tr="${k}"`); }).join('') || '<div class="tlnone">None. Add one in Animate.</div>']);
     tracks.push(['Effects', S.vfx.map((e, k) => blk('t-vfx' + (e.id === S.sel ? ' sel' : ''), e.start, e.end, '/' + e.fx, `data-vfx="${e.id}"`, `top:${4 + lanes[k] * 32}px`).replace('</span></div>', '</span><i class="hnd l"></i><i class="hnd r"></i></div>')).join('') || '<div class="tlnone">No effects yet. Pick one from Effects, or ask in the chat.</div>', '', 8 + n * 32]); }
   // V2 titles and effects
   let v2 = ''; const b0 = S.beats[0];
@@ -898,10 +900,10 @@ function renderPanel() {
 /* ---------- effects from the effects skill (drawn by fx.py in the render) ---------- */
 let VFX_N = 0; const vfxId = () => 'e' + (++VFX_N);
 const vfxOut = () => (S.vfx || []).map(e => ({ fx: e.fx, start: +(+e.start).toFixed(2), end: +(+e.end).toFixed(2), opts: Object.fromEntries(Object.entries(e.opts || {}).filter(([, v]) => String(v).trim() !== '')) }));
-function vfxSave() { try { localStorage.setItem('studio-vfx:' + S.clip.name, JSON.stringify(vfxOut())); localStorage.setItem('studio-els:' + S.clip.name, JSON.stringify({ els: S.els, wordAnims: S.wordAnims })); } catch {} }
+function vfxSave() { try { localStorage.setItem('studio-vfx:' + S.clip.name, JSON.stringify(vfxOut())); localStorage.setItem('studio-els:' + S.clip.name, JSON.stringify({ els: S.els, wordAnims: S.wordAnims, trans: S.trans })); } catch {} }
 function vfxLoad(c) {
-  S.vfx = []; S.sel = null; S.selEl = null; S.els = []; S.wordAnims = []; S.wsel = null; S.panel = 'effects';
-  try { const d = JSON.parse(localStorage.getItem('studio-els:' + c.name) || '{}') || {}; S.els = (d.els || []).map(e => ({ ...e, id: vfxId() })); S.wordAnims = d.wordAnims || []; } catch {}
+  S.vfx = []; S.sel = null; S.selEl = null; S.els = []; S.wordAnims = []; S.trans = []; S.wsel = null; S.panel = 'effects';
+  try { const d = JSON.parse(localStorage.getItem('studio-els:' + c.name) || '{}') || {}; S.els = (d.els || []).map(e => ({ ...e, id: vfxId() })); S.wordAnims = d.wordAnims || []; S.trans = (d.trans || []).filter(x => frameDef(x.id)); } catch {}
   try { S.vfx = (JSON.parse(localStorage.getItem('studio-vfx:' + c.name) || '[]') || []).filter(e => VFXN(e.fx)).map(e => ({ ...e, id: vfxId(), opts: { ...(e.opts || {}) } })); } catch {}
   try { S.chat = JSON.parse(localStorage.getItem('studio-chat:' + c.name) || '[]') || []; } catch { S.chat = []; }
   renderChat(); renderTakes();
@@ -930,6 +932,7 @@ function fxMark(t, raw) {
 }
 function vfxDrag(inner) {
   inner.querySelectorAll('[data-wa]').forEach(el => el.onclick = ev => { ev.stopPropagation(); S.panel = 'anims'; renderStep(); });
+  inner.querySelectorAll('[data-tr]').forEach(el => el.onclick = ev => { ev.stopPropagation(); S.panel = 'anims'; renderStep(); });
   inner.querySelectorAll('[data-vfx],[data-el]').forEach(el => {
     el.onpointerdown = ev => {
       if (TL.range) return; ev.stopPropagation(); ev.preventDefault();
@@ -1002,7 +1005,8 @@ function chatCatalog() {
   return { effects: VFX.map(f => ({ id: f[0], does: f[1], options: f[2].map(o => `${o[0]}: ${o[1]}`) })),
     grades: GRADES.map(g => [g[0], g[1]]), fonts: FONTS.filter(f => f[0] !== 'custom').map(f => [f[0], f[1]]), font_families: allFamilies(), safe_zones: Object.keys(SAFE_ZONES), captions: CAPS.map(c => [c[0], c[1]]),
     caption_options: { x: 'left/right shift -40..40', width: 'text width 30..100 (%)', ls: 'letter spacing em', lh: 'line height', shadow: 'auto|soft|hard|glow|none', strokeColor: 'hex', boxAlpha: '0..1', radius: 'box corners 0..5', speed: 'animation speed 0.3..3', font: 'any font family', group: 'words at a time', size: 'text size (about 4 to 15)', weight: '400 to 900', y: 'height, % from top (keep 12 to 78)', upper: 'true/false', lower: 'true/false', stroke: 'outline width 0 to 1', box: 'true/false', boxColor: 'hex', anim: ANIMS.map(a => a[0]).join('|'), hl: HLS.map(h => h[0]).join('|'), align: 'left|center|right', color: 'hex', accent: 'hex highlight', offset: 'seconds shift', linger: 'seconds to hold' },
-    animations: animLib().map(a => ({ id: a.id, name: a.name, seconds: a.dur, easing: a.ease || '' })), element_files: (ELFILES || []).map(f => f.file),
+    animations: animLib().concat(MLIB()).map(a => ({ id: a.id, name: a.name, seconds: a.dur, kind: a.cat || 'preset', tier: a.tier || '', look: a.look || '' })),
+    transitions: (typeof MOTION_FRAME !== 'undefined' ? MOTION_FRAME : []).map(d => ({ id: d.id, name: d.name, overlay: !!d.span, seconds: d.dur, look: d.look })), element_files: (ELFILES || []).map(f => f.file),
     element_looks: LOOKS_EL.map(l => l[0]), element_loops: LOOPS_EL.map(l => l[0]),
     hooks: HOOKS.map(h => [h[0], h[1]]), whole: WHOLE.map(w => [w[0], w[1]]), sounds: SOUNDS.map(s => [s[0], s[1]]), voice: Object.keys(VOICE) };
 }
@@ -1010,7 +1014,7 @@ function chatState() {
   return { clip: S.clip.name, duration: +S.dur.toFixed(2), playhead: +(main ? main.v.currentTime : 0).toFixed(2), selected_effect: S.sel,
     effects: S.vfx.map(e => ({ id: e.id, fx: e.fx, start: e.start, end: e.end, opts: e.opts })),
     elements: (S.els || []).map(e => ({ id: e.id, file: e.file, start: e.start, end: e.end, x: e.x, y: e.y, w: e.w, rot: e.rot || 0, look: e.look, loop: e.loop, in: e.in, out: e.out })), selected_element: S.selEl,
-    word_animations: S.wordAnims, font_pair: S.font === 'custom' ? S.fontPair : null, hook_edit: S.hookEdit, safe_zone: { zone: S.safe, keep_inside: S.safeLock }, grade: S.grade, lut: S.lut ? { name: S.lut.name, amount: S.lutAmount } : null, font: S.font, captions: S.caption, caption_options: S.capEdit, hook: S.hook,
+    word_animations: S.wordAnims, transitions: (S.trans || []).map((x, k) => ({ id: k, kind: x.id, start: x.a, end: x.b ?? null })), font_pair: S.font === 'custom' ? S.fontPair : null, hook_edit: S.hookEdit, safe_zone: { zone: S.safe, keep_inside: S.safeLock }, grade: S.grade, lut: S.lut ? { name: S.lut.name, amount: S.lutAmount } : null, font: S.font, captions: S.caption, caption_options: S.capEdit, hook: S.hook,
     whole: [...S.whole], sounds: [...S.snd], voice: S.voice, cuts: S.cuts.map(c => [c.a, c.b]),
     beats: S.beats.map(b => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text })),
     transcript: S.words.map(w => `${w.word}@${w.start.toFixed(2)}`).join(' ') };
@@ -1038,6 +1042,8 @@ function applyOps(ops) {
         case 'set_voice': if (VOICE[o.value]) { S.voice.preset = o.value; if (o.start != null) S.voice.amount = clamp(+o.start, 0, 100); applyVoice(); n++; } break;
         case 'cut': if (o.end > o.start) { addCut({ a: clamp(+o.start, 0, S.dur), b: clamp(+o.end, 0, S.dur), kind: 'manual', label: 'Cut' }, true); refreshLive(); saveCuts(); n++; } break;
         case 'restore_cuts': S.cuts = []; refreshLive(); saveCuts(); n++; break;
+        case 'add_transition': if (frameDef(o.value)) { if (o.key === 'cuts') n += transAtCuts(o.value); else { addTrans(o.value, o.start ?? undefined, o.end ?? undefined, true); n++; } } break;
+        case 'remove_transition': if (o.id == null) S.trans = []; else S.trans.splice(+o.id, 1); vfxSave(); n++; break;
         case 'animate_words': if (animById(o.value) && o.end >= o.start) { setWordAnim(+o.start, +o.end, o.value); n++; } break;
         case 'clear_word_animations': S.wordAnims = (S.wordAnims || []).filter(r => o.start == null ? false : (r.b < +o.start || r.a > +o.end)); n++; break;
         case 'add_element': if ((ELFILES || []).some(f => f.file === o.value)) { const e = addEl(o.value, o.start ?? undefined, o.end ?? undefined, true); if (e) { Object.assign(e, elOpts(opt(o.opts))); n++; } } break;
@@ -1103,16 +1109,54 @@ function setWordAnim(a, b, anim) {   // replace any animation on those words
   if (anim) S.wordAnims.push({ a: +a.toFixed(2), b: +b.toFixed(2), anim }); S.wordAnims.sort((x, y) => x.a - y.a); vfxSave();
 }
 let ANIM_DEMO = [];
+const LIB_CATS = ['Caption', 'Title', 'Element', 'Glow and shadow', 'Layout'];
 (function demoLoop(ts) {   // little looping demos on the animation cards
   ANIM_DEMO = ANIM_DEMO.filter(d => d.el.isConnected);
-  ANIM_DEMO.forEach(d => { const a = animById(d.id); if (!a) return; const cyc = a.dur + .9, p = ((ts / 1000) % cyc) / a.dur; d.el.style.cssText = 'display:inline-block;' + animCss(animAt(a, Math.min(1, p))); });
+  ANIM_DEMO.forEach(d => { const a = animById(d.id); if (!a) return; const cyc = a.dur + .9, tt = (ts / 1000) % cyc;
+    if (a.keys) { d.el.style.cssText = 'display:inline-block;' + animCss(animAt(a, Math.min(1, tt / a.dur))); return; }
+    const h = animWord(a, a.exit ? a.dur - Math.min(tt, a.dur) : tt, a.proc === 'count' ? '400' : 'Aa', 'color:#fff', '#FFD400'); if (d.el.innerHTML !== h) d.el.innerHTML = h; });
   requestAnimationFrame(demoLoop); })(0);
+const animCard = (a, current) => `<button class="animc${a.id === current ? ' on' : ''}" data-anim="${esc(a.id)}" title="${esc(a.look || a.name)}"><div class="animstage"><span class="animdemo" data-demo="${esc(a.id)}">Aa</span></div><b>${a.tier === 'premium' ? '<i class="prem">★</i> ' : ''}${esc(a.name)}</b><small>${a.dur.toFixed(2)} s${a.from ? ' · grabbed' : ''}${a.proc ? ' · words only' : ''}</small></button>`;
 function animCards(onPick, current) {
-  return `<div class="animgrid">${animLib().map(a => `<button class="animc${a.id === current ? ' on' : ''}" data-anim="${esc(a.id)}"><div class="animstage"><span class="animdemo" data-demo="${esc(a.id)}">Aa</span></div><b>${esc(a.name)}</b><small>${a.dur.toFixed(2)} s${a.from ? ' · grabbed' : ''}</small></button>`).join('')}</div>`;
+  const f = S.animFilter || 'all', lib = MLIB().filter(a => f === 'all' || (f === 'premium' ? a.tier === 'premium' : a.cat === f));
+  return `<div class="animgrid">${f === 'all' ? animLib().map(a => animCard(a, current)).join('') : ''}</div>
+    <div class="row chips">${[['all', 'All'], ['premium', '★ Premium'], ...LIB_CATS.map(c => [c, c])].map(([k, l]) => `<button class="chip${f === k ? ' on' : ''}" data-af="${esc(k)}">${l}</button>`).join('')}</div>
+    ${(f === 'all' || f === 'premium' ? LIB_CATS : [f]).map(c => { const L = lib.filter(a => a.cat === c); return L.length ? `<h4>${esc(c)}</h4><div class="animgrid">${L.map(a => animCard(a, current)).join('')}</div>` : ''; }).join('')}`;
 }
 function wireAnimCards(box, onPick) {
   box.querySelectorAll('[data-demo]').forEach(el => ANIM_DEMO.push({ el, id: el.dataset.demo }));
   box.querySelectorAll('[data-anim]').forEach(b => b.onclick = () => onPick(b.dataset.anim));
+  box.querySelectorAll('[data-af]').forEach(b => b.onclick = () => { S.animFilter = b.dataset.af; renderStep(); });
+}
+/* transitions and overlays on the whole frame (S.trans = [{id, a, b}]) */
+const FRAMES = () => (typeof MOTION_FRAME !== 'undefined' ? MOTION_FRAME : []);
+function addTrans(id, a, b, quiet) {
+  const d = frameDef(id); if (!d || !S.dur) return null; a = clamp(a ?? (main ? main.v.currentTime : 0), 0, S.dur);
+  const x = { id, a: +a.toFixed(2) }; if (d.span) x.b = +clamp(b ?? S.dur, a + .5, S.dur).toFixed(2);
+  S.trans = (S.trans || []).concat([x]).sort((p, q) => p.a - q.a); vfxSave(); if (!quiet) { toast(d.name + (d.span ? ' added to the end' : ' added at ' + a.toFixed(1) + 's')); renderStep(); } return x;
+}
+function transAtCuts(id) {   // where the edit jumps: every cut, and every beat after the first
+  const d = frameDef(id); if (!d || d.span) return 0;
+  // a cut hides what's before it, so the transition starts at the join; at a beat it straddles the change
+  const at = [...(S.cuts || []).map(c => c.b), ...S.beats.slice(1).map(b => b.t0 - d.dur / 2)].sort((p, q) => p - q).filter((t, i, A) => !i || t - A[i - 1] > .3);
+  at.forEach(t => addTrans(id, Math.max(0, t), null, true)); renderStep(); return at.length;
+}
+function transPanel() {
+  const T = S.trans || [];
+  return `<h3>Transitions and overlays</h3><p class="help">Transitions play once at the playhead (or at every cut and beat). Overlays stay on from the playhead to the end; drag nothing, just set the times below.</p>
+    <div class="trgrid">${FRAMES().map(d => `<div class="trc"><b>${d.tier === 'premium' ? '<i class="prem">★</i> ' : ''}${esc(d.name)}</b><small>${esc(d.look)}</small>
+      <div class="row"><button data-tadd="${esc(d.id)}">${d.span ? 'Add from here' : 'At playhead'}</button>${d.span ? '' : `<button data-tcuts="${esc(d.id)}">Every cut</button>`}</div></div>`).join('')}</div>
+    ${T.length ? `<h4>On this video</h4><div class="sum">${T.map((x, k) => { const d = frameDef(x.id); return `<div><span>${esc(d.name)}</span><b><input type="number" step=".1" min="0" data-ta="${k}" value="${x.a}">${d.span ? `–<input type="number" step=".1" min="0" data-tb="${k}" value="${x.b ?? S.dur}">` : ''}s <button data-tgo="${k}">▶</button> <button data-trm="${k}">×</button></b></div>`; }).join('')}</div>
+      <div class="row"><button id="tclear">Remove all</button></div>` : ''}`;
+}
+function wireTrans(body) {
+  body.querySelectorAll('[data-tadd]').forEach(b => b.onclick = () => addTrans(b.dataset.tadd));
+  body.querySelectorAll('[data-tcuts]').forEach(b => b.onclick = () => { const n = transAtCuts(b.dataset.tcuts); toast(n ? `Added at ${n} cut${n > 1 ? 's' : ''} and beats` : 'No cuts or beats yet'); });
+  body.querySelectorAll('[data-trm]').forEach(b => b.onclick = () => { S.trans.splice(+b.dataset.trm, 1); vfxSave(); renderStep(); });
+  body.querySelectorAll('[data-tgo]').forEach(b => b.onclick = () => { const x = S.trans[+b.dataset.tgo]; main.win = null; main.v.currentTime = Math.max(0, x.a - .5); main.v.play().catch(() => {}); $('#play').textContent = '❚❚'; });
+  body.querySelectorAll('[data-ta],[data-tb]').forEach(inp => inp.onchange = () => { const x = S.trans[+(inp.dataset.ta ?? inp.dataset.tb)], v = clamp(+inp.value || 0, 0, S.dur);
+    if (inp.dataset.ta != null) x.a = +v.toFixed(2); else x.b = +Math.max(x.a + .3, v).toFixed(2); S.trans.sort((p, q) => p.a - q.a); vfxSave(); renderStep(); });
+  $('#tclear') && ($('#tclear').onclick = () => { S.trans = []; vfxSave(); renderStep(); });
 }
 function animPanel(body) {
   const W = S.words || [], sel = S.wsel, inSel = i => sel && i >= Math.min(...sel) && i <= Math.max(...sel);
@@ -1127,13 +1171,14 @@ function animPanel(body) {
   wireAnimCards(body, id => {
     const el = S.selEl && S.els.find(x => x.id === S.selEl);
     if (S.wsel) { const [i0, i1] = [Math.min(...S.wsel), Math.max(...S.wsel)]; setWordAnim(W[i0].start, W[i1].start, id); main.win = null; main.v.currentTime = Math.max(0, W[i0].start - .3); main.v.play().catch(() => {}); $('#play').textContent = '❚❚'; toast('Animated ' + (i1 - i0 + 1) + ' word(s)'); }
-    else if (el) { el.in = id; vfxSave(); toast('Comes in with ' + animById(id).name); }
+    else if (el) { if (animById(id).proc) return toast('That one draws letters, so it only works on caption words'); el.in = id; vfxSave(); toast('Comes in with ' + animById(id).name); }
     else return toast('Pick caption words first, or select an element');
     renderStep(); });
   $('#wclear') && ($('#wclear').onclick = () => { const [i0, i1] = [Math.min(...S.wsel), Math.max(...S.wsel)]; setWordAnim(W[i0].start, W[i1].start, null); renderStep(); });
   $('#wnone') && ($('#wnone').onclick = () => { S.wsel = null; renderStep(); });
   body.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { S.wordAnims.splice(+b.dataset.rm, 1); vfxSave(); renderStep(); });
   $('#grabmore').onclick = () => $('#ingestbtn').click();
+  body.insertAdjacentHTML('beforeend', transPanel()); wireTrans(body);
 }
 
 /* ---------- elements: uploaded images on the video ---------- */
@@ -1164,7 +1209,9 @@ function elPanel(body) {
 }
 function elInsp(box) {
   const e = S.els.find(x => x.id === S.selEl), opt = (list, v) => list.map(([k, n]) => `<option value="${k}"${k === v ? ' selected' : ''}>${esc(n)}</option>`).join('');
-  const anims = v => `<option value="none">None</option>` + animLib().map(a => `<option value="${esc(a.id)}"${a.id === v ? ' selected' : ''}>${esc(a.name)}</option>`).join('');
+  const o1 = (a, v) => `<option value="${esc(a.id)}"${a.id === v ? ' selected' : ''}>${a.tier === 'premium' ? '★ ' : ''}${esc(a.name)}</option>`;
+  const anims = v => `<option value="none">None</option><optgroup label="Presets">${animLib().map(a => o1(a, v)).join('')}</optgroup>` +
+    LIB_CATS.map(c => `<optgroup label="Library: ${c}">${MLIB().filter(a => a.cat === c).map(a => o1(a, v)).join('')}</optgroup>`).join('');
   box.innerHTML = `<h2>${esc(e.file.replace(/^el-/, ''))}</h2><p class="help">Drag on the video to move it.</p><div class="props">
     <div><span>Start</span><input type="number" step="0.1" data-n="start" value="${e.start}"></div><div><span>End</span><input type="number" step="0.1" data-n="end" value="${e.end}"></div>
     <div><span>Size</span><input type="range" min="5" max="110" data-n="w" value="${e.w}"></div><div><span>Rotate</span><input type="range" min="-45" max="45" data-n="rot" value="${e.rot || 0}"></div>
