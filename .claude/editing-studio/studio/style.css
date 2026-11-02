@@ -98,3 +98,17 @@ body.demo,body.demo *{cursor:none!important}
 .wmgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;margin-top:8px}.wmgrid img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid var(--line)}.wmgrid img:hover{border-color:var(--acc)}
 .t-scene{background:#7b61ff;color:#fff}
 @media(max-width:900px){.planbox,.recs{grid-template-columns:1fr}}
+
+#rbanner{position:sticky;top:0;z-index:50;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 20px;font-weight:600;border-bottom:1px solid var(--line)}
+#rbanner.busy{background:#16243a;color:#cfe3ff}#rbanner.ok{background:#123524;color:#c9f5dc}#rbanner.err{background:#3a1717;color:#ffd0d0}
+#rbanner .x{margin-left:auto;background:none;border:0;color:inherit;font-size:20px;padding:0 6px}
+.spin{width:14px;height:14px;border:2px solid #cfe3ff55;border-top-color:#cfe3ff;border-radius:50%;display:inline-block;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.btnlink{display:inline-block;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);text-decoration:none;font-size:13px}.btnlink.primary{background:var(--acc);border-color:var(--acc);color:#04101f;font-weight:700}
+.rfile{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line)}.rfile span{flex:1;min-width:140px}.rfile small{color:var(--mut)}.rfile.newest span{font-weight:700}
+/* phones: nothing may be wider than the screen, or iOS zooms out and taps miss */
+@media(max-width:700px){
+  header{flex-wrap:wrap;gap:8px;padding:10px 12px}.clipname{flex-basis:100%;order:5}
+  header button,header select{padding:7px 10px;font-size:13px}#stylesel{max-width:46vw}
+  .ctl{flex-wrap:wrap}.ctl input{min-width:120px}
+  #studio{padding:12px;gap:16px}
+}

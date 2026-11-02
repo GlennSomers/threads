@@ -176,19 +176,43 @@ function renderBeats(body) {
 function styleObj(name) { return { name, clip: S.clip.name, grade: S.grade, font: S.font, caption: S.caption, hook: S.hook, lut: S.lut ? S.lut.id : null, lutAmount: S.lut ? S.lutAmount : null, voice: { ...S.voice }, capOpts: S.capEdit, cuts: S.cuts.map(c => [+c.a.toFixed(3), +c.b.toFixed(3)]), dur: +S.dur.toFixed(2),
   beats: S.beats.map((b, i) => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text, effects: S.fx[i], shot: b.shot || null, shotUrl: b.shotUrl || null, scene: b.scene || 'aroll', sceneOpts: b.sceneOpts || {}, image: b.image || null, note: b.note || '' })), whole: [...S.whole], sounds: [...S.snd] }; }
 const renderName = () => S.clip.name.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'render';
+const dlUrl = u => CFG.blob ? u + (u.includes('?') ? '&' : '?') + 'download=1' : u;   // Blob serves ?download=1 as a file download
 async function showRenders(name) {
-  const d = await (await fetch('/api/renders?name=' + encodeURIComponent(name))).json(), el = $('#rlist'), st = $('#rstat'); if (!el) return d.job;
-  el.innerHTML = (d.files || []).map(f => `<div class="row"><a href="${f.url}" target="_blank">${esc(f.file)}</a><span class="help">${(f.size / 1e6).toFixed(1)} MB</span></div>`).join('');
-  const j = d.job; if (j && st) st.textContent = j.status === 'running' || j.status === 'queued' ? 'Rendering... this takes a few minutes.' : j.status === 'error' ? 'Render failed: ' + j.message : 'Render finished.';
-  return j;
+  const d = await (await fetch('/api/renders?name=' + encodeURIComponent(name))).json(), el = $('#rlist');
+  const files = (d.files || []).slice().sort((x, y) => x.file.localeCompare(y.file, undefined, { numeric: true }));
+  if (el) el.innerHTML = files.reverse().map((f, k) => `<div class="rfile${k === 0 ? ' newest' : ''}"><span>${esc(f.file)} <small>${(f.size / 1e6).toFixed(1)} MB</small></span>
+    <a class="btnlink primary" href="${dlUrl(f.url)}" download="${esc(f.file)}">Download</a><a class="btnlink" href="${f.url}" target="_blank" rel="noopener">Open</a></div>`).join('');
+  return { job: d.job, files };
 }
-// Render the current picks. No saved style needed.
+// Render the current picks. No saved style needed. Loud on purpose: button, banner and toasts all say what is happening.
+let RENDERING = false;
+function banner(html, kind) { const b = $('#rbanner'); if (!b) return; b.hidden = !html; b.className = kind || ''; b.innerHTML = html || ''; }
 async function startRender() {
+  if (RENDERING) return toast('A render is already running');
   if (S.step !== STEPS.length - 1) { S.step = STEPS.length - 1; renderStep(); }
-  const name = renderName(), r = await (await fetch('/api/render', { method: 'POST', body: JSON.stringify({ style: styleObj(name) }) })).json();
-  if (r.error) return toast(r.error);
-  $('#rstat').textContent = 'Rendering... this takes a few minutes.'; S.done.add(5); mark();
-  for (let i = 0; i < 360; i++) { await new Promise(res => setTimeout(res, 5000)); const j = await showRenders(name); if (j && (j.status === 'done' || j.status === 'error')) break; }
+  const name = renderName(), t0 = Math.floor(Date.now() / 1000);
+  RENDERING = true; const setBtns = txt => { [$('#rbtn'), $('#next')].forEach(b => { if (b) { b.disabled = !!txt; if (txt) b.textContent = txt; else b.textContent = b.id === 'next' ? 'Render video' : 'Render video'; } }); };
+  setBtns('Rendering...'); banner('<span class="spin"></span> Starting the render...', 'busy'); toast('Render started');
+  let before = 0;
+  try { before = (await showRenders(name)).files.length;
+    const r = await (await fetch('/api/render', { method: 'POST', body: JSON.stringify({ style: styleObj(name) }) })).json();
+    if (r.error) throw new Error(r.error);
+  } catch (e) { RENDERING = false; setBtns(''); banner(`Render could not start: ${esc(e.message || e)}`, 'err'); toast('Render could not start'); return; }
+  S.done.add(5); mark();
+  for (let i = 0; i < 720; i++) {
+    await new Promise(res => setTimeout(res, 4000));
+    const secs = Math.floor(Date.now() / 1000) - t0;
+    try {
+      const { job, files } = await showRenders(name), fresh = job && job.at >= t0 - 5;
+      if (files.length > before) {   // a new file is the surest sign it worked
+        const f = files[files.length - 1];
+        banner(`Render ready: <b>${esc(f.file)}</b> <a class="btnlink primary" href="${dlUrl(f.url)}" download="${esc(f.file)}">Download</a> <a class="btnlink" href="${f.url}" target="_blank" rel="noopener">Open</a> <button class="x" onclick="banner('')">×</button>`, 'ok');
+        toast('Render ready'); break; }
+      if (fresh && job.status === 'error') { banner(`Render failed: ${esc(job.message)}`, 'err'); break; }
+      banner(`<span class="spin"></span> Rendering${fresh && job.status === 'queued' ? ' (waiting for a free worker)' : ''}... ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')} · usually 1 to 3 minutes. You can keep editing.`, 'busy');
+    } catch (e) { banner(`<span class="spin"></span> Rendering... (lost contact for a moment, still checking)`, 'busy'); }
+  }
+  RENDERING = false; setBtns('');
 }
 function renderWatch(body) {
   const row = (k, v) => `<div><b>${k}</b><span>${esc(v || 'not picked')}</span></div>`;
@@ -196,11 +220,11 @@ function renderWatch(body) {
     S.beats.slice(1).map((b, i) => row('Beat ' + (i + 2), S.fx[i + 1].map(x => FX.find(f => f[0] === x)[1]).join(', ') || 'Just you')).join('') +
     `${row('Whole clip', [...S.whole].join(', '))}${row('Sound', [...S.snd].join(', '))}</div>
     <h3>Render</h3><div class="row"><button class="primary" id="rbtn">Render video</button></div>
-    <div id="rstat" class="help">Renders exactly what you see, 1080x1920 at 30 fps. You don't need to save a style first.</div><div id="rlist"></div>
+    <div id="rstat" class="help">Renders exactly what you see, 1080x1920 at 30 fps. You don't need to save a style first. Progress shows in the bar at the top.</div><div id="rlist"></div>
     <h3>Save these picks as a style (optional)</h3><div class="row"><input type="text" id="sname" placeholder="Style name, e.g. split-card-reels"><button id="ssave">Save style</button></div>
     <p class="help">Saved styles appear in the Style menu at the top, ready to apply to any clip.</p>`;
-  showRenders(renderName());
-  $('#rbtn').onclick = startRender;
+  showRenders(renderName()).catch(() => {});
+  $('#rbtn').onclick = startRender; if (RENDERING) { $('#rbtn').disabled = true; $('#rbtn').textContent = 'Rendering...'; }
   $('#ssave').onclick = async () => { const n = $('#sname').value.trim(); if (!n) return toast('Name your style first');
     const r = await (await fetch('/save', { method: 'POST', body: JSON.stringify(styleObj(n)) })).json(); toast('Saved ' + r.saved); loadStyles(); };
 }
