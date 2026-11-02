@@ -10,13 +10,14 @@ Read this first in a new session, then `README.md` in this folder for how each f
 - **Elements:** upload images, place/drag, looks, motion, in/out animations.
 - **Fonts:** 32 free Google fonts (one `GFONTS` list in `studio/engine.js`, also read by `tools/render.py`), font upload (Your fonts), custom pair (captions font + titles font, `--tf`).
 - **Captions:** 8 creator styles from `reel-fonts-and-caption-animations.md` (Glenn's research brief), every option editable (position, width, spacing, shadow, outline colour, box, animation speed...), drag captions and the hook title on the preview, hook title editor.
+- **Reel motion library:** 66 animations, 17 transitions/overlays, 16 premium caption styles from Glenn's `motion-library/` JSON, via `tools/import_motion_library.py` → `studio/motion.js`. See README.
 - **Safe zones:** guides + Keep everything inside. Normal-post figures from vidova.ai (All socials 180/380/60/150 px on 1080×1920); "Ads (Meta Reels)" is the larger ad zone.
 
 ## Not tested on GitHub yet (Glenn's first real use is the first run)
 Render with effects (installs mediapipe, opencv, libegl1), Check frames, Grab an animation (installs Bun), chat job.
 
 ## Ideas not built yet
-Emoji pops, lower thirds, arrow/circle callouts, SRT export (all from the fonts brief), safe zone for scenes and full-frame effects.
+SRT export, the 14 library entries in `motion-library/IMPORTED.md` marked not added, safe zone for scenes and full-frame effects.
 
 ## Working notes
 - Test locally: `cd studio-app && npm run sync && STORAGE=fs PORT=8766 node dev-server.js`, then drive it with Playwright. Jobs run as local child processes. Effects need `bash .claude/skills/effects/scripts/setup.sh` and `apt-get install libegl1 libgles2`.

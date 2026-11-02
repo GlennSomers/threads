@@ -8,5 +8,6 @@ public/app.js
 public/engine.js
 public/style.css
 public/effects.js
+public/motion.js
 public/fx/
 public/animations.json

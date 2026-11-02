@@ -5,7 +5,7 @@ import Anthropic from '@anthropic-ai/sdk';
 const MODEL = process.env.STUDIO_CHAT_MODEL || 'claude-opus-5-5';
 const OPS = ['add_effect', 'update_effect', 'remove_effect', 'select_effect', 'set_grade', 'set_lut_amount', 'set_font', 'set_captions', 'caption_option',
   'set_hook', 'set_whole', 'set_sounds', 'set_voice', 'cut', 'restore_cuts', 'seek',
-  'animate_words', 'clear_word_animations', 'add_element', 'update_element', 'remove_element', 'set_font_pair', 'hook_option', 'set_safe_zone'];
+  'animate_words', 'clear_word_animations', 'add_element', 'update_element', 'remove_element', 'set_font_pair', 'hook_option', 'set_safe_zone', 'add_transition', 'remove_transition'];
 const num = { type: ['number', 'null'] }, str = { type: ['string', 'null'] };
 const SCHEMA = {
   type: 'object', additionalProperties: false, required: ['reply', 'ops'],
@@ -43,6 +43,10 @@ Ops
 - set_font_pair: key = the captions font family, value = the titles font family (from the fonts list). Any font can be used for either.
 - hook_option: key = size (0.4 to 2), x (-40 to 40), y (-30 to 50), color (hex) or font (family); value. Edits the hook title on top of its style.
 - set_safe_zone: value = a safe zone id (all, instagram, tiktok, youtube); key = "lock" to keep captions, titles and elements inside it, "free" to stop, "show" to only show the guides.
+- add_transition: value = a transitions id (flash, light leak, glitch, whip, iris, paper tear, camera shake) placed at start; or an overlay id (grain, camera HUD, progress bar) shown from start to end (null end = to the end). key = "cuts" puts a transition at every cut instead.
+- remove_transition: id of one in the state's transitions list (null = remove all).
+
+Animations come from the editor's own presets and the reel motion library (each has a category and tier). For every caption word, set caption_option anim to "lib:<animation id>"; for some words use animate_words; for an element use its in/out. Highlight modes glow, wipe and dimlift are the premium karaoke looks.
 
 "This effect", "it" or "that" means the selected effect or element when there is one. Times in the state are seconds. Effects are drawn in the render, after the colour grade; captions and titles go on top of them. Effects never cover the face: they sit behind the head or beside it. Zoom never goes past 2.`;
 

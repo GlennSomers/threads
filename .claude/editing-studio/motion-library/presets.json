@@ -1,0 +1,896 @@
+{
+  "version": 3,
+  "presets": [
+    {
+      "id": "hormozi",
+      "label": "Hormozi-style",
+      "font": {
+        "family": "Anton",
+        "weight": 400,
+        "fallback": "Montserrat",
+        "fallbackWeight": 900
+      },
+      "case": "upper",
+      "fontSizePx": 170,
+      "color": "#FFFFFF",
+      "accentColor": "#FF6B00",
+      "stroke": {
+        "color": "#000000",
+        "width": 5
+      },
+      "shadow": {
+        "x": 0,
+        "y": 4,
+        "blur": 0,
+        "opacity": 0.45
+      },
+      "background": null,
+      "wordsPerPage": 2,
+      "maxLines": 1,
+      "animation": {
+        "type": "word_pop",
+        "durationMs": 150,
+        "scaleFrom": 0.7,
+        "overshoot": 1.08
+      },
+      "elementHooks": [
+        "emoji_pop"
+      ],
+      "exampleLine": "Stop shooting at noon",
+      "exampleBeat": "STOP@0 pop \u2192 SHOOTING@280 \u2192 AT@620 \u2192 NOON@780 accent+sun emoji",
+      "exampleLinks": [
+        "https://www.storycut.com/features/hormozi-captions"
+      ],
+      "keywordMode": "color",
+      "emoji": true,
+      "placement": {
+        "x": 0.5,
+        "y": 0.62,
+        "anchor": "center"
+      },
+      "tier": "foundations"
+    },
+    {
+      "id": "mrbeast",
+      "label": "MrBeast-style",
+      "font": {
+        "family": "Bangers",
+        "weight": 400,
+        "alts": [
+          "Bebas Neue",
+          "Oswald"
+        ]
+      },
+      "case": "upper",
+      "fontSizePx": 160,
+      "color": "#FFFFFF",
+      "accentColor": "#FFE600",
+      "stroke": {
+        "color": "#000000",
+        "width": 6
+      },
+      "wordsPerPage": 3,
+      "maxLines": 1,
+      "animation": {
+        "type": "flash_scale",
+        "durationMs": 350,
+        "scaleFrom": 0.8,
+        "overshoot": 1.05
+      },
+      "elementHooks": [
+        "title_slam",
+        "number_roll",
+        "flash_frame"
+      ],
+      "exampleLine": "$0 lighting upgrade",
+      "exampleBeat": "Whole phrase flash-scale 350ms; $0 yellow; optional number_roll on 0",
+      "exampleLinks": [
+        "https://www.videocaptions.ai/caption-styles/mrbeast-style"
+      ],
+      "keywordMode": "multicolor",
+      "usageHint": "emphasis_only_20_to_30_percent",
+      "placement": {
+        "x": 0.5,
+        "y": 0.5,
+        "anchor": "center"
+      },
+      "tier": "foundations"
+    },
+    {
+      "id": "karaoke_gold",
+      "label": "Karaoke gold",
+      "font": {
+        "family": "Montserrat",
+        "weight": 800
+      },
+      "case": "sentence",
+      "fontSizePx": 140,
+      "color": "#FFFFFF",
+      "accentColor": "#FFD400",
+      "stroke": {
+        "color": "#000000",
+        "width": 2
+      },
+      "background": {
+        "color": "#000000",
+        "opacity": 0.32,
+        "radius": 16,
+        "padding": 14
+      },
+      "wordsPerPage": 6,
+      "maxLines": 2,
+      "animation": {
+        "type": "karaoke_color",
+        "submode": "wipe_or_color"
+      },
+      "elementHooks": [
+        "progress_bar"
+      ],
+      "exampleLine": "Soft light wraps the face",
+      "exampleBeat": "Full line plate; each word gold while spoken; face scales 1.08",
+      "exampleLinks": [
+        "https://autocaption.app/caption-styles/karaoke-captions",
+        "https://www.videocaptions.ai/caption-styles"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.64,
+        "anchor": "center"
+      },
+      "tier": "foundations"
+    },
+    {
+      "id": "ali_abdaal",
+      "label": "Ali Abdaal-style (education)",
+      "font": {
+        "family": "Inter",
+        "weight": 700
+      },
+      "case": "sentence",
+      "fontSizePx": 78,
+      "color": "#FFFFFF",
+      "restOpacity": 0.4,
+      "activeOpacity": 1.0,
+      "stroke": null,
+      "wordsPerPage": 8,
+      "wordsPerLine": 4,
+      "maxLines": 2,
+      "animation": {
+        "type": "dim_to_bright"
+      },
+      "elementHooks": [
+        "underline_draw"
+      ],
+      "exampleLine": "Here's the histogram trick",
+      "exampleBeat": "Line dim 0.4; histogram \u2192 opacity 1.0 while spoken; optional underline 400ms",
+      "exampleLinks": [
+        "https://filmscribe.ai/en/caption-styles/ali-abdaal"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.7,
+        "anchor": "center"
+      },
+      "tier": "foundations"
+    },
+    {
+      "id": "iman_gadzhi",
+      "label": "Iman Gadzhi-style (premium minimal)",
+      "font": {
+        "family": "Montserrat",
+        "restWeight": 300,
+        "activeWeight": 700
+      },
+      "case": "lower",
+      "fontSizePx": 120,
+      "color": "#FFFFFF",
+      "stroke": null,
+      "wordsPerPage": 5,
+      "maxLines": 2,
+      "animation": {
+        "type": "weight_morph",
+        "durationMs": 120
+      },
+      "elementHooks": [
+        "fade"
+      ],
+      "exampleLine": "clarity over noise",
+      "exampleBeat": "Each spoken word 300\u2192700 weight in 120ms; no outline",
+      "exampleLinks": [
+        "https://www.submagic.co/blog/how-to-make-captions-like-iman-gadzhi"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.66,
+        "anchor": "center"
+      },
+      "tier": "foundations"
+    },
+    {
+      "id": "minimal_cinematic",
+      "label": "Minimal cinematic",
+      "font": {
+        "family": "DM Sans",
+        "weight": 600
+      },
+      "case": "sentence",
+      "fontSizePx": 110,
+      "color": "#F5F5F5",
+      "stroke": null,
+      "shadow": {
+        "x": 0,
+        "y": 2,
+        "blur": 8,
+        "opacity": 0.5
+      },
+      "wordsPerPage": 5,
+      "maxLines": 2,
+      "animation": {
+        "type": "fade",
+        "durationMs": 300
+      },
+      "elementHooks": [
+        "ken_burns",
+        "light_leak"
+      ],
+      "exampleLine": "Golden hour lasts minutes",
+      "exampleBeat": "Fade 300ms over slow Ken Burns still; optional warm leak on cut",
+      "exampleLinks": [
+        "https://elements.envato.com/learn/motion-graphics-for-short-form-video"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.72,
+        "anchor": "center"
+      },
+      "tier": "foundations"
+    },
+    {
+      "id": "podcast_clip",
+      "label": "Podcast clip",
+      "font": {
+        "family": "Inter",
+        "weight": 700
+      },
+      "case": "sentence",
+      "fontSizePx": 130,
+      "color": "#FFFFFF",
+      "accentColor": "#7CFF6B",
+      "stroke": {
+        "color": "#000000",
+        "width": 3
+      },
+      "background": {
+        "color": "#000000",
+        "opacity": 0.4,
+        "radius": 20,
+        "padding": 16
+      },
+      "wordsPerPage": 7,
+      "maxLines": 2,
+      "animation": {
+        "type": "karaoke_color",
+        "submode": "background_box"
+      },
+      "elementHooks": [
+        "lower_third",
+        "screenshot_pop"
+      ],
+      "exampleLine": "ND filter first",
+      "exampleBeat": "Karaoke box highlight; lower third nameplate at open",
+      "exampleLinks": [
+        "https://autocaption.app/caption-styles/karaoke-captions"
+      ],
+      "speakerColors": true,
+      "placement": {
+        "x": 0.5,
+        "y": 0.6,
+        "anchor": "center"
+      },
+      "tier": "foundations"
+    },
+    {
+      "id": "photography_educator",
+      "label": "Photography educator (Glenn default candidate)",
+      "font": {
+        "family": "Montserrat",
+        "weight": 700,
+        "titleFamily": "Bebas Neue"
+      },
+      "case": "sentence",
+      "fontSizePx": 135,
+      "color": "#FFFFFF",
+      "accentColor": "#FFC857",
+      "stroke": {
+        "color": "#000000",
+        "width": 3
+      },
+      "shadow": {
+        "x": 0,
+        "y": 3,
+        "blur": 6,
+        "opacity": 0.4
+      },
+      "wordsPerPage": 4,
+      "maxLines": 2,
+      "animation": {
+        "type": "bounce",
+        "durationMs": 450,
+        "overshootYpx": 12,
+        "scalePeak": 1.05
+      },
+      "keywordMode": "color",
+      "emoji": false,
+      "elements": {
+        "zoomPunchOnKeyword": {
+          "scale": 1.1,
+          "durationMs": 280
+        },
+        "calloutCircle": true,
+        "cameraHudOptional": true
+      },
+      "elementHooks": [
+        "zoom_punch",
+        "callout_circle",
+        "camera_hud",
+        "ken_burns"
+      ],
+      "exampleLine": "Expose for the highlights",
+      "exampleBeat": "Bounce-in 450ms; highlights\u2192amber; zoom punch 1.1\u00d7; optional circle on zebra",
+      "exampleLinks": [
+        "https://www.capcut.com/resource/how-to-put-text-behind-a-person-in-capcut",
+        "https://cutsio.com/blog/pop-up-text-tutorial-in-davinci-resolve-text-bounce-effect",
+        "https://elements.envato.com/learn/motion-graphics-for-short-form-video"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.63,
+        "anchor": "center"
+      },
+      "safeZonePreset": "cross_post_all_three",
+      "tier": "foundations"
+    },
+    {
+      "id": "prem_cinematic_photographer",
+      "label": "Cinematic photographer",
+      "tier": "premium",
+      "font": {
+        "family": "DM Sans",
+        "weight": 600,
+        "titleFamily": "DM Serif Display"
+      },
+      "case": "sentence",
+      "fontSizePx": 120,
+      "color": "#F2F0EA",
+      "accentColor": "#D4A574",
+      "stroke": null,
+      "shadow": {
+        "x": 0,
+        "y": 4,
+        "blur": 16,
+        "opacity": 0.45
+      },
+      "animation": {
+        "type": "prem_soft_spring_caption"
+      },
+      "overlays": [
+        "prem_film_grain_texture",
+        "prem_light_leak_overlay"
+      ],
+      "combo": "combo_luxury_editorial",
+      "exampleLine": "Golden hour lasts minutes",
+      "exampleBeat": "Soft spring captions + grain + occasional leak",
+      "exampleLinks": [
+        "https://www.motionvfx.com/design-studio/collections/mtitle-cinematic-2",
+        "https://elements.envato.com/learn/motion-graphics-for-short-form-video"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.68,
+        "anchor": "center"
+      }
+    },
+    {
+      "id": "prem_documentary",
+      "label": "Documentary",
+      "tier": "premium",
+      "font": {
+        "family": "Inter",
+        "weight": 600
+      },
+      "case": "sentence",
+      "fontSizePx": 70,
+      "color": "#FFFFFF",
+      "animation": {
+        "type": "prem_subtitle_safe_fade"
+      },
+      "elementHooks": [
+        "prem_tracked_lower_third",
+        "prem_film_grain_texture"
+      ],
+      "combo": "combo_doc_interview",
+      "exampleLine": "Meter for the highlights",
+      "exampleBeat": "Safe fade subs + one lower third",
+      "exampleLinks": [
+        "https://www.motionvfx.com/store,mtitle-cinematic-2-dvr,p3795.html",
+        "https://www.solidlabs.com/social-safe-zones"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.72,
+        "anchor": "center"
+      }
+    },
+    {
+      "id": "prem_luxury_editorial",
+      "label": "Luxury / editorial",
+      "tier": "premium",
+      "font": {
+        "family": "Cormorant Garamond",
+        "weight": 600,
+        "fallback": "DM Serif Display"
+      },
+      "case": "upper",
+      "fontSizePx": 110,
+      "color": "#F7F3EC",
+      "animation": {
+        "type": "prem_tracking_expand"
+      },
+      "elementHooks": [
+        "prem_line_grow_type",
+        "prem_specular_glint",
+        "prem_film_grain_texture"
+      ],
+      "combo": "combo_luxury_editorial",
+      "exampleLine": "PORTRAIT",
+      "exampleBeat": "Tracking expand + line grow + single glint",
+      "exampleLinks": [
+        "https://www.motionvfx.com/design-studio/collections/mtitle-cinematic-2",
+        "https://www.benmarriott.com/"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.5,
+        "anchor": "center"
+      }
+    },
+    {
+      "id": "prem_gear_review",
+      "label": "Gear review",
+      "tier": "premium",
+      "font": {
+        "family": "Montserrat",
+        "weight": 700,
+        "titleFamily": "Bebas Neue"
+      },
+      "case": "sentence",
+      "fontSizePx": 130,
+      "color": "#FFFFFF",
+      "accentColor": "#7CFF6B",
+      "stroke": {
+        "color": "#000000",
+        "width": 2
+      },
+      "animation": {
+        "type": "prem_soft_spring_caption"
+      },
+      "elementHooks": [
+        "prem_callout_draw_glow",
+        "prem_zoom_punch_blur",
+        "prem_counter_spring_roll"
+      ],
+      "combo": "combo_product_gear",
+      "exampleLine": "85mm \u00b7 f/1.4",
+      "exampleBeat": "Focus-pull title + callout + punch",
+      "exampleLinks": [
+        "https://elements.envato.com/learn/motion-graphics-for-short-form-video",
+        "https://misterhorse.com/animation-composer"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.62,
+        "anchor": "center"
+      }
+    },
+    {
+      "id": "prem_bts",
+      "label": "BTS / behind the shoot",
+      "tier": "premium",
+      "font": {
+        "family": "Rubik",
+        "weight": 700
+      },
+      "case": "sentence",
+      "fontSizePx": 125,
+      "color": "#FFFFFF",
+      "accentColor": "#FF6B00",
+      "animation": {
+        "type": "prem_vertical_stack_pop"
+      },
+      "overlays": [
+        "prem_hud_camera_chrome",
+        "prem_light_leak_overlay"
+      ],
+      "combo": "combo_bts",
+      "exampleLine": "Behind the shoot",
+      "exampleBeat": "HUD motif + stack pop captions + leaks",
+      "exampleLinks": [
+        "https://elements.envato.com/learn/motion-graphics-for-short-form-video",
+        "https://www.capcut.com/resource/how-to-put-text-behind-a-person-in-capcut"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.6,
+        "anchor": "center"
+      }
+    },
+    {
+      "id": "prem_tech_minimal",
+      "label": "Tech minimal",
+      "tier": "premium",
+      "font": {
+        "family": "Inter",
+        "weight": 500,
+        "activeWeight": 700
+      },
+      "case": "lower",
+      "fontSizePx": 115,
+      "color": "#FFFFFF",
+      "animation": {
+        "type": "prem_weight_crossfade_premium"
+      },
+      "elementHooks": [
+        "prem_box_slide_highlight"
+      ],
+      "combo": "combo_tech_minimal",
+      "exampleLine": "clarity over noise",
+      "exampleBeat": "Weight crossfade + sliding pill",
+      "exampleLinks": [
+        "https://www.submagic.co/blog/how-to-make-captions-like-iman-gadzhi",
+        "https://www.captions.ai/"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.66,
+        "anchor": "center"
+      }
+    },
+    {
+      "id": "prem_street_film",
+      "label": "Street / film-camera",
+      "tier": "premium",
+      "font": {
+        "family": "Space Mono",
+        "weight": 700,
+        "fallback": "IBM Plex Mono"
+      },
+      "case": "upper",
+      "fontSizePx": 100,
+      "color": "#B8FF9A",
+      "animation": {
+        "type": "prem_chromatic_impact"
+      },
+      "overlays": [
+        "prem_hud_camera_chrome",
+        "prem_film_grain_texture"
+      ],
+      "combo": "combo_street_film",
+      "exampleLine": "ZONE FOCUS",
+      "exampleBeat": "HUD + CA impact + grain",
+      "exampleLinks": [
+        "https://neuvo.co/viral-instagram-reel-transition-techniques/",
+        "https://arwriterai.com/en/blog/best-capcut-effects-transitions-boost-views-2026/"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.55,
+        "anchor": "center"
+      }
+    },
+    {
+      "id": "prem_wedding",
+      "label": "Wedding / romance",
+      "tier": "premium",
+      "font": {
+        "family": "Cormorant Garamond",
+        "weight": 500,
+        "accentFamily": "Caveat"
+      },
+      "case": "sentence",
+      "fontSizePx": 100,
+      "color": "#FFF8F2",
+      "animation": {
+        "type": "prem_focus_pull_title"
+      },
+      "elementHooks": [
+        "prem_ink_brush_write",
+        "prem_specular_glint"
+      ],
+      "combo": "combo_wedding",
+      "exampleLine": "A & J \u00b7 June",
+      "exampleBeat": "Focus pull + ink date + glint",
+      "exampleLinks": [
+        "https://www.motionvfx.com/design-studio/collections/mtitle-cinematic-2",
+        "https://www.capcut.com/resource/create-handwritten-animation"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.5,
+        "anchor": "center"
+      }
+    },
+    {
+      "id": "prem_travel",
+      "label": "Travel",
+      "tier": "premium",
+      "font": {
+        "family": "Bebas Neue",
+        "weight": 400,
+        "bodyFamily": "Montserrat"
+      },
+      "case": "upper",
+      "fontSizePx": 140,
+      "color": "#FFFFFF",
+      "accentColor": "#FFC857",
+      "animation": {
+        "type": "prem_parallax_stack_type"
+      },
+      "elementHooks": [
+        "prem_map_route_pulse",
+        "prem_whip_blur_matchcut"
+      ],
+      "combo": "combo_travel",
+      "exampleLine": "DUBLIN \u2192 HOWTH",
+      "exampleBeat": "Map \u2192 parallax title \u2192 whip",
+      "exampleLinks": [
+        "https://elements.envato.com/learn/motion-graphics-for-short-form-video",
+        "https://neuvo.co/viral-instagram-reel-transition-techniques/"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.45,
+        "anchor": "center"
+      }
+    },
+    {
+      "id": "prem_education_glow",
+      "label": "Education glow karaoke",
+      "tier": "premium",
+      "font": {
+        "family": "Montserrat",
+        "weight": 750
+      },
+      "case": "sentence",
+      "fontSizePx": 135,
+      "color": "#FFFFFF",
+      "accentColor": "#FFD400",
+      "background": {
+        "color": "#000000",
+        "opacity": 0.3,
+        "radius": 16,
+        "padding": 14
+      },
+      "animation": {
+        "type": "prem_karaoke_glow_track"
+      },
+      "combo": "combo_education_glow",
+      "exampleLine": "Watch the catchlights in her eyes",
+      "exampleBeat": "Glow karaoke per ASR word",
+      "exampleLinks": [
+        "https://autocaption.app/caption-styles/karaoke-captions",
+        "https://www.motionvfx.com/mCaptionsAI"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.64,
+        "anchor": "center"
+      }
+    },
+    {
+      "id": "prem_hook_slam",
+      "label": "Hook slam (premium)",
+      "tier": "premium",
+      "font": {
+        "family": "Anton",
+        "weight": 400
+      },
+      "case": "upper",
+      "fontSizePx": 170,
+      "color": "#FFFFFF",
+      "stroke": {
+        "color": "#000000",
+        "width": 5
+      },
+      "animation": {
+        "type": "prem_impact_stamp_layers"
+      },
+      "combo": "combo_hook_title",
+      "exampleLine": "STOP SHOOTING AT NOON",
+      "exampleBeat": "Mask glint open OR stamp combo into VO",
+      "exampleLinks": [
+        "https://www.motionvfx.com/design-studio/collections/mtitle-cinematic-2",
+        "https://www.storycut.com/features/hormozi-captions",
+        "https://olafmotion.com/tutorials/kinetic-text-animation-tutorial/"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.5,
+        "anchor": "center"
+      }
+    },
+    {
+      "id": "prem_podcast_pill",
+      "label": "Podcast sliding pill",
+      "tier": "premium",
+      "font": {
+        "family": "Inter",
+        "weight": 700
+      },
+      "case": "sentence",
+      "fontSizePx": 125,
+      "color": "#FFFFFF",
+      "accentColor": "#7CFF6B",
+      "animation": {
+        "type": "prem_box_slide_highlight"
+      },
+      "elementHooks": [
+        "prem_tracked_lower_third"
+      ],
+      "exampleLine": "ND filter first",
+      "exampleBeat": "Sliding green pill + nameplate",
+      "exampleLinks": [
+        "https://autocaption.app/caption-styles/karaoke-captions",
+        "https://www.captions.ai/"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.6,
+        "anchor": "center"
+      }
+    },
+    {
+      "id": "prem_before_after",
+      "label": "Before / after",
+      "tier": "premium",
+      "font": {
+        "family": "Bebas Neue",
+        "weight": 400
+      },
+      "case": "upper",
+      "fontSizePx": 90,
+      "color": "#FFFFFF",
+      "animation": {
+        "type": "prem_split_wipe_grade"
+      },
+      "elementHooks": [
+        "prem_card_flip_3d",
+        "prem_zoom_punch_blur"
+      ],
+      "combo": "combo_before_after",
+      "exampleLine": "SOOC | EDITED",
+      "exampleBeat": "Split wipe \u2192 punch on edited",
+      "exampleLinks": [
+        "https://arwriterai.com/en/blog/best-capcut-effects-transitions-boost-views-2026/",
+        "https://elements.envato.com/learn/motion-graphics-for-short-form-video"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.4,
+        "anchor": "center"
+      }
+    },
+    {
+      "id": "prem_agency_kinetic",
+      "label": "Agency kinetic",
+      "tier": "premium",
+      "font": {
+        "family": "Montserrat",
+        "weight": 800
+      },
+      "case": "upper",
+      "fontSizePx": 150,
+      "color": "#FFFFFF",
+      "animation": {
+        "type": "prem_stagger_cascade_blur"
+      },
+      "elementHooks": [
+        "prem_echo_trail_type",
+        "prem_shape_burst"
+      ],
+      "combo": "combo_agency_open",
+      "exampleLine": "FRAME",
+      "exampleBeat": "Cascade blur letters + optional echo on exit",
+      "exampleLinks": [
+        "https://mikemurphy.ai/tutorials/textanimators/",
+        "https://www.sonicmusicrecords.com/top-10-kinetic-typography-techniques-in-adobe-after-effects/",
+        "https://misterhorse.com/animation-composer"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.5,
+        "anchor": "center"
+      }
+    },
+    {
+      "id": "prem_fcpx_cinematic",
+      "label": "FCP/Motion cinematic captions",
+      "tier": "premium",
+      "font": {
+        "family": "SF Pro Display",
+        "fallback": "Inter",
+        "weight": 600
+      },
+      "case": "sentence",
+      "fontSizePx": 100,
+      "color": "#F5F5F5",
+      "animation": {
+        "type": "prem_mask_reveal_light_sweep"
+      },
+      "note": "Inspired by MotionVFX mTitle Cinematic / mCaptionsAI style families \u2014 implement with OFL fonts.",
+      "exampleLine": "Light that wraps the face",
+      "exampleBeat": "Mask reveal + light sweep title cards",
+      "exampleLinks": [
+        "https://www.motionvfx.com/design-studio/collections/mtitle-cinematic-2",
+        "https://www.motionvfx.com/mCaptionsAI",
+        "https://www.apple.com/final-cut-pro/motion/"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.55,
+        "anchor": "center"
+      }
+    },
+    {
+      "id": "prem_glenn_pro",
+      "label": "Glenn Pro (photography educator premium)",
+      "tier": "premium",
+      "font": {
+        "family": "Montserrat",
+        "weight": 700,
+        "titleFamily": "Bebas Neue"
+      },
+      "case": "sentence",
+      "fontSizePx": 135,
+      "color": "#FFFFFF",
+      "accentColor": "#FFC857",
+      "stroke": {
+        "color": "#000000",
+        "width": 3
+      },
+      "shadow": {
+        "x": 0,
+        "y": 4,
+        "blur": 12,
+        "opacity": 0.4
+      },
+      "animation": {
+        "type": "prem_soft_spring_caption"
+      },
+      "keywordMode": "prem_karaoke_glow_track",
+      "elementHooks": [
+        "prem_zoom_punch_blur",
+        "prem_callout_draw_glow",
+        "prem_hud_camera_chrome",
+        "prem_ken_burns_ease"
+      ],
+      "overlays": [
+        "prem_film_grain_texture"
+      ],
+      "combo": "combo_product_gear",
+      "exampleLine": "Expose for the highlights",
+      "exampleBeat": "Soft spring in; highlights glow-karaoke; punch+callout on zebra; optional HUD motif",
+      "exampleLinks": [
+        "https://cutsio.com/blog/pop-up-text-tutorial-in-davinci-resolve-text-bounce-effect",
+        "https://olafmotion.com/tutorials/kinetic-text-animation-tutorial/",
+        "https://www.capcut.com/resource/how-to-put-text-behind-a-person-in-capcut",
+        "https://elements.envato.com/learn/motion-graphics-for-short-form-video"
+      ],
+      "placement": {
+        "x": 0.5,
+        "y": 0.63,
+        "anchor": "center"
+      },
+      "safeZonePreset": "cross_post_all_three"
+    }
+  ]
+}

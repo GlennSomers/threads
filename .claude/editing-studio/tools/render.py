@@ -186,6 +186,7 @@ def build_project(name, style, clip, words, proj):
             "-c:a", "aac", "-b:a", "192k", proj / "clip-voice.mp4")
         (proj / "clip-voice.mp4").replace(proj / "clip.mp4")
     shutil.copy(ROOT / "studio" / "engine.js", proj / "engine.js")
+    shutil.copy(ROOT / "studio" / "motion.js", proj / "motion.js")
     for b in style["beats"]:
         for key in ("shot", "image"):
             if b.get(key) and (ROOT / "shots" / b[key]).exists():
@@ -246,6 +247,7 @@ def build_project(name, style, clip, words, proj):
   {chr(10).join("  " + a for a in audio)}
 </div>
 <script src="engine.js"></script>
+<script src="motion.js"></script>
 <script>
   window.SHOT_BASE = 'shots/';
   const CFG = {json.dumps(cfg)};
@@ -258,12 +260,12 @@ def build_project(name, style, clip, words, proj):
   const srcT = t => {{ for (const s0 of SEG) if (t < s0.o + (s0.b - s0.a) || s0 === SEG[SEG.length - 1]) return s0.a + Math.max(0, t - s0.o); return t; }};
   S.beats = st.beats.map(b => ({{ t0: b.start, t1: b.end, text: b.text, shot: b.shot, scene: b.scene, sceneOpts: b.sceneOpts || {{}}, image: b.image }}));
   const fx = {{}}; st.beats.forEach((b, i) => fx[i] = b.effects || []);
-  const cfg = {{ grade: st.grade, font: st.font, caption: st.caption, capOpts: st.capOpts || {{}}, hook: st.hook, hookEdit: st.hookEdit || {{}}, fx, whole: new Set(st.whole || []), els: st.els || [], safe: st.safe, safeLock: !!st.safeLock }};
+  const cfg = {{ grade: st.grade, font: st.font, caption: st.caption, capOpts: st.capOpts || {{}}, hook: st.hook, hookEdit: st.hookEdit || {{}}, fx, whole: new Set(st.whole || []), els: st.els || [], safe: st.safe, safeLock: !!st.safeLock, trans: st.trans || [] }};
   const video = document.getElementById('v'), ov = document.getElementById('ov'), root = document.getElementById('root');
   // The overlay is a pure function of time, so it is safe to seek.
   function draw(t) {{
     const f = compose(srcT(t), cfg, false);
-    video.style.filter = f.filter; video.style.transform = 'scale(' + f.scale + ')';
+    video.style.filter = f.filter; video.style.transform = 'scale(' + f.scale + ') ' + (f.vt || '');
     root.style.setProperty('--hf', f.font); root.style.setProperty('--tf', f.tfont);
     if (ov.dataset.last !== f.html) {{ ov.innerHTML = f.html; ov.dataset.last = f.html; }}
   }}
