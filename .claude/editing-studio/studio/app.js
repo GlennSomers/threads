@@ -79,7 +79,7 @@ class Stage {
     if (this.main && !this.win && v.ended) { v.currentTime = 0; }
     if (this.main && S.mode !== 'raw' && !v.paused) { const c = (S.cuts || []).find(c => t >= c.a && t < c.b - .02); if (c) { v.currentTime = Math.min(c.b + .001, S.dur); t = c.b; } }
     const cfg = this.cfg(), raw = this.main && S.mode === 'raw', f = compose(t, cfg, raw);
-    v.style.filter = f.filter; v.style.transform = `scale(${f.scale})`; this.el.style.setProperty('--hf', f.font);
+    v.style.filter = f.filter; v.style.transform = `scale(${f.scale})`; this.el.style.setProperty('--hf', f.font); this.el.style.setProperty('--tf', f.tfont);
     if (this.main) this.drawLut(raw, f);
     if (f.html !== this.last) { this.ov.innerHTML = f.html; this.last = f.html; }
     if (this.main) fxMark(t, raw);
@@ -97,7 +97,7 @@ class Stage {
 { let step = S.step; Object.defineProperty(S, 'step', { get: () => step, set: v => { step = v; S.panel = null; }, enumerable: true, configurable: true }); }
 let main, cards = [];
 function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('show'), 1800); }
-function baseCfg() { return { grade: S.grade, font: S.font, caption: S.caption, capOpts: S.capEdit, hook: S.hook, fx: S.fx, whole: S.whole, els: S.els }; }
+function baseCfg() { return { grade: S.grade, font: S.font, caption: S.caption, capOpts: S.capEdit, hook: S.hook, hookEdit: S.hookEdit, fx: S.fx, whole: S.whole, els: S.els, safe: S.safe, safeLock: S.safeLock }; }
 function updateScrub(t) { if (!updateScrub.drag) $('#scrub').value = 1000 * t / (S.dur || 1); tlPlayhead(t); txNow(t); }
 
 async function refresh(keep) {
@@ -143,7 +143,7 @@ function renderStep() {
   const w0 = [0, Math.min(3, S.dur)]; main.win = null;
   const grid = () => body.insertAdjacentHTML('beforeend', '<div class="grid"></div>');
   if (id === 'colours') { grid(); GRADES.forEach((g, i) => card(i, g[1], () => { S.grade = g[0]; S.done.add(0); toast('Grade: ' + g[1]); renderStep(); }, () => ({ ...baseCfg(), grade: g[0] }), w0, S.grade === g[0])); lutSection(body); }
-  if (id === 'fonts') { grid(); FONTS.forEach((f, i) => card(i, f[1], () => { S.font = f[0]; S.done.add(1); toast('Font: ' + f[1]); renderStep(); }, () => ({ ...baseCfg(), font: f[0], caption: S.caption || 'groups' }), w0, S.font === f[0])); }
+  if (id === 'fonts') { fontUploads(body); grid(); FONTS.filter(f => !f[4]).forEach((f, i) => card(i, f[1], () => { S.font = f[0]; S.done.add(1); S.capEdit.font = '@pair'; toast('Font: ' + f[1]); renderStep(); }, () => ({ ...baseCfg(), font: f[0], caption: S.caption || 'groups', capOpts: { ...S.capEdit, font: '@pair' } }), w0, S.font === f[0])); }
   if (id === 'captions') { txEditor(body); grid(); CAPS.forEach((c, i) => card(i, c[1], () => { S.caption = c[0]; S.capEdit = {}; S.done.add(2); toast(`Synced captions to ${S.words.length} words`); renderStep(); }, () => ({ ...baseCfg(), caption: c[0], capOpts: {} }), w0, S.caption === c[0])); capEditor(body); }
   if (id === 'beats') renderBeats(body);
   if (id === 'sound') { voiceSection(body); body.insertAdjacentHTML('beforeend', '<h3>Sound effects and music</h3><div class="sounds"></div>'); SOUNDS.forEach(s => { const b = document.createElement('button'); b.textContent = s[1]; b.className = S.snd.has(s[0]) ? 'on' : '';
@@ -167,6 +167,7 @@ function renderBeats(body) {
       if (d.pending) { for (let i = 0; i < 60; i++) { if ((await fetch('/shots/' + encodeURIComponent(d.file), { method: 'HEAD' })).ok) break; $('#shotmsg').textContent = 'Taking the screenshot in the background... ' + (i * 4) + 's'; await new Promise(r => setTimeout(r, 4000)); } }
       b.shot = d.file; b.shotUrl = u; toast('Screenshot saved'); renderStep(); }; }
   body.insertAdjacentHTML('beforeend', `<h3>${S.beat === 0 ? 'Hook title' : 'Beat ' + (S.beat + 1) + ' effects'}</h3><div class="grid"></div>`);
+  if (S.beat === 0 && S.hook) setTimeout(() => hookEditor(body));
   if (S.beat === 0) HOOKS.forEach((h, i) => card(i, h[1], () => { S.hook = S.hook === h[0] ? null : h[0]; S.done.add(3); toast('Hook: ' + h[1]); renderStep(); }, () => ({ ...baseCfg(), hook: h[0] }), win, S.hook === h[0]));
   else {
     const sel = id => S.fx[S.beat].includes(id);
@@ -180,7 +181,7 @@ function renderBeats(body) {
     cards.push(new Stage(d, { cfg: () => ({ ...baseCfg(), whole: new Set([w[0]]) }), win: [b.t0, Math.min(b.t1, b.t0 + 4)] })); });
 }
 function styleObj(name) { return { name, clip: S.clip.name, grade: S.grade, font: S.font, caption: S.caption, hook: S.hook, lut: S.lut ? S.lut.id : null, lutAmount: S.lut ? S.lutAmount : null, voice: { ...S.voice }, capOpts: S.capEdit, cuts: S.cuts.map(c => [+c.a.toFixed(3), +c.b.toFixed(3)]), dur: +S.dur.toFixed(2),
-  beats: S.beats.map((b, i) => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text, effects: S.fx[i], shot: b.shot || null, shotUrl: b.shotUrl || null, scene: b.scene || 'aroll', sceneOpts: b.sceneOpts || {}, image: b.image || null, note: b.note || '' })), whole: [...S.whole], sounds: [...S.snd], vfx: vfxOut(), els: (S.els || []).map(({ id, ...e }) => e), wordAnims: S.wordAnims || [], anims: usedAnims() }; }
+  beats: S.beats.map((b, i) => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text, effects: S.fx[i], shot: b.shot || null, shotUrl: b.shotUrl || null, scene: b.scene || 'aroll', sceneOpts: b.sceneOpts || {}, image: b.image || null, note: b.note || '' })), whole: [...S.whole], sounds: [...S.snd], vfx: vfxOut(), fonts: usedFonts(), fontPair: S.font === 'custom' ? S.fontPair : null, hookEdit: S.hookEdit, safe: S.safe, safeLock: S.safeLock, els: (S.els || []).map(({ id, ...e }) => e), wordAnims: S.wordAnims || [], anims: usedAnims() }; }
 const renderName = () => S.clip.name.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'render';
 const dlUrl = u => CFG.blob ? u + (u.includes('?') ? '&' : '?') + 'download=1' : u;   // Blob serves ?download=1 as a file download
 async function showRenders(name) {
@@ -251,6 +252,7 @@ async function applyStyle(st) {
   S.lut = null; S.lutCube = null; S.lutAmount = 100;
   if (st.lut) { try { S.lutCube = await loadLut(st.lut); S.lut = { id: st.lut, name: st.lut }; S.lutAmount = st.lutAmount ?? 100;
       const l = (await (await fetch('/api/luts')).json()).find(x => x.id === st.lut); if (l) S.lut.name = l.name; } catch { toast(`LUT "${st.lut}" from this style is missing`); } }
+  S.hookEdit = { ...(st.hookEdit || {}) }; if (st.fontPair) setFontPair(st.fontPair.cap, st.fontPair.title, true); if (st.safe) { S.safe = st.safe; S.safeLock = !!st.safeLock; renderSafe(); }
   if (Array.isArray(st.els)) S.els = st.els.map(e => ({ ...e, id: vfxId() })); if (Array.isArray(st.wordAnims)) S.wordAnims = st.wordAnims.map(r => ({ ...r }));
   (st.anims || []).forEach(a => { if (!animById(a.id)) S.anims.push(a); });
   if (Array.isArray(st.vfx)) { S.vfx = st.vfx.filter(e => VFXN(e.fx)).map(e => ({ id: vfxId(), fx: e.fx, start: +e.start, end: +e.end, opts: { ...(e.opts || {}) } })); S.sel = null; vfxSave(); }
@@ -315,33 +317,42 @@ document.addEventListener('keydown', e => { if ((e.key === 'd' || e.key === 'D')
 
 
 /* ---------- caption editor + presets (nothing is saved unless you press Save) ---------- */
-const HLS = [['none', 'None'], ['current', 'Current word'], ['spoken', 'Spoken words'], ['key', 'Key word (serif)'], ['box', 'Boxed words']];
-const ANIMS = [['none', 'None'], ['pop', 'Pop'], ['slide', 'Slide up'], ['fade', 'Fade'], ['type', 'Typewriter']];
+const HLS = [['none', 'None'], ['current', 'Current word'], ['spoken', 'Spoken words'], ['key', 'Key word (serif)'], ['keycolor', 'Key word (colour)'], ['box', 'Boxed words'], ['boxactive', 'Box on current word'], ['dim', 'Dim to bright'], ['weight', 'Light to bold']];
+const ANIMS = [['none', 'None'], ['pop', 'Pop'], ['wordpop', 'Word pop (each word)'], ['bounce', 'Bounce'], ['flash', 'Flash scale-up'], ['slide', 'Slide up'], ['fade', 'Fade'], ['type', 'Typewriter']];
 function capEditor(body) {
   if (!S.caption) { body.insertAdjacentHTML('beforeend', '<p class="help">Pick a caption style above, then edit it here.</p>'); return; }
-  const o = capOpts(S.caption, S.capEdit), acc = G(S.grade)[3]; o.case = o.upper ? 'upper' : o.lower ? 'lower' : 'as';
+  const o = capOpts(S.caption, S.capEdit), acc = G(S.grade)[3]; o.case = o.upper ? 'upper' : o.lower ? 'lower' : 'as'; o.width = o.width || (o.align === 'left' ? 84 : 88);
   const set = (k, v) => { S.capEdit[k] = v; S.done.add(2); mark(); tlRender(); };
   const sel = (k, opts, label) => `<label>${label}<select data-k="${k}">${opts.map(x => `<option value="${x[0]}"${String(o[k]) === String(x[0]) ? ' selected' : ''}>${x[1]}</option>`).join('')}</select></label>`;
   const rng = (k, min, max, step, label, unit = '') => `<label>${label} <b id="v-${k}">${o[k]}${unit}</b><input type="range" data-k="${k}" min="${min}" max="${max}" step="${step}" value="${o[k]}"></label>`;
   body.insertAdjacentHTML('beforeend', `<h3>Edit captions</h3><div class="capedit">
-    ${sel('font', [['', 'Pair default'], ...CAP_FONTS.map(f => [f, f])], 'Font')}
-    ${sel('weight', [400, 600, 700, 800, 900].map(w => [w, w]), 'Weight')}
+    ${sel('font', [['@pair', 'Font from the Fonts step'], ...CAP_FONTS.map(f => [f, f])], 'Font')}
+    ${sel('weight', [300, 400, 500, 600, 700, 800, 900].map(w => [w, w]), 'Weight')}
     ${rng('size', 3, 18, .1, 'Size')}
-    ${rng('y', 12, 76, 1, 'Position from top', '%')}
+    ${S.safeLock ? rng('y', 0, 100, 1, 'Height in the safe zone', '%') : rng('y', 12, 76, 1, 'Position from top', '%')}
+    ${rng('x', -40, 40, 1, 'Left / right', '%')}
+    ${rng('width', 30, 100, 1, 'Text width', '%')}
     ${sel('align', [['center', 'Centre'], ['left', 'Left']], 'Alignment')}
-    ${rng('group', 1, 6, 1, 'Words at a time')}
+    ${rng('group', 1, 8, 1, 'Words at a time')}
     ${sel('hl', HLS, 'Highlight')}
     ${sel('anim', ANIMS, 'Animation')}
     ${rng('offset', -.4, .4, .02, 'Timing shift (s)')}
     ${rng('linger', 0, 1.5, .05, 'Hold after word (s)')}
     ${rng('stroke', 0, 1.2, .05, 'Outline width')}
+    <label>Outline colour<input type="color" data-k="strokeColor" value="${o.strokeColor}"></label>
+    ${sel('shadow', [['auto', 'Auto'], ['soft', 'Soft'], ['hard', 'Hard drop'], ['glow', 'Glow (highlight colour)'], ['none', 'None']], 'Shadow')}
+    ${rng('ls', -.05, .3, .01, 'Letter spacing', 'em')}
+    ${rng('lh', .8, 1.6, .05, 'Line height')}
+    ${rng('speed', .3, 3, .1, 'Animation speed', '×')}
     ${sel('case', [['as', 'As spoken'], ['upper', 'UPPERCASE'], ['lower', 'lowercase']], 'Case')}
     <label>Text colour<input type="color" data-k="color" value="${o.color}"></label>
     <label>Highlight colour<input type="color" data-k="accent" value="${o.accent || acc}"></label>
     <label class="chk"><input type="checkbox" data-k="box" ${o.box ? 'checked' : ''}> Background box</label>
     <label>Box colour<input type="color" data-k="boxColor" value="${o.boxColor}"></label>
+    ${rng('boxAlpha', .1, 1, .01, 'Box opacity')}
+    ${rng('radius', 0, 5, .1, 'Box corners')}
   </div>
-  <p class="help">Position is kept inside Instagram's safe area (12% to 76% from the top). Changes show live in the big preview.</p>
+  <p class="help">Drag the captions on the video to move them. ${S.safeLock ? 'They stay inside the safe zone.' : "Height is kept in Instagram's band (12% to 76% from the top); turn on Keep inside under the video to fit everything to a safe zone."} Changes show live.</p>
   <div class="row"><button id="capreset">Reset to style defaults</button></div>
   <h3>Caption presets</h3><div id="presets" class="presets"></div>
   <div class="row"><input type="text" id="pname" placeholder="Preset name"><button class="primary" id="psave">Save current as preset</button></div>`);
@@ -349,7 +360,7 @@ function capEditor(body) {
     const k = el.dataset.k, v = el.type === 'checkbox' ? el.checked : el.type === 'range' ? +el.value : el.value;
     if (k === 'case') { set('upper', v === 'upper'); set('lower', v === 'lower'); }
     else set(k, ['weight'].includes(k) ? +v : v);
-    const lab = $('#v-' + k); if (lab) lab.textContent = v + (k === 'y' ? '%' : ''); });
+    const lab = $('#v-' + k); if (lab) lab.textContent = v + ({ y: '%', x: '%', width: '%', ls: 'em', speed: '×' }[k] || ''); });
   $('#capreset').onclick = () => { S.capEdit = {}; renderStep(); };
   $('#psave').onclick = async () => { const n = $('#pname').value.trim(); if (!n) return toast('Name the preset first');
     const r = await (await fetch('/api/preset', { method: 'POST', body: JSON.stringify({ name: n, base: S.caption, opts: S.capEdit }) })).json();
@@ -989,8 +1000,8 @@ function renderChat() {
 }
 function chatCatalog() {
   return { effects: VFX.map(f => ({ id: f[0], does: f[1], options: f[2].map(o => `${o[0]}: ${o[1]}`) })),
-    grades: GRADES.map(g => [g[0], g[1]]), fonts: FONTS.map(f => [f[0], f[1]]), captions: CAPS.map(c => [c[0], c[1]]),
-    caption_options: { group: 'words at a time', size: 'text size (about 4 to 15)', weight: '400 to 900', y: 'height, % from top (keep 12 to 78)', upper: 'true/false', lower: 'true/false', stroke: 'outline width 0 to 1', box: 'true/false', boxColor: 'hex', anim: ANIMS.map(a => a[0]).join('|'), hl: HLS.map(h => h[0]).join('|'), align: 'left|center|right', color: 'hex', accent: 'hex highlight', offset: 'seconds shift', linger: 'seconds to hold' },
+    grades: GRADES.map(g => [g[0], g[1]]), fonts: FONTS.filter(f => f[0] !== 'custom').map(f => [f[0], f[1]]), font_families: allFamilies(), safe_zones: Object.keys(SAFE_ZONES), captions: CAPS.map(c => [c[0], c[1]]),
+    caption_options: { x: 'left/right shift -40..40', width: 'text width 30..100 (%)', ls: 'letter spacing em', lh: 'line height', shadow: 'auto|soft|hard|glow|none', strokeColor: 'hex', boxAlpha: '0..1', radius: 'box corners 0..5', speed: 'animation speed 0.3..3', font: 'any font family', group: 'words at a time', size: 'text size (about 4 to 15)', weight: '400 to 900', y: 'height, % from top (keep 12 to 78)', upper: 'true/false', lower: 'true/false', stroke: 'outline width 0 to 1', box: 'true/false', boxColor: 'hex', anim: ANIMS.map(a => a[0]).join('|'), hl: HLS.map(h => h[0]).join('|'), align: 'left|center|right', color: 'hex', accent: 'hex highlight', offset: 'seconds shift', linger: 'seconds to hold' },
     animations: animLib().map(a => ({ id: a.id, name: a.name, seconds: a.dur, easing: a.ease || '' })), element_files: (ELFILES || []).map(f => f.file),
     element_looks: LOOKS_EL.map(l => l[0]), element_loops: LOOPS_EL.map(l => l[0]),
     hooks: HOOKS.map(h => [h[0], h[1]]), whole: WHOLE.map(w => [w[0], w[1]]), sounds: SOUNDS.map(s => [s[0], s[1]]), voice: Object.keys(VOICE) };
@@ -999,7 +1010,7 @@ function chatState() {
   return { clip: S.clip.name, duration: +S.dur.toFixed(2), playhead: +(main ? main.v.currentTime : 0).toFixed(2), selected_effect: S.sel,
     effects: S.vfx.map(e => ({ id: e.id, fx: e.fx, start: e.start, end: e.end, opts: e.opts })),
     elements: (S.els || []).map(e => ({ id: e.id, file: e.file, start: e.start, end: e.end, x: e.x, y: e.y, w: e.w, rot: e.rot || 0, look: e.look, loop: e.loop, in: e.in, out: e.out })), selected_element: S.selEl,
-    word_animations: S.wordAnims, grade: S.grade, lut: S.lut ? { name: S.lut.name, amount: S.lutAmount } : null, font: S.font, captions: S.caption, caption_options: S.capEdit, hook: S.hook,
+    word_animations: S.wordAnims, font_pair: S.font === 'custom' ? S.fontPair : null, hook_edit: S.hookEdit, safe_zone: { zone: S.safe, keep_inside: S.safeLock }, grade: S.grade, lut: S.lut ? { name: S.lut.name, amount: S.lutAmount } : null, font: S.font, captions: S.caption, caption_options: S.capEdit, hook: S.hook,
     whole: [...S.whole], sounds: [...S.snd], voice: S.voice, cuts: S.cuts.map(c => [c.a, c.b]),
     beats: S.beats.map(b => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text })),
     transcript: S.words.map(w => `${w.word}@${w.start.toFixed(2)}`).join(' ') };
@@ -1018,7 +1029,7 @@ function applyOps(ops) {
         case 'select_effect': if (e) { S.sel = e.id; n++; } break;
         case 'set_grade': if (G(o.value)) { S.grade = o.value; n++; } break;
         case 'set_lut_amount': if (S.lut) { S.lutAmount = clamp(+o.value || 0, 0, 100); n++; } break;
-        case 'set_font': if (F(o.value)) { S.font = o.value; n++; } break;
+        case 'set_font': if (FONTS.some(f => f[0] === o.value)) { S.font = o.value; S.capEdit.font = '@pair'; n++; } break;
         case 'set_captions': if (o.value === 'none') { S.caption = null; n++; } else if (CAPS.some(c => c[0] === o.value)) { S.caption = o.value; S.done.add(2); n++; } break;
         case 'caption_option': if (o.key) { S.capEdit[o.key] = val(o.value); if (!S.caption) S.caption = 'groups'; n++; } break;
         case 'set_hook': if (o.value === 'none') { S.hook = null; n++; } else if (HOOKS.some(h => h[0] === o.value)) { S.hook = o.value; n++; } break;
@@ -1032,6 +1043,10 @@ function applyOps(ops) {
         case 'add_element': if ((ELFILES || []).some(f => f.file === o.value)) { const e = addEl(o.value, o.start ?? undefined, o.end ?? undefined, true); if (e) { Object.assign(e, elOpts(opt(o.opts))); n++; } } break;
         case 'update_element': { const x = S.els.find(q => q.id === (o.id || S.selEl)); if (x) { if (o.start != null) x.start = clamp(+o.start, 0, S.dur - .2); if (o.end != null) x.end = clamp(+o.end, x.start + .2, S.dur); Object.assign(x, elOpts(opt(o.opts))); S.selEl = x.id; S.sel = null; n++; } } break;
         case 'remove_element': { const x = S.els.find(q => q.id === (o.id || S.selEl)); if (x) { S.els = S.els.filter(q => q !== x); if (S.selEl === x.id) S.selEl = null; n++; } } break;
+        case 'set_font_pair': if (allFamilies().includes(o.key) && allFamilies().includes(o.value)) { setFontPair(o.key, o.value, true); S.capEdit.font = '@pair'; n++; } break;
+        case 'hook_option': if (['size', 'x', 'y', 'color', 'font'].includes(o.key)) { S.hookEdit[o.key] = ['color', 'font'].includes(o.key) ? o.value : +o.value; n++; } break;
+        case 'set_safe_zone': if (SAFE_ZONES[o.value]) { const lock = o.key === 'lock' ? true : o.key === 'free' ? false : S.safeLock;
+          if (lock !== S.safeLock) { if (o.value !== S.safe) S.safe = o.value; convertSafe(lock); S.safeLock = lock; } S.safe = o.value; S.safeShow = true; renderSafe(); n++; } break;
         case 'seek': if (o.start != null) { main.win = null; main.v.currentTime = clamp(+o.start, 0, S.dur); n++; } break;
       }
     } catch (err) { console.error('Edit failed', o, err); }
@@ -1213,3 +1228,122 @@ function openGrab(r, card) {
     q('go').disabled = false; };
 }
 loadAnims(); loadEls();
+
+/* ---------- your fonts: uploaded .ttf/.otf/.woff/.woff2, usable as the font pair and in the caption editor ---------- */
+let MYFONTS = [];
+const fontFamilyFromFile = n => n.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').replace(/["'\\<>;{}]/g, '').trim().slice(0, 60) || 'My font';
+function addFontFace(f) {   // one face covering every weight, so bold captions use the real font instead of a faked bold
+  if (document.fonts && ![...document.fonts].some(x => x.family.replace(/"/g, '') === f.family)) {
+    const ff = new FontFace(f.family, `url(/fontfiles/${encodeURIComponent(f.file)})`, { weight: '100 900' });
+    document.fonts.add(ff); ff.load().catch(() => toast(`Font "${f.family}" did not load`)); }
+  const id = 'up:' + f.id;
+  if (!FONTS.some(x => x[0] === id)) FONTS.push([id, f.family + ' (yours)', `"${f.family}"`, `"${f.family}"`]);
+  if (!CAP_FONTS.includes(f.family)) CAP_FONTS.push(f.family);
+}
+async function loadFonts() { try { MYFONTS = await (await fetch('/api/fonts')).json(); } catch { MYFONTS = []; } MYFONTS.forEach(addFontFace); }
+const usedFonts = () => MYFONTS.filter(f => S.font === 'up:' + f.id || (S.capEdit && S.capEdit.font === f.family) || (S.font === 'custom' && S.fontPair && [S.fontPair.cap, S.fontPair.title].includes(f.family)) || (S.hookEdit && S.hookEdit.font === f.family));
+async function sendFont(file) {
+  const name = cleanName(file.name);
+  if (CFG.blob) { const { upload } = await import('https://esm.sh/@vercel/blob@0.27.3/client');
+    await upload('fonts/' + name, file, { access: 'public', handleUploadUrl: '/api/blob-token', contentType: file.type || 'font/' + name.split('.').pop().toLowerCase() }); return { file: name }; }
+  return (await fetch('/api/font-upload?name=' + encodeURIComponent(name), { method: 'POST', body: file })).json();
+}
+function fontUploads(body) {
+  body.insertAdjacentHTML('beforeend', `<h3>Your fonts</h3><div class="myfonts">${MYFONTS.map(f => `<div class="myfont"><span style="font-family:'${esc(f.family)}'">${esc(f.family)}</span><button data-use="${esc(f.id)}">Use</button><button data-del="${esc(f.id)}">×</button></div>`).join('') || '<p class="help">None yet. Upload .ttf, .otf, .woff or .woff2 files you have the rights to use.</p>'}</div>
+    <div class="row"><input type="file" id="fontfile" accept=".ttf,.otf,.woff,.woff2" multiple hidden><button id="fontup">Upload fonts</button><span class="help" id="fontmsg"></span></div>
+    <h3>All fonts</h3>${[...new Set(GFONTS.map(f => f[2]))].map(cat => `<div class="fcat"><small>${esc(cat)}</small><div class="fpick">${FONTS.filter(f => f[4] === cat).map(f => `<button class="${S.font === f[0] ? 'on' : ''}" data-gf="${f[0]}" style="font-family:${esc(f[2])}">${esc(f[1])}</button>`).join('')}</div></div>`).join('')}
+    <h3>Make your own pair</h3><div class="capedit pairpick"><label>Captions font<select id="pcap">${pairOpts(S.fontPair?.cap || 'Montserrat')}</select></label><label>Titles font<select id="ptitle2">${pairOpts(S.fontPair?.title || 'Bebas Neue')}</select></label></div>
+    <div class="row"><button class="${S.font === 'custom' ? 'primary' : ''}" id="puse">${S.font === 'custom' ? 'Using this pair' : 'Use this pair'}</button><span class="help">Captions use the first; hook titles and effect text use the second.</span></div>
+    <h3>Font pairs</h3>`);
+  $('#puse').onclick = () => { setFontPair($('#pcap').value, $('#ptitle2').value); S.done.add(1); S.capEdit.font = '@pair'; renderStep(); };
+  ['#pcap', '#ptitle2'].forEach(k => $(k).onchange = () => { if (S.font === 'custom') { setFontPair($('#pcap').value, $('#ptitle2').value); renderStep(); } });
+  body.querySelectorAll('[data-gf]').forEach(b => b.onclick = () => { S.font = b.dataset.gf; S.done.add(1); S.capEdit.font = '@pair'; toast('Font: ' + F(S.font)[1]); renderStep(); });
+  $('#fontup').onclick = () => $('#fontfile').click();
+  $('#fontfile').onchange = async ev => {
+    for (const file of [...ev.target.files]) {
+      const msg = m => $('#fontmsg') && ($('#fontmsg').textContent = m), family = fontFamilyFromFile(file.name);
+      if (!/\.(ttf|otf|woff2?)$/i.test(file.name)) { msg(file.name + ' is not a font file'); continue; }
+      try { await new FontFace('check-' + Date.now(), await file.arrayBuffer()).load(); } catch { msg(file.name + ' could not be read as a font'); continue; }
+      msg('Uploading ' + file.name + '...');
+      try { const r = await sendFont(file); if (r.error) throw new Error(r.error);
+        const reg = await (await fetch('/api/font-register', { method: 'POST', body: JSON.stringify({ file: r.file || cleanName(file.name), family }) })).json(); if (reg.error) throw new Error(reg.error);
+        msg('Added ' + family);
+      } catch (e) { msg('Upload failed: ' + (e.message || e)); return; }
+    }
+    await loadFonts(); renderStep(); };
+  body.querySelectorAll('[data-use]').forEach(b => b.onclick = () => { S.font = 'up:' + b.dataset.use; S.done.add(1); S.capEdit.font = '@pair'; toast('Font: ' + F(S.font)[1]); renderStep(); });
+  body.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { if (!confirm('Remove this font from the list?')) return;
+    await fetch('/api/font-delete', { method: 'POST', body: JSON.stringify({ id: b.dataset.del }) }); const id = 'up:' + b.dataset.del;
+    const i = FONTS.findIndex(x => x[0] === id); if (i >= 0) FONTS.splice(i, 1); if (S.font === id) S.font = 'inter'; await loadFonts(); renderStep(); });
+}
+loadFonts();
+
+/* ---------- custom font pair: one font for captions, one for titles ---------- */
+S.fontPair = null; S.hookEdit = {};
+const allFamilies = () => [...new Set([...CAP_FONTS, ...MYFONTS.map(f => f.family)])];
+const pairOpts = v => allFamilies().map(f => `<option${f === v ? ' selected' : ''} style="font-family:'${esc(f)}'">${esc(f)}</option>`).join('');
+function setFontPair(cap, title, quiet) {
+  S.fontPair = { cap, title }; const i = FONTS.findIndex(x => x[0] === 'custom');
+  const e = ['custom', `${cap} + ${title}`, `"${cap}"`, `"${cap}"`, undefined, `"${title}"`];
+  if (i >= 0) FONTS[i] = e; else FONTS.push(e); S.font = 'custom'; if (!quiet) toast('Font pair: ' + e[1]);
+}
+
+/* ---------- hook title: size, place, colour and font on top of the chosen title style ---------- */
+function hookEditor(body) {
+  if (!$('#body') || S.beat !== 0 || !S.hook || $('#hookedit')) return;
+  const he = S.hookEdit, rng = (k, min, max, step, label, def) => `<label>${label} <b id="hv-${k}">${he[k] ?? def}</b><input type="range" data-h="${k}" min="${min}" max="${max}" step="${step}" value="${he[k] ?? def}"></label>`;
+  const grid = [...body.querySelectorAll('h3')].find(h => /Hook title/.test(h.textContent));
+  (grid || body).insertAdjacentHTML(grid ? 'beforebegin' : 'beforeend', `<div id="hookedit"><h3>Edit the hook title</h3><div class="capedit">
+    ${rng('size', .4, 2, .05, 'Size', 1)}${rng('x', -40, 40, 1, 'Left / right', 0)}${rng('y', -30, 50, 1, 'Up / down', 0)}
+    <label>Colour<input type="color" data-h="color" value="${he.color || '#ffffff'}"></label>
+    <label>Font<select data-h="font"><option value="">Titles font</option>${pairOpts(he.font)}</select></label></div>
+    <div class="row"><button id="hreset">Reset</button><span class="help">Or drag the title on the video.</span></div></div>`);
+  body.querySelectorAll('[data-h]').forEach(el => el.oninput = () => { const k = el.dataset.h; he[k] = el.type === 'range' ? +el.value : el.value || null; const b = $('#hv-' + k); if (b) b.textContent = el.value; });
+  $('#hreset').onclick = () => { S.hookEdit = {}; renderStep(); };
+}
+
+/* ---------- safe zones: guides on the preview, and "keep everything inside" ---------- */
+S.safe = 'all'; S.safeShow = false; S.safeLock = false;
+try { const v = JSON.parse(localStorage.getItem('studio-safe') || 'null'); if (v) { S.safe = SAFE_ZONES[v.safe] ? v.safe : 'all'; S.safeShow = !!v.show; } } catch {}
+function renderSafe() {
+  const sel = $('#safesel'); if (!sel) return;
+  sel.innerHTML = Object.entries(SAFE_ZONES).map(([k, z]) => `<option value="${k}"${k === S.safe ? ' selected' : ''}>${z.name}</option>`).join('');
+  $('#safeshow').checked = S.safeShow; $('#safelock').checked = S.safeLock;
+  const m = $('#main'); if (!m) return; let ov = $('#safeov'); if (!ov) { ov = document.createElement('div'); ov.id = 'safeov'; m.appendChild(ov); }
+  const z = SAFE_ZONES[S.safe]; ov.hidden = !S.safeShow;
+  ov.innerHTML = `<div class="sz-shade" style="left:0;right:0;top:0;height:${z.t}%"></div><div class="sz-shade" style="left:0;right:0;bottom:0;height:${z.b}%"></div>
+    <div class="sz-shade" style="left:0;width:${z.l}%;top:${z.t}%;bottom:${z.b}%"></div><div class="sz-shade" style="right:0;width:${z.r}%;top:${z.t}%;bottom:${z.b}%"></div>
+    <div class="sz-box" style="left:${z.l}%;right:${z.r}%;top:${z.t}%;bottom:${z.b}%"><span>${esc(z.name)} safe zone</span></div>`;
+  try { localStorage.setItem('studio-safe', JSON.stringify({ safe: S.safe, show: S.safeShow })); } catch {}
+}
+// switching "keep inside" on or off converts positions, so nothing jumps
+function convertSafe(toLock) {
+  const z = SAFE_ZONES[S.safe], hz = 100 - z.t - z.b, wz = 100 - z.l - z.r;
+  const toRel = (v, a, span) => clamp((v - a) / span * 100, 0, 100);
+  if (S.caption && S.caption !== 'cinematic') { const y = capOpts(S.caption, S.capEdit).y; S.capEdit.y = Math.round(toLock ? toRel(y, z.t, hz) : clamp(z.t + y * hz / 100, 12, 76)); }
+  (S.els || []).forEach(e => { if (toLock) { e.x = +toRel(e.x, z.l, wz).toFixed(1); e.y = +toRel(e.y, z.t, hz).toFixed(1); e.w = Math.min(e.w, 100); }
+    else { e.x = +(z.l + e.x * wz / 100).toFixed(1); e.y = +(z.t + e.y * hz / 100).toFixed(1); } });
+}
+$('#safesel').onchange = e => { S.safe = e.target.value; S.safeShow = true; renderSafe(); renderStep(); };
+$('#safeshow').onchange = e => { S.safeShow = e.target.checked; renderSafe(); };
+$('#safelock').onchange = e => { convertSafe(e.target.checked); S.safeLock = e.target.checked; if (S.safeLock) S.safeShow = true; vfxSave(); renderSafe(); renderStep();
+  toast(S.safeLock ? 'Captions, titles and elements now stay inside the ' + SAFE_ZONES[S.safe].name + ' safe zone' : 'Free positioning'); };
+const _build = build; build = function () { _build(); renderSafe(); };
+
+/* ---------- drag captions (Captions step) or the hook title (hook beat) on the preview ---------- */
+$('#main').addEventListener('pointerdown', ev => {
+  if (S.selEl && (S.els || []).some(x => x.id === S.selEl)) return;   // elements have their own drag
+  const step = !S.panel && STEPS[S.step][0], r = $('#main').getBoundingClientRect();
+  const px = e => clamp((e.clientX - r.left) / r.width * 100, 0, 100), py = e => clamp((e.clientY - r.top) / r.height * 100, 0, 100);
+  let mv;
+  if (step === 'captions' && S.caption && S.caption !== 'cinematic') {
+    const z = SAFE_ZONES[S.safe];
+    mv = e => { const y = py(e), x = px(e); S.capEdit.y = Math.round(S.safeLock ? clamp((y - z.t) / (100 - z.t - z.b) * 100, 0, 100) : clamp(y - 3, 12, 76)); S.capEdit.x = Math.round(clamp(x - 50, -40, 40)); };
+  } else if (step === 'beats' && S.beat === 0 && S.hook) {
+    const x0 = px(ev), y0 = py(ev), hx = +S.hookEdit.x || 0, hy = +S.hookEdit.y || 0;
+    mv = e => { S.hookEdit.x = Math.round(clamp(hx + px(e) - x0, -40, 40)); S.hookEdit.y = Math.round(clamp(hy + py(e) - y0, -30, 50)); };
+    main.v.currentTime = Math.min(S.beats[0].t0 + 1, S.beats[0].t1 - .05);
+  } else return;
+  ev.preventDefault(); mv(ev); $('#main').setPointerCapture(ev.pointerId);
+  $('#main').onpointermove = mv; $('#main').onpointerup = () => { $('#main').onpointermove = $('#main').onpointerup = null; renderStep(); };
+});

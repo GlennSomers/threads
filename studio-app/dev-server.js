@@ -8,7 +8,7 @@ import { handle } from './lib/router.js';
 import { DATA } from './lib/store.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url)), PUB = path.join(here, 'public');
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.mp4': 'video/mp4', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.cube': 'text/plain' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.mp4': 'video/mp4', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.cube': 'text/plain', '.ttf': 'font/ttf', '.otf': 'font/otf', '.woff': 'font/woff', '.woff2': 'font/woff2' };
 
 function serve(req, res, file) {
   if (!fs.existsSync(file) || !fs.statSync(file).isFile()) { res.statusCode = 404; return res.end('Not found'); }
@@ -20,7 +20,7 @@ function serve(req, res, file) {
 
 http.createServer((req, res) => {
   const p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
-  if (p.startsWith('/api/') || p === '/save' || /^\/(shots|luts|refs)\//.test(p)) return handle(req, res);
+  if (p.startsWith('/api/') || p === '/save' || /^\/(shots|luts|refs|fontfiles)\//.test(p)) return handle(req, res);
   if (p.startsWith('/data/')) { const f = path.join(DATA, p.slice(6)); return f.startsWith(DATA) ? serve(req, res, f) : (res.statusCode = 403, res.end()); }
   const f = path.join(PUB, p === '/' ? 'index.html' : p); return f.startsWith(PUB) ? serve(req, res, f) : (res.statusCode = 403, res.end());
 }).listen(process.env.PORT || 8766, () => console.log('Studio (local dev) on http://localhost:' + (process.env.PORT || 8766)));

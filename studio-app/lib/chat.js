@@ -5,7 +5,7 @@ import Anthropic from '@anthropic-ai/sdk';
 const MODEL = process.env.STUDIO_CHAT_MODEL || 'claude-opus-5-5';
 const OPS = ['add_effect', 'update_effect', 'remove_effect', 'select_effect', 'set_grade', 'set_lut_amount', 'set_font', 'set_captions', 'caption_option',
   'set_hook', 'set_whole', 'set_sounds', 'set_voice', 'cut', 'restore_cuts', 'seek',
-  'animate_words', 'clear_word_animations', 'add_element', 'update_element', 'remove_element'];
+  'animate_words', 'clear_word_animations', 'add_element', 'update_element', 'remove_element', 'set_font_pair', 'hook_option', 'set_safe_zone'];
 const num = { type: ['number', 'null'] }, str = { type: ['string', 'null'] };
 const SCHEMA = {
   type: 'object', additionalProperties: false, required: ['reply', 'ops'],
@@ -40,6 +40,9 @@ Ops
 - clear_word_animations: start, end = remove word animations in that time range (both null = remove all).
 - add_element: value = an uploaded element file; start, end; opts from x, y (centre, % of the frame, keep y between 15 and 75 so captions and the app's buttons stay clear), w (% of frame width), rot, look, loop, in, out (animation ids, or "none").
 - update_element: id (or the selected element), start/end or null, opts as for add_element. remove_element: id.
+- set_font_pair: key = the captions font family, value = the titles font family (from the fonts list). Any font can be used for either.
+- hook_option: key = size (0.4 to 2), x (-40 to 40), y (-30 to 50), color (hex) or font (family); value. Edits the hook title on top of its style.
+- set_safe_zone: value = a safe zone id (all, instagram, tiktok, youtube); key = "lock" to keep captions, titles and elements inside it, "free" to stop, "show" to only show the guides.
 
 "This effect", "it" or "that" means the selected effect or element when there is one. Times in the state are seconds. Effects are drawn in the render, after the colour grade; captions and titles go on top of them. Effects never cover the face: they sit behind the head or beside it. Zoom never goes past 2.`;
 

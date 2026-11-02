@@ -8,6 +8,7 @@ import path from 'node:path';
 import { DATA } from './store.js';
 
 const F = '[-+]?(?:\\d+\\.?\\d*|\\.\\d+)(?:[eE][-+]?\\d+)?', CUBE_ROW = new RegExp(`^\\s*${F}\\s+${F}\\s+${F}`);   // rows may use e-notation
+const FONT_EXT = /\.(ttf|otf|woff2?)$/i, FONT_TYPES = ['font/ttf', 'font/otf', 'font/woff', 'font/woff2', 'font/sfnt', 'application/font-woff', 'application/font-sfnt', 'application/x-font-ttf', 'application/x-font-otf', 'application/vnd.ms-opentype', 'application/octet-stream'];
 const VIDEO = new Set(['.mp4', '.mov', '.m4v', '.webm', '.mkv']);
 const slug = s => String(s).toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'item';
 const safe = n => (path.basename(String(n)).replace(/[^A-Za-z0-9._-]+/g, '_').replace(/^[._]+|[._]+$/g, '') || 'file');
@@ -67,7 +68,8 @@ export async function handle(req, res) {
     if (route === '/api/blob-token' && M === 'POST' && !FS) {
       const { handleUpload } = await import('@vercel/blob/client');
       const json = await handleUpload({ body: await body(req), request: req, onBeforeGenerateToken: async pathname => {
-        if (!/^(clips|references-src|luts|shots)\/[A-Za-z0-9._-]+$/.test(pathname)) throw new Error('Bad upload path');
+        if (!/^(clips|references-src|luts|shots|fonts)\/[A-Za-z0-9._-]+$/.test(pathname)) throw new Error('Bad upload path');
+        if (pathname.startsWith('fonts/')) { if (!FONT_EXT.test(pathname)) throw new Error('Fonts must be .ttf, .otf, .woff or .woff2'); return { allowedContentTypes: FONT_TYPES, addRandomSuffix: false, allowOverwrite: true, maximumSizeInBytes: 30e6 }; }
         return { allowedContentTypes: pathname.startsWith('luts/') ? ['text/plain', 'application/octet-stream'] : pathname.startsWith('shots/') ? ['image/*'] : ['video/*', 'application/octet-stream'], addRandomSuffix: false, allowOverwrite: true, maximumSizeInBytes: 3e9 }; },
         onUploadCompleted: async () => {} });
       return send(res, 200, json);
@@ -154,6 +156,23 @@ export async function handle(req, res) {
       return send(res, 200, { id, job });
     }
     if (route === '/api/anim-delete' && M === 'POST') { const { id } = await body(req); await putText(`animations/${slug(id)}.json`, '{}'); return send(res, 200, { ok: true }); }
+    // fonts: the file goes to fonts/<file> (browser straight to Blob, or posted here locally), then a small fonts/<id>.json names it
+    if (route === '/api/font-upload' && M === 'POST') {
+      if (!FS) return send(res, 400, { error: 'Use the direct upload' });
+      const name = safe(q.get('name') || 'font.ttf'); if (!FONT_EXT.test(name)) return send(res, 400, { error: 'Fonts must be .ttf, .otf, .woff or .woff2' });
+      const data = await raw(req); if (data.length > 30e6) return send(res, 400, { error: 'Font too large (30 MB max)' });
+      await putBuffer(`fonts/${name}`, data, 'font/' + name.split('.').pop().toLowerCase()); return send(res, 200, { file: name });
+    }
+    if (route === '/api/font-register' && M === 'POST') {
+      const d = await body(req), file = safe(d.file || ''), family = String(d.family || '').replace(/["'\\<>;{}]/g, '').trim().slice(0, 60);
+      if (!FONT_EXT.test(file) || !family || !(await urlOf(`fonts/${file}`))) return send(res, 400, { error: 'Upload the font file first.' });
+      const id = slug(family); await putText(`fonts/${id}.json`, JSON.stringify({ id, family, file }, null, 1)); return send(res, 200, { id, family, file });
+    }
+    if (route === '/api/font-delete' && M === 'POST') { const { id } = await body(req); await putText(`fonts/${slug(id)}.json`, '{}'); return send(res, 200, { ok: true }); }
+    if (route === '/api/fonts') {
+      const out = []; for (const f of (await list('fonts/')).filter(f => f.pathname.endsWith('.json'))) { const j = await getJSON(f.pathname); if (j && j.file && j.family) out.push(j); }
+      return send(res, 200, out);
+    }
     if (route === '/api/elements') {   // images uploaded as elements (stored with the screenshots, named el-*)
       const files = (await list('shots/el-')).map(f => ({ file: path.basename(f.pathname), url: f.url, size: f.size }));
       return send(res, 200, files);
@@ -193,9 +212,9 @@ export async function handle(req, res) {
       const n = slug(q.get('name') || ''), files = (await list(`renders/${n}/`)).filter(f => f.pathname.endsWith('.mp4')), job = await jobStatus(`render-${n}`);
       return send(res, 200, { files: files.map(f => ({ file: path.basename(f.pathname), url: f.url, size: f.size })), job });
     }
-    const m = /^\/(shots|luts|refs)\/(.+)$/.exec(route);
+    const m = /^\/(shots|luts|refs|fontfiles)\/(.+)$/.exec(route);
     if (m) {
-      const parts = m[2].split('/').map(decodeURIComponent).map(safe), key = m[1] === 'refs' ? `references/${parts[0]}/${parts[1]}` : `${m[1]}/${parts[0]}`;
+      const parts = m[2].split('/').map(decodeURIComponent).map(safe), key = m[1] === 'refs' ? `references/${parts[0]}/${parts[1]}` : m[1] === 'fontfiles' ? `fonts/${parts[0]}` : `${m[1]}/${parts[0]}`;
       const url = await urlOf(key); if (!url) { res.statusCode = 404; return res.end('Not found'); }
       res.statusCode = 302; res.setHeader('Location', url); res.setHeader('Cache-Control', 'no-store'); return res.end();
     }
