@@ -3,3 +3,11 @@
 .impeccable/review/
 .impeccable/mocks/
 .impeccable/build/
+
+# reanimate skill: its installed tools, and the heavy parts of its runs (keep spec.md and sheets)
+.claude/skills/reanimate/scripts/node_modules/
+.reanimate/
+.claude/reanimate/**/frames/
+.claude/reanimate/**/*.webm
+.claude/reanimate/**/*.mp4
+.claude/reanimate/**/*.mov

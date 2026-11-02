@@ -16,7 +16,7 @@ on:
         required: true
         type: string
       job:
-        description: "prepare, ingest, import, shot or render"
+        description: "prepare, ingest, import, shot, render, fxcheck or anim"
         required: true
         type: string
       args:
@@ -43,7 +43,7 @@ jobs:
     steps:
       - name: Check the job name
         run: |
-          case "$JOB" in prepare|ingest|import|shot|render) ;; *) echo "::error::Unknown job: $JOB"; exit 1;; esac
+          case "$JOB" in prepare|ingest|import|shot|render|fxcheck|anim) ;; *) echo "::error::Unknown job: $JOB"; exit 1;; esac
           if [ -z "$BLOB_READ_WRITE_TOKEN" ]; then echo "::error::Missing repo secret BLOB_READ_WRITE_TOKEN"; exit 1; fi
 
       - uses: actions/checkout@v4
@@ -58,8 +58,16 @@ jobs:
 
       - name: Install ffmpeg and Python packages
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg libegl1 libgles2
           pip install --quiet pillow numpy
+
+      - name: Install Bun (the reanimate skill names the easing of grabbed animations)
+        if: ${{ inputs.job == 'anim' }}
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install the effects skill's packages (face tracking, cut-outs)
+        if: ${{ inputs.job == 'render' || inputs.job == 'fxcheck' }}
+        run: pip install --quiet -r .claude/skills/effects/requirements.txt
 
       - name: Install the Blob helper
         working-directory: studio-app

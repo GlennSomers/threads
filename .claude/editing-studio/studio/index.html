@@ -1,20 +1,23 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Editing Studio</title>
+<title>Studio</title>
 <link rel="stylesheet" href="style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&family=Montserrat:wght@600;800&family=Space+Grotesk:wght@500;700&family=Poppins:wght@600;800&family=Caveat:wght@700&family=JetBrains+Mono:wght@500;800&family=Lora:ital,wght@1,600&display=swap" rel="stylesheet">
 </head><body>
 <header>
-  <div class="brand">Editing Studio</div>
+  <div class="brand"><span class="logo">✳</span><span>Studio</span></div>
   <div class="clipname" id="clipname">No clip yet</div>
+  <span class="pill" id="pill" hidden></span>
   <select id="clipsel" hidden></select>
   <select id="stylesel" title="Saved styles"><option value="">Apply a saved style...</option></select>
   <button class="ghost" id="ingestbtn">Ingest style</button>
   <button class="ghost" id="addbtn">+ Add clip</button>
+  <button class="ghost" id="previewbtn">Preview</button>
   <button class="primary" id="exportbtn">Export</button>
 </header>
+<div id="rbanner" hidden></div>
 <main id="app">
   <section id="empty" hidden>
     <div class="drop" id="drop">
@@ -39,24 +42,40 @@
     </div>
   </section>
   <section id="studio" hidden>
-    <div class="left">
-      <div class="phone" id="main"></div>
-      <div class="ctl">
-        <button id="play">▶</button><input type="range" id="scrub" min="0" max="1000" value="0">
-        <button id="snd" title="Sound">🔇</button>
-        <div class="seg"><button data-m="raw">Raw</button><button data-m="edit" class="on">Edited</button></div>
-      </div>
-      <div class="tl" id="tl"></div>
-    </div>
-    <div class="right">
-      <nav id="tabs"></nav>
+    <nav id="tabs" class="rail"></nav>
+    <aside class="panel">
+      <div class="phead"><h2 id="ptitle"></h2><span id="pcount" class="help"></span></div>
       <p id="help" class="help"></p>
       <div id="body"></div>
       <div class="nav"><button class="ghost" id="back">Back</button><button class="primary" id="next">Next</button></div>
+    </aside>
+    <div class="stagecol">
+      <div id="takes" class="takes"></div>
+      <div class="left">
+        <div class="phone" id="main"></div>
+        <div class="ctl">
+          <button id="play">▶</button><input type="range" id="scrub" min="0" max="1000" value="0">
+          <button id="snd" title="Sound">🔇</button>
+          <div class="seg"><button data-m="raw">Raw</button><button data-m="edit" class="on">Edited</button></div>
+        </div>
+      </div>
+      <div id="looks" class="looks"></div>
     </div>
+    <aside class="insp">
+      <div id="inspbody"></div>
+      <div class="chat" id="chat">
+        <div class="chatlog" id="chatlog"></div>
+        <form id="chatform" class="chatform">
+          <textarea id="chatin" rows="2" placeholder="Say what to change, e.g. &quot;add the over-the-shoulder zoom when I say views&quot;"></textarea>
+          <div class="chatbtns"><button type="button" id="micbtn" title="Speak">🎙</button><button class="primary" id="chatsend">Send</button></div>
+        </form>
+      </div>
+    </aside>
+    <div class="tl" id="tl"></div>
   </section>
 </main>
 <div id="toast"></div>
 <script src="engine.js"></script>
+<script src="effects.js"></script>
 <script src="app.js"></script>
 </body></html>

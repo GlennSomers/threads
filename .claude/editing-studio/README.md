@@ -88,3 +88,21 @@ It builds a HyperFrames project in `projects/<style-name>/hf/` (regenerated each
 The overlay uses the same drawing code as the Studio preview (`studio/engine.js`), driven by a seekable GSAP timeline, so what you pick is what you get.
 Sound effects sit on the moves they belong to. Captions and cards stay out of Instagram's top 220 px and bottom 420 px.
 Faces are not detected: check stills for overlaps.
+
+## Effects (from the effects skill)
+The 45 effects from `.claude/skills/effects` (Vibha Ramprakash's pack, MIT) are in the Studio's **Effects** library.
+- Tap one to add it at the playhead (3 s, or 6 s for over-the-shoulder-zoom). It lands on the **Effects** track: drag it to move it, drag its edges to change the length, click it to edit its options in the right panel.
+- The browser can't draw them (they track your face and cut you out of the room), so the preview shows a red frame and the effect's name while one is active. **Check frames** in the right panel draws three real frames (35%, 60% and 90% in) in the background (about a minute).
+- The render runs `fx.py` on the footage after the grade and LUT, before captions and titles go on top. Effect times follow your cuts.
+- Effects you add are kept per clip in the browser, and saved with a style.
+- Hosted: the Actions job installs the skill's packages (mediapipe, opencv) for renders and checks. Locally: run `bash .claude/skills/effects/scripts/setup.sh` once (mediapipe also needs `libegl1` on Linux).
+
+## Edit by saying it
+The box under the right panel takes plain requests ("add a backdrop word CLAUDE when I say Claude", "make the captions bigger", "cut the first two seconds", "warmer look"). The mic button dictates (Safari and Chrome). Claude (claude-opus-5-5) gets the current edit, the transcript with word times and the list of options, and sends back edits that the app applies as if you'd clicked them. Needs `ANTHROPIC_API_KEY` in the Vercel project (hosted app only; the Python `studio/server.py` doesn't have the chat).
+
+## Animations (grabbed from references) and elements
+- **Grab an animation** (Ingest style, on a reference): play to the move, set start and end around it, drag a box around the thing that moves, name it. A job (`tools/grab_anim.py`) tracks it frame by frame against the empty background: position, size and opacity on each frame, saved as an animation preset (`animations/<id>.json` in storage, with a filmstrip in `shots/anim-<id>.jpg`). The reanimate skill's `easing.ts` names the curve (for example "easeOutCubic over ~400 ms"). An exit is saved reversed, as an entrance. It reads one thing moving over a still background; rotation and blur are not measured.
+- **Animate** (rail): tap the first and last caption word, then an animation; those words come in with it as they are spoken (any caption style, cinematic included). With an element selected, tapping one sets how it comes in. Built-in: Pop, Slide up, Drop and bounce, Fade, Zoom punch, Swing in, Slide from right, Stamp.
+- **Elements** (rail): upload images (stored as `shots/el-*`), tap one to put it on the video at the playhead, drag it on the preview to place it. Per element: start/end, size, rotation, look (plain, rounded, shadow, white card, glass frame, sticker outline, circle), motion (float, pulse, wobble, slow spin), and an in and out animation from the same library. They sit above the effects and under the captions.
+- Presets saved as JSON in `.claude/editing-studio/animations/` ship with the app. For complex moves (several parts, a website) use `/reanimate` in a Claude session; keep its runs in `.claude/reanimate/<name>/`.
+- The chat can do all of this too ("make 'hours' drop and bounce", "put the smiley top right from 2 to 5 seconds with a sticker outline").
