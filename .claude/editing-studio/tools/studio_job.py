@@ -9,6 +9,7 @@ Jobs
   shot    {url, file}             real page screenshot -> shots/<file>
   render  {style}                 styles/<name>.json -> renders/<name>/<name>-vN.mp4
   fxcheck {clip, effect, file}    three check frames of one effect (effects skill) -> shots/<file>
+  chat    {id}                    chat/<id>-in.json -> Claude Code (Glenn's Claude login) -> chat/<id>.json {reply, ops}
   anim    {source, id, name, start, end, box, kind}   grab one animation from a reference -> animations/<id>.json + shots/anim-<id>.jpg
 Every job writes jobs/<job-id>.json ("running", then "done" or "error: ...").
 
@@ -211,7 +212,35 @@ def j_anim(a, w):
     put(f"animations/{pid}.json", w / "anim.json", "application/json")
 
 
-JOBS = {"anim": j_anim, "fxcheck": j_fxcheck, "prepare": j_prepare, "ingest": j_ingest, "import": j_import, "shot": j_shot, "render": j_render}
+def j_chat(a, w):
+    """Answer one edit-chat message with Claude Code, logged in with CLAUDE_CODE_OAUTH_TOKEN (no API key)."""
+    cid = re.sub(r"[^a-z0-9-]", "", a["id"])
+    if os.environ.get("GITHUB_ACTIONS") and not os.environ.get("CLAUDE_CODE_OAUTH_TOKEN"):
+        raise RuntimeError("The repo secret CLAUDE_CODE_OAUTH_TOKEN is missing (run 'claude setup-token' and add it in GitHub).")
+    get(f"chat/{cid}-in.json", w / "in.json")
+    req = json.loads((w / "in.json").read_text())
+    (w / "system.md").write_text(req["system"])
+    r = subprocess.run(["claude", "-p", "--output-format", "json", "--json-schema", json.dumps(req["schema"]), "--system-prompt-file", str(w / "system.md"),
+                        "--tools", "", "--max-turns", "3"], input=req["user"], capture_output=True, text=True, timeout=300, cwd=str(w))
+    out = None
+    try:
+        res = json.loads(r.stdout)
+        out = res.get("structured_output")
+        if out is None:
+            txt = res.get("result") or ""
+            out = json.loads(txt[txt.index("{"):txt.rindex("}") + 1])
+    except (ValueError, KeyError, AttributeError):
+        pass
+    if not isinstance(out, dict) or "ops" not in out:
+        msg = (r.stderr.strip().splitlines() or [r.stdout.strip()[:200] or "no answer"])[-1]
+        if "auth" in msg.lower() or "login" in msg.lower() or "token" in msg.lower():
+            msg = "Claude Code is not logged in: check the CLAUDE_CODE_OAUTH_TOKEN repo secret. " + msg
+        raise RuntimeError("Claude did not answer: " + msg)
+    (w / "out.json").write_text(json.dumps({"reply": str(out.get("reply") or ""), "ops": out.get("ops") or []}))
+    put(f"chat/{cid}.json", w / "out.json", "application/json")
+
+
+JOBS = {"chat": j_chat, "anim": j_anim, "fxcheck": j_fxcheck, "prepare": j_prepare, "ingest": j_ingest, "import": j_import, "shot": j_shot, "render": j_render}
 
 
 def run(job, args, job_id=None):
