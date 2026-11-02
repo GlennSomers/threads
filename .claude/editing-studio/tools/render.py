@@ -188,6 +188,9 @@ def build_project(name, style, clip, words, proj):
         for key in ("shot", "image"):
             if b.get(key) and (ROOT / "shots" / b[key]).exists():
                 shutil.copy(ROOT / "shots" / b[key], proj / "shots" / b[key])
+    for e in style.get("els") or []:   # uploaded elements live with the screenshots
+        if e.get("file") and (ROOT / "shots" / e["file"]).exists():
+            shutil.copy(ROOT / "shots" / e["file"], proj / "shots" / e["file"])
     dur = style["dur"]
     # sound effects: the moves come from the same engine the Studio uses
     ev = json.loads(subprocess.run(["node", "-e", """
@@ -238,13 +241,13 @@ def build_project(name, style, clip, words, proj):
   window.SHOT_BASE = 'shots/';
   const CFG = {json.dumps(cfg)};
   const st = CFG.style;
-  S.words = CFG.words; S.dur = st.dur; S.cuts = (st.cuts || []).map(c => ({{ a: c[0], b: c[1] }})); refreshLive();
+  S.words = CFG.words; S.dur = st.dur; S.wordAnims = st.wordAnims || []; S.anims = (st.anims || []).length ? ANIM_BUILTIN.concat(st.anims.filter(a => !ANIM_BUILTIN.some(b => b.id === a.id))) : []; S.cuts = (st.cuts || []).map(c => ({{ a: c[0], b: c[1] }})); refreshLive();
   // output time -> source time: the overlay is drawn in source time, the video has the cuts joined up
   const KEEP = CFG.keep; let acc = 0; const SEG = KEEP.map(([a, b]) => {{ const s0 = {{ a, b, o: acc }}; acc += b - a; return s0; }});
   const srcT = t => {{ for (const s0 of SEG) if (t < s0.o + (s0.b - s0.a) || s0 === SEG[SEG.length - 1]) return s0.a + Math.max(0, t - s0.o); return t; }};
   S.beats = st.beats.map(b => ({{ t0: b.start, t1: b.end, text: b.text, shot: b.shot, scene: b.scene, sceneOpts: b.sceneOpts || {{}}, image: b.image }}));
   const fx = {{}}; st.beats.forEach((b, i) => fx[i] = b.effects || []);
-  const cfg = {{ grade: st.grade, font: st.font, caption: st.caption, capOpts: st.capOpts || {{}}, hook: st.hook, fx, whole: new Set(st.whole || []) }};
+  const cfg = {{ grade: st.grade, font: st.font, caption: st.caption, capOpts: st.capOpts || {{}}, hook: st.hook, fx, whole: new Set(st.whole || []), els: st.els || [] }};
   const video = document.getElementById('v'), ov = document.getElementById('ov'), root = document.getElementById('root');
   // The overlay is a pure function of time, so it is safe to seek.
   function draw(t) {{

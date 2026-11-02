@@ -13,4 +13,8 @@ for (const f of ['index.html', 'app.js', 'engine.js', 'effects.js', 'style.css']
 // effect thumbnails
 fs.mkdirSync(path.join(dst, 'fx'), { recursive: true });
 for (const f of fs.readdirSync(path.join(src, 'fx'))) fs.copyFileSync(path.join(src, 'fx', f), path.join(dst, 'fx', f));
+// animation presets saved in the repo, as one list
+const ad = path.resolve(here, '../../.claude/editing-studio/animations'), anims = [];
+if (fs.existsSync(ad)) for (const f of fs.readdirSync(ad).filter(f => f.endsWith('.json'))) { try { anims.push(JSON.parse(fs.readFileSync(path.join(ad, f), 'utf8'))); } catch {} }
+fs.writeFileSync(path.join(dst, 'animations.json'), JSON.stringify(anims));
 console.log('Copied the Studio screens into public/');

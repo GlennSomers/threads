@@ -47,7 +47,8 @@ async function ingests() {
     const m = await getJSON(`references/${id}/measurements.json`), c = await getJSON(`references/${id}/caption.json`), job = await jobStatus(`ing-${id}`);
     let status = m ? 'ready' : 'new'; if (!m && job) status = job.status === 'error' ? `error: ${job.message}` : 'processing';
     if (status === 'new') continue;
-    out.push({ id, name: (m || {}).source || id, status, measurements: m, caption: c, grade_ok: !!m });
+    const src = m && m.source ? await urlOf(`references-src/${safe(m.source)}`) : null;
+    out.push({ id, name: (m || {}).source || id, status, measurements: m, caption: c, grade_ok: !!m, src });
   }
   return out;
 }
@@ -128,6 +129,22 @@ export async function handle(req, res) {
       const file = `fxcheck-${slug(stemOf(safe(clip)))}-${slug(effect.fx)}-${Date.now().toString(36)}.jpg`;
       const id = await dispatch('fxcheck', { clip: safe(clip), effect: { fx: effect.fx, start: +effect.start, end: +effect.end, opts: effect.opts || {} }, file });
       return send(res, 200, { file, job: id });
+    }
+    if (route === '/api/animations') {   // animation presets grabbed from reference reels
+      const out = []; for (const f of (await list('animations/')).filter(f => f.pathname.endsWith('.json'))) { const j = await getJSON(f.pathname); if (j && Array.isArray(j.keys)) out.push(j); }
+      return send(res, 200, out);
+    }
+    if (route === '/api/anim-grab' && M === 'POST') {
+      const d = await body(req), box = (d.box || []).map(Number);
+      if (!d.source || !(+d.end > +d.start) || box.length !== 4 || box.some(v => !(v >= 0 && v <= 1)) || !(box[2] > .01 && box[3] > .01)) return send(res, 400, { error: 'Pick a time range and draw a box around the thing that moves.' });
+      const id = slug(d.name || 'animation') + '-' + Date.now().toString(36).slice(-4);
+      const job = await dispatch('anim', { source: safe(d.source), ref: String(d.ref || ''), id, name: String(d.name || id).slice(0, 60), start: +d.start, end: +d.end, box, kind: ['in', 'out'].includes(d.kind) ? d.kind : 'auto' }, `anim-${id}`);
+      return send(res, 200, { id, job });
+    }
+    if (route === '/api/anim-delete' && M === 'POST') { const { id } = await body(req); await putText(`animations/${slug(id)}.json`, '{}'); return send(res, 200, { ok: true }); }
+    if (route === '/api/elements') {   // images uploaded as elements (stored with the screenshots, named el-*)
+      const files = (await list('shots/el-')).map(f => ({ file: path.basename(f.pathname), url: f.url, size: f.size }));
+      return send(res, 200, files);
     }
     if (route === '/api/job') return send(res, 200, (await jobStatus(String(q.get('id') || '').replace(/[^A-Za-z0-9._-]/g, ''))) || { status: 'unknown' });
     if (route === '/api/preset' && M === 'POST') {

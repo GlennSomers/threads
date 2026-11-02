@@ -87,6 +87,7 @@ function caption(id, t, acc, over) {
     inner = esc(fmt(ws.filter((x, k) => g + k < i).map(x => x.word).join(' ') + (i > g ? ' ' : '') + w.word.slice(0, Math.ceil(w.word.length * frac)))) + `<span style="opacity:${Math.floor(t * 4) % 2}">▍</span>`;
   } else inner = ws.map((x, k) => {
     const cur = g + k === i, txt = esc(fmt(x.word));
+    if (wordAnimFor(x)) return wordAnimWrap(x, tt, `<span style="color:${o.hl === 'current' && cur || o.hl === 'spoken' && g + k <= i ? hi : o.color}">${txt}</span>`) + ' ';
     if (o.hl === 'current') return `<span style="color:${cur ? hi : o.color}">${txt} </span>`;
     if (o.hl === 'spoken') return `<span style="color:${g + k <= i ? hi : o.color};opacity:${g + k <= i ? 1 : .6}">${txt} </span>`;
     if (o.hl === 'key') return k === key ? `<i style="font-family:'DM Serif Display',serif;color:${hi};font-size:1.2em">${txt} </i>` : `<span style="color:${o.color}">${txt} </span>`;
@@ -126,13 +127,13 @@ function cineBlock(t, opt = {}) {
   const ink = opt.ink || '#ffffff', accent = opt.accent || '#2f6bff', y = opt.y ?? 62, ta = t - ws[0].start;
   const fmt = w => esc(w.word.replace(/[,;:]$/, ''));
   const seen = w => t >= w.start - .03 ? 1 : .0;
-  const small = list => list.map(w => `<span style="opacity:${seen(w)};transition:none">${fmt(w)}</span>`).join(' ');
+  const small = list => list.map(w => wordAnimFor(w) ? wordAnimWrap(w, t, fmt(w)) : `<span style="opacity:${seen(w)};transition:none">${fmt(w)}</span>`).join(' ');
   const before = ws.slice(0, k), after = ws.slice(k + 1), kw = ws[k], kIn = ease((t - kw.start + .05) / .22);
   const big = serif ? `font-family:'Playfair Display',serif;font-style:italic;font-weight:700;color:${opt.serifInk || accent}`
                     : `font-family:Inter,sans-serif;font-weight:800;color:${ink};letter-spacing:-.02em`;
   return `<div style="position:absolute;left:6%;right:6%;top:${y}%;transform:translateY(-50%);text-align:center;color:${ink};font-family:Inter,sans-serif;text-shadow:${opt.shadow ?? '0 .3cqw 1.4cqw #0008'};opacity:${ease(ta / .15)}">
     ${before.length ? `<div style="font-size:4.2cqw;font-weight:500;opacity:.92;margin-bottom:.6cqw">${small(before)}</div>` : ''}
-    <div style="font-size:${opt.size || 13}cqw;line-height:.95;${big};opacity:${kIn};transform:scale(${1.08 - .08 * kIn})">${fmt(kw)}</div>
+    <div style="font-size:${opt.size || 13}cqw;line-height:.95;${big};${wordAnimFor(kw) ? '' : `opacity:${kIn};transform:scale(${1.08 - .08 * kIn})`}">${wordAnimFor(kw) ? wordAnimWrap(kw, t, fmt(kw)) : fmt(kw)}</div>
     ${after.length ? `<div style="font-size:4.2cqw;font-weight:500;opacity:.92;margin-top:.8cqw">${small(after)}</div>` : ''}</div>`;
 }
 
@@ -230,6 +231,7 @@ function compose(t, cfg, raw) {
   const acc = G(cfg.grade)[3]; let html = '', scale = 1;
   const filter = raw ? 'none' : G(cfg.grade)[2];
   if (!raw) {
+    html += elementsHtml(t, cfg.els);
     const bs = S.beats, bi = bs.findIndex(x => t >= x.t0 && t < x.t1), bt = bs[bi];
     const sc = bt ? ((cfg.scenes && cfg.scenes[bi]) || bt) : null, scene = sc && sc.scene && sc.scene !== 'aroll' ? sc : null;
     if (scene) html += sceneHtml(scene, t - bt.t0, bt, t, acc);
@@ -275,3 +277,64 @@ function voiceParams(v) {
   return { preset: v.preset || 'off', hp: P.hp ? Math.round(30 + (P.hp - 30) * k) : 0, nr: v.nr != null && v.preset !== 'off' ? +v.nr : +(P.nr * k).toFixed(1),
     deess: +(P.deess * k).toFixed(2), ratio: +(1 + (P.ratio - 1) * k).toFixed(2), makeup: +(P.makeup * k).toFixed(1), presence: +(P.presence * k).toFixed(1), warmth: +(P.warmth * k).toFixed(1) };
 }
+
+/* ---------- animations: presets that move one thing (a caption word or an element) ----------
+   keys: [p, x, y, s, o, r] with p 0..1 through the animation, x/y in % of the thing's own size, s scale, o opacity, r degrees.
+   Every preset is written as an entrance; used as an exit it plays backwards. */
+const curve = (fn, n = 24) => Array.from({ length: n + 1 }, (_, i) => fn(i / n)).map((k, i) => [+(i / n).toFixed(3), ...k.map(v => +v.toFixed(3))]);
+const easeOutBack = x => 1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2), easeOutCubicA = x => 1 - Math.pow(1 - x, 3);
+const bounceOut = x => { const n = 7.5625, d = 2.75; if (x < 1 / d) return n * x * x; if (x < 2 / d) return n * (x -= 1.5 / d) * x + .75; if (x < 2.5 / d) return n * (x -= 2.25 / d) * x + .9375; return n * (x -= 2.625 / d) * x + .984375; };
+const ANIM_BUILTIN = [
+  { id: 'pop', name: 'Pop', dur: .35, ease: 'easeOutBack', keys: curve(p => [0, 0, .4 + .6 * easeOutBack(p), Math.min(1, p * 4), 0]) },
+  { id: 'slide-up', name: 'Slide up', dur: .35, ease: 'easeOutCubic', keys: curve(p => [0, 70 * (1 - easeOutCubicA(p)), 1, easeOutCubicA(p), 0]) },
+  { id: 'drop-bounce', name: 'Drop and bounce', dur: .6, ease: 'bounce', keys: curve(p => [0, -140 * (1 - bounceOut(p)), 1, Math.min(1, p * 5), 0]) },
+  { id: 'fade', name: 'Fade', dur: .25, ease: 'ease-out', keys: curve(p => [0, 0, 1, easeOutCubicA(p), 0], 8) },
+  { id: 'zoom-punch', name: 'Zoom punch', dur: .25, ease: 'easeOutCubic', keys: curve(p => [0, 0, 1.8 - .8 * easeOutCubicA(p), Math.min(1, p * 3), 0]) },
+  { id: 'swing', name: 'Swing in', dur: .45, ease: 'easeOutBack', keys: curve(p => [0, 0, .7 + .3 * easeOutBack(p), Math.min(1, p * 3), -18 * (1 - easeOutBack(p))]) },
+  { id: 'slide-left', name: 'Slide from right', dur: .4, ease: 'easeOutCubic', keys: curve(p => [120 * (1 - easeOutCubicA(p)), 0, 1, Math.min(1, p * 2.5), 0]) },
+  { id: 'stamp', name: 'Stamp', dur: .3, ease: 'easeOutBack', keys: curve(p => [0, 0, 2.4 - 1.4 * easeOutBack(p), Math.min(1, p * 5), -8 * (1 - p)]) },
+];
+const animLib = () => (S.anims && S.anims.length ? S.anims : ANIM_BUILTIN);
+const animById = id => animLib().find(a => a.id === id) || ANIM_BUILTIN.find(a => a.id === id);
+function animAt(a, p) {   // state of animation a at progress p (0..1), linear between its keys
+  const K = a.keys; if (!K || !K.length) return [0, 0, 1, 1, 0];
+  if (p <= K[0][0]) return K[0].slice(1); if (p >= K[K.length - 1][0]) return K[K.length - 1].slice(1);
+  let i = 1; while (K[i][0] < p) i++;
+  const [p0, ...A] = K[i - 1], [p1, ...B] = K[i], f = (p - p0) / Math.max(1e-6, p1 - p0);
+  return A.map((v, j) => v + (B[j] - v) * f);
+}
+const animCss = ([x, y, s, o, r]) => `transform:translate(${x.toFixed(2)}%,${y.toFixed(2)}%) scale(${s.toFixed(3)}) rotate(${r.toFixed(2)}deg);opacity:${clamp(o, 0, 1).toFixed(3)}`;
+// state of an in/out pair for something on screen from a to b, at time t
+function inOut(t, a, b, inId, outId, inDur, outDur) {
+  let st = [0, 0, 1, 1, 0];
+  const ai = inId && animById(inId), ao = outId && animById(outId);
+  if (ai) { const d = inDur || ai.dur; if (t < a + d) st = animAt(ai, (t - a) / d); }
+  if (ao) { const d = outDur || ao.dur; if (t > b - d) st = animAt(ao, (b - t) / d); }
+  return st;
+}
+// caption words with an animation: S.wordAnims = [{a, b, anim}] (seconds); a word animates when it starts inside a range
+const wordAnimFor = w => (S.wordAnims || []).find(r => w.start >= r.a - .01 && w.start <= r.b + .01);
+function wordAnimWrap(w, t, inner) {
+  const r = wordAnimFor(w), a = r && animById(r.anim); if (!a) return inner;
+  return `<span style="display:inline-block;${animCss(animAt(a, (t - w.start) / a.dur))}">${inner}</span>`;
+}
+/* ---------- elements: uploaded images placed on the video ----------
+   el: {id, file, start, end, x, y (centre, % of frame), w (% of frame width), rot, look, loop, in, out} */
+const LOOKS_EL = [['plain', 'Plain'], ['round', 'Rounded'], ['shadow', 'Shadow'], ['card', 'White card'], ['glass', 'Glass frame'], ['sticker', 'Sticker outline'], ['circle', 'Circle']];
+const LOOPS_EL = [['none', 'Still'], ['float', 'Float'], ['pulse', 'Pulse'], ['wobble', 'Wobble'], ['spin', 'Slow spin']];
+function elementHtml(e, t) {
+  if (t < e.start || t > e.end) return '';
+  const [x, y, s, o, r] = inOut(t, e.start, e.end, e.in, e.out), lt = t - e.start;
+  let lx = 0, ly = 0, ls = 1, lr = 0;
+  if (e.loop === 'float') ly = Math.sin(lt * 2.2) * 3; if (e.loop === 'pulse') ls = 1 + .04 * Math.sin(lt * 5);
+  if (e.loop === 'wobble') lr = Math.sin(lt * 3) * 4; if (e.loop === 'spin') lr = lt * 40;
+  const look = { plain: '', round: 'border-radius:3cqw;', shadow: 'filter:drop-shadow(0 1.2cqw 2.4cqw #000a);', card: 'background:#fff;padding:1.4cqw;border-radius:2.4cqw;box-shadow:0 1.4cqw 3cqw #0008;',
+    glass: 'background:#ffffff26;padding:1.6cqw;border-radius:3cqw;border:.3cqw solid #ffffff66;box-shadow:0 1.4cqw 3cqw #0006;backdrop-filter:blur(2cqw);-webkit-backdrop-filter:blur(2cqw);',
+    sticker: 'filter:drop-shadow(.7cqw 0 0 #fff) drop-shadow(-.7cqw 0 0 #fff) drop-shadow(0 .7cqw 0 #fff) drop-shadow(0 -.7cqw 0 #fff) drop-shadow(0 1cqw 1.6cqw #0008);',
+    circle: 'border-radius:50%;aspect-ratio:1;object-fit:cover;' }[e.look || 'plain'] || '';
+  const inner = look.startsWith('background') ? `<div style="${look}"><img src="${shotBase()}${encodeURIComponent(e.file)}" style="display:block;width:100%;border-radius:1.6cqw"></div>`
+    : `<img src="${shotBase()}${encodeURIComponent(e.file)}" style="display:block;width:100%;${look}">`;
+  return `<div style="position:absolute;left:${e.x}%;top:${e.y}%;width:${e.w}%;transform:translate(-50%,-50%) rotate(${(e.rot || 0) + lr}deg) translateY(${ly}cqw) scale(${ls})">` +
+    `<div style="${animCss([x, y, s, o, r])};transform-origin:50% 50%">${inner}</div></div>`;
+}
+const elementsHtml = (t, els) => (els || []).map(e => elementHtml(e, t)).join('');

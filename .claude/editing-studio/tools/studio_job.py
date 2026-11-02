@@ -9,6 +9,7 @@ Jobs
   shot    {url, file}             real page screenshot -> shots/<file>
   render  {style}                 styles/<name>.json -> renders/<name>/<name>-vN.mp4
   fxcheck {clip, effect, file}    three check frames of one effect (effects skill) -> shots/<file>
+  anim    {source, id, name, start, end, box, kind}   grab one animation from a reference -> animations/<id>.json + shots/anim-<id>.jpg
 Every job writes jobs/<job-id>.json ("running", then "done" or "error: ...").
 
 Storage: STORAGE=fs keeps everything under STORAGE_DIR (local dev). Otherwise Vercel Blob, through studio-app/scripts/blob.mjs.
@@ -24,6 +25,7 @@ DATA = Path(os.environ.get("STORAGE_DIR", APP / ".data")).resolve()
 VIDEO = {".mp4", ".mov", ".m4v", ".webm", ".mkv"}
 # the effects skill lives next to the editing studio; render.py runs it from a throwaway workspace, so point at it
 os.environ.setdefault("FX_DIR", str(EDIT.parent / "skills" / "effects"))
+os.environ.setdefault("REANIMATE_EASING", str(EDIT.parent / "skills" / "reanimate" / "scripts" / "easing.ts"))
 
 
 # ---- storage -------------------------------------------------------------------------------------------------
@@ -152,6 +154,8 @@ def j_render(a, w):
     for b in style.get("beats", []):
         for key in ("shot", "image"):
             if b.get(key): get(f"shots/{safe(b[key])}", w / "shots" / safe(b[key]))
+    for e in style.get("els") or []:
+        if e.get("file"): get(f"shots/{safe(e['file'])}", w / "shots" / safe(e["file"]))
     if style.get("lut"): get(f"luts/{slug(style['lut'])}.cube", w / "luts" / f"{slug(style['lut'])}.cube")
     r = subprocess.run([sys.executable, str(w / "tools" / "render.py"), name], capture_output=True, text=True)
     sys.stdout.write(r.stdout[-2000:])
@@ -191,7 +195,23 @@ def j_fxcheck(a, w):
     put(f"shots/{safe(a['file'])}", out, "image/jpeg")
 
 
-JOBS = {"fxcheck": j_fxcheck, "prepare": j_prepare, "ingest": j_ingest, "import": j_import, "shot": j_shot, "render": j_render}
+def j_anim(a, w):
+    """One animation from a reference reel, as a Studio preset (tools/grab_anim.py; easing named by the reanimate skill)."""
+    name = safe(a["source"]); pid = slug(a["id"])
+    get(f"references-src/{name}", w / name)
+    box = ",".join(f"{float(v):.4f}" for v in a["box"])
+    r = subprocess.run([sys.executable, str(w / "tools" / "grab_anim.py"), str(w / name), f"{float(a['start']):.3f}", f"{float(a['end']):.3f}", box,
+                        str(w / "anim.json"), "--name", str(a.get("name") or pid), "--kind", a.get("kind") or "auto", "--sheet", str(w / "anim.jpg"),
+                        "--source", str(a.get("ref") or name)], capture_output=True, text=True)
+    if r.returncode:
+        raise RuntimeError("Grab failed: " + (r.stderr.strip().splitlines() or ["?"])[-1])
+    j = json.loads((w / "anim.json").read_text()); j["id"] = pid; j["sheet"] = f"anim-{pid}.jpg"
+    (w / "anim.json").write_text(json.dumps(j, indent=1))
+    put(f"shots/anim-{pid}.jpg", w / "anim.jpg", "image/jpeg")
+    put(f"animations/{pid}.json", w / "anim.json", "application/json")
+
+
+JOBS = {"anim": j_anim, "fxcheck": j_fxcheck, "prepare": j_prepare, "ingest": j_ingest, "import": j_import, "shot": j_shot, "render": j_render}
 
 
 def run(job, args, job_id=None):

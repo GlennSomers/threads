@@ -97,7 +97,7 @@ class Stage {
 { let step = S.step; Object.defineProperty(S, 'step', { get: () => step, set: v => { step = v; S.panel = null; }, enumerable: true, configurable: true }); }
 let main, cards = [];
 function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('show'), 1800); }
-function baseCfg() { return { grade: S.grade, font: S.font, caption: S.caption, capOpts: S.capEdit, hook: S.hook, fx: S.fx, whole: S.whole }; }
+function baseCfg() { return { grade: S.grade, font: S.font, caption: S.caption, capOpts: S.capEdit, hook: S.hook, fx: S.fx, whole: S.whole, els: S.els }; }
 function updateScrub(t) { if (!updateScrub.drag) $('#scrub').value = 1000 * t / (S.dur || 1); tlPlayhead(t); txNow(t); }
 
 async function refresh(keep) {
@@ -180,7 +180,7 @@ function renderBeats(body) {
     cards.push(new Stage(d, { cfg: () => ({ ...baseCfg(), whole: new Set([w[0]]) }), win: [b.t0, Math.min(b.t1, b.t0 + 4)] })); });
 }
 function styleObj(name) { return { name, clip: S.clip.name, grade: S.grade, font: S.font, caption: S.caption, hook: S.hook, lut: S.lut ? S.lut.id : null, lutAmount: S.lut ? S.lutAmount : null, voice: { ...S.voice }, capOpts: S.capEdit, cuts: S.cuts.map(c => [+c.a.toFixed(3), +c.b.toFixed(3)]), dur: +S.dur.toFixed(2),
-  beats: S.beats.map((b, i) => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text, effects: S.fx[i], shot: b.shot || null, shotUrl: b.shotUrl || null, scene: b.scene || 'aroll', sceneOpts: b.sceneOpts || {}, image: b.image || null, note: b.note || '' })), whole: [...S.whole], sounds: [...S.snd], vfx: vfxOut() }; }
+  beats: S.beats.map((b, i) => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text, effects: S.fx[i], shot: b.shot || null, shotUrl: b.shotUrl || null, scene: b.scene || 'aroll', sceneOpts: b.sceneOpts || {}, image: b.image || null, note: b.note || '' })), whole: [...S.whole], sounds: [...S.snd], vfx: vfxOut(), els: (S.els || []).map(({ id, ...e }) => e), wordAnims: S.wordAnims || [], anims: usedAnims() }; }
 const renderName = () => S.clip.name.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'render';
 const dlUrl = u => CFG.blob ? u + (u.includes('?') ? '&' : '?') + 'download=1' : u;   // Blob serves ?download=1 as a file download
 async function showRenders(name) {
@@ -225,6 +225,7 @@ function renderWatch(body) {
   body.innerHTML = `<div class="sum">${row('Colour', G(S.grade)[1])}${row('LUT', S.lut ? S.lut.name + ' (' + S.lutAmount + '%)' : 'none')}${row('Font', F(S.font)[1])}${row('Captions', (CAPS.find(c => c[0] === S.caption) || [])[1])}${row('Hook', (HOOKS.find(h => h[0] === S.hook) || [])[1])}` +
     S.beats.slice(1).map((b, i) => row('Beat ' + (i + 2), S.fx[i + 1].map(x => FX.find(f => f[0] === x)[1]).join(', ') || 'Just you')).join('') +
     `${row('Effects', S.vfx.map(e => e.fx).join(', '))}${row('Whole clip', [...S.whole].join(', '))}${row('Sound', [...S.snd].join(', '))}</div>
+    ${row('Elements', (S.els || []).map(e => e.file.replace(/^el-/, '')).join(', '))}${row('Word animations', (S.wordAnims || []).map(r => r.anim).join(', '))}
     <h3>Render</h3><div class="row"><button class="primary" id="rbtn">Render video</button></div>
     <div id="rstat" class="help">Renders exactly what you see, 1080x1920 at 30 fps. You don't need to save a style first. Progress shows in the bar at the top.</div><div id="rlist"></div>
     <h3>Save these picks as a style (optional)</h3><div class="row"><input type="text" id="sname" placeholder="Style name, e.g. split-card-reels"><button id="ssave">Save style</button></div>
@@ -250,6 +251,8 @@ async function applyStyle(st) {
   S.lut = null; S.lutCube = null; S.lutAmount = 100;
   if (st.lut) { try { S.lutCube = await loadLut(st.lut); S.lut = { id: st.lut, name: st.lut }; S.lutAmount = st.lutAmount ?? 100;
       const l = (await (await fetch('/api/luts')).json()).find(x => x.id === st.lut); if (l) S.lut.name = l.name; } catch { toast(`LUT "${st.lut}" from this style is missing`); } }
+  if (Array.isArray(st.els)) S.els = st.els.map(e => ({ ...e, id: vfxId() })); if (Array.isArray(st.wordAnims)) S.wordAnims = st.wordAnims.map(r => ({ ...r }));
+  (st.anims || []).forEach(a => { if (!animById(a.id)) S.anims.push(a); });
   if (Array.isArray(st.vfx)) { S.vfx = st.vfx.filter(e => VFXN(e.fx)).map(e => ({ id: vfxId(), fx: e.fx, start: +e.start, end: +e.end, opts: { ...(e.opts || {}) } })); S.sel = null; vfxSave(); }
   [0, 1, 2, 3, 4].forEach(i => S.done.add(i)); renderStep(); toast('Applied style: ' + st.name);
 }
@@ -378,7 +381,8 @@ async function ingestList() {
       ${row('Captions', c ? `about ${c.opts.y}% from top, size ${c.opts.size}, ${c.opts.color}${c.opts.accent ? ', highlight ' + c.opts.accent : ''}${c.opts.group ? ', ' + c.opts.group + ' word(s) at a time' : ''}` : (m.caption_note || 'none found'))}
       <div class="row">${(m.sheets || []).map(f => `<a href="/refs/${encodeURIComponent(r.id)}/${f}" target="_blank"><img class="sheet" src="/refs/${encodeURIComponent(r.id)}/${f}"></a>`).join('')}</div>
       <p class="help">Layouts, font family, case, animation, motion graphics and sound design need eyes: ask Claude to read these sheets and finish <code>references/${esc(r.id)}/report.md</code>.</p>
-      <div class="row">${r.grade_ok ? '<button data-a="grade">Use this grade</button>' : ''}${c ? '<button class="primary" data-a="use">Use this caption look</button><button data-a="save">Save as caption preset</button>' : ''}</div>`;
+      <div class="row">${r.src ? '<button class="primary" data-a="grab">Grab an animation</button>' : ''}${r.grade_ok ? '<button data-a="grade">Use this grade</button>' : ''}${c ? '<button class="primary" data-a="use">Use this caption look</button><button data-a="save">Save as caption preset</button>' : ''}</div>`;
+    d.querySelector('[data-a=grab]')?.addEventListener('click', () => openGrab(r, d));
     d.querySelector('[data-a=grade]')?.addEventListener('click', () => { S.grade = g.grade_guess; toast('Grade: ' + G(S.grade)[1]); });
     d.querySelector('[data-a=use]')?.addEventListener('click', () => { if (!S.clip) return toast('Add a clip first, then use the look'); usePreset({ name: c.name, base: c.base, opts: c.opts }); });
     d.querySelector('[data-a=save]')?.addEventListener('click', async () => { const n = prompt('Preset name', c.name); if (!n) return;
@@ -583,6 +587,8 @@ function tlRender() {
   const look = [G(S.grade)[1], S.lut ? `${S.lut.name} ${S.lutAmount}%` : ''].filter(Boolean).join(' + ');
   tracks.push(['Video', S.beats.map((b, i) => blk(b.scene && b.scene !== 'aroll' ? 't-scene' : 't-vid', b.t0, b.t1, `${i === 0 ? 'Hook' : 'Beat ' + (i + 1)} · ${b.scene && b.scene !== 'aroll' ? SCENES.find(s => s[0] === b.scene)[1] : look}`, `data-beat="${i}"`)).join('')]);
   { const lanes = vfxLanes(), n = Math.max(1, ...lanes.map(l => l + 1));
+    tracks.push(['Elements', (S.els || []).map(e => blk('t-el' + (e.id === S.selEl ? ' sel' : ''), e.start, e.end, e.file.replace(/^el-/, ''), `data-el="${e.id}"`).replace('</span></div>', '</span><i class="hnd l"></i><i class="hnd r"></i></div>')).join('') || '<div class="tlnone">No elements. Upload one in Elements.</div>']);
+    tracks.push(['Word anims', (S.wordAnims || []).map((r, k) => blk('t-wa', r.a, Math.max(r.b, r.a + .25), (animById(r.anim) || { name: r.anim }).name, `data-wa="${k}"`)).join('') || '<div class="tlnone">No animated words. Use Animate.</div>']);
     tracks.push(['Effects', S.vfx.map((e, k) => blk('t-vfx' + (e.id === S.sel ? ' sel' : ''), e.start, e.end, '/' + e.fx, `data-vfx="${e.id}"`, `top:${4 + lanes[k] * 32}px`).replace('</span></div>', '</span><i class="hnd l"></i><i class="hnd r"></i></div>')).join('') || '<div class="tlnone">No effects yet. Pick one from Effects, or ask in the chat.</div>', '', 8 + n * 32]); }
   // V2 titles and effects
   let v2 = ''; const b0 = S.beats[0];
@@ -819,6 +825,8 @@ async function copyPlan() { const txt = planText(); try { await navigator.clipbo
 const ICON = d => `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const RAIL = [['videos', 'Videos', ICON('<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z"/>')],
   ['effects', 'Effects', ICON('<path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M5.6 18.4l2.8-2.8M15.6 8.4l2.8-2.8"/>')],
+  ['anims', 'Animate', ICON('<path d="M4 18c4 0 5-12 9-12 2.5 0 3.5 4 7 4"/><circle cx="4" cy="18" r="1.6" fill="currentColor"/>')],
+  ['elements', 'Elements', ICON('<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m4 18 5.5-5 4 3.5 2.5-2 4 3.5"/>')],
   ['captions', 'Captions', ICON('<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M7 11h4M13 11h4M7 15h7"/>')],
   ['fonts', 'Fonts', ICON('<path d="M4 19 9 5l5 14M6 14h6M15 19v-6.5a2.5 2.5 0 0 1 5 0V19M15 15.5h5"/>')],
   ['colours', 'Colours', ICON('<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17a8.5 8.5 0 0 0 0-17z" fill="currentColor"/>')],
@@ -827,6 +835,8 @@ const RAIL = [['videos', 'Videos', ICON('<rect x="3" y="5" width="18" height="14
   ['styles', 'Templates', ICON('<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>')],
   ['watch', 'Export', ICON('<path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/>')]];
 const PANELS = { videos: ['Videos', 'Your clips. Pick one to edit it.'], effects: ['Effects library', 'Tap one to add it at the playhead. Drag it on the timeline to move it. The render draws them; "Check frames" shows a preview.'],
+  anims: ['Animate', 'Pick caption words (tap the first, then the last), then tap an animation. With an element selected, tapping one sets how it comes in. Grab new animations from a reference reel in Ingest style.'],
+  elements: ['Elements', 'Upload images (PNG with a transparent background works best), tap one to put it on the video at the playhead, then drag it on the video to place it.'],
   styles: ['Templates', 'Saved styles. Apply one to this clip, or save the current edit as a style.'] };
 const fmt = t => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 const LOOKS = ['raw', 'bright', 'warm', 'teal', 'punchy', 'bw'];
@@ -858,6 +868,8 @@ function renderPanel() {
       $('#fxgrid').querySelectorAll('.fxt').forEach(b => b.onclick = () => addVfx(b.dataset.fx)); };
     $('#fxq').oninput = e => { S.fxq = e.target.value; draw(); }; draw();
   }
+  if (S.panel === 'anims') animPanel(body);
+  if (S.panel === 'elements') elPanel(body);
   if (S.panel === 'videos') {
     body.innerHTML = `<div class="vlist">${(S.clips || []).map((c, i) => `<button class="take${S.clip && c.name === S.clip.name ? ' on' : ''}" data-clip="${esc(c.name)}">${c.proxy ? `<video muted playsinline preload="metadata" src="${esc(c.proxy)}#t=0.5"></video>` : ''}<span><b>Take ${i + 1}</b>${esc(c.name)}<small>${c.status === 'ready' ? '' : esc(c.status)} <i data-d></i></small></span></button>`).join('')}</div>
       <div class="row"><button class="primary" id="vadd">+ Add clip</button><button id="vingest">Ingest a style from a reel</button></div>`;
@@ -875,9 +887,10 @@ function renderPanel() {
 /* ---------- effects from the effects skill (drawn by fx.py in the render) ---------- */
 let VFX_N = 0; const vfxId = () => 'e' + (++VFX_N);
 const vfxOut = () => (S.vfx || []).map(e => ({ fx: e.fx, start: +(+e.start).toFixed(2), end: +(+e.end).toFixed(2), opts: Object.fromEntries(Object.entries(e.opts || {}).filter(([, v]) => String(v).trim() !== '')) }));
-function vfxSave() { try { localStorage.setItem('studio-vfx:' + S.clip.name, JSON.stringify(vfxOut())); } catch {} }
+function vfxSave() { try { localStorage.setItem('studio-vfx:' + S.clip.name, JSON.stringify(vfxOut())); localStorage.setItem('studio-els:' + S.clip.name, JSON.stringify({ els: S.els, wordAnims: S.wordAnims })); } catch {} }
 function vfxLoad(c) {
-  S.vfx = []; S.sel = null; S.panel = 'effects';
+  S.vfx = []; S.sel = null; S.selEl = null; S.els = []; S.wordAnims = []; S.wsel = null; S.panel = 'effects';
+  try { const d = JSON.parse(localStorage.getItem('studio-els:' + c.name) || '{}') || {}; S.els = (d.els || []).map(e => ({ ...e, id: vfxId() })); S.wordAnims = d.wordAnims || []; } catch {}
   try { S.vfx = (JSON.parse(localStorage.getItem('studio-vfx:' + c.name) || '[]') || []).filter(e => VFXN(e.fx)).map(e => ({ ...e, id: vfxId(), opts: { ...(e.opts || {}) } })); } catch {}
   try { S.chat = JSON.parse(localStorage.getItem('studio-chat:' + c.name) || '[]') || []; } catch { S.chat = []; }
   renderChat(); renderTakes();
@@ -891,7 +904,7 @@ function addVfx(fx, start, end, opts, quiet) {
   let a = start ?? (main ? main.v.currentTime : 0); a = clamp(a, 0, Math.max(0, S.dur - .5));
   let b = end ?? a + len; b = clamp(b, a + .3, S.dur);
   const e = { id: vfxId(), fx, start: +a.toFixed(2), end: +b.toFixed(2), opts: { ...(f[3] || {}), ...(opts || {}) } };
-  S.vfx.push(e); S.vfx.sort((x, y) => x.start - y.start); S.sel = e.id; vfxSave();
+  S.vfx.push(e); S.vfx.sort((x, y) => x.start - y.start); S.sel = e.id; S.selEl = null; vfxSave();
   if (!quiet) { toast(`Added /${fx} at ${a.toFixed(1)}s`); renderStep(); }
   return e;
 }
@@ -905,10 +918,11 @@ function fxMark(t, raw) {
   zone.hidden = !act.length; cnt.hidden = raw || !(S.vfx || []).length; cnt.textContent = (S.vfx || []).length + ' fx';
 }
 function vfxDrag(inner) {
-  inner.querySelectorAll('[data-vfx]').forEach(el => {
+  inner.querySelectorAll('[data-wa]').forEach(el => el.onclick = ev => { ev.stopPropagation(); S.panel = 'anims'; renderStep(); });
+  inner.querySelectorAll('[data-vfx],[data-el]').forEach(el => {
     el.onpointerdown = ev => {
       if (TL.range) return; ev.stopPropagation(); ev.preventDefault();
-      const e = S.vfx.find(x => x.id === el.dataset.vfx); if (!e) return;
+      const isEl = !!el.dataset.el, e = isEl ? S.els.find(x => x.id === el.dataset.el) : S.vfx.find(x => x.id === el.dataset.vfx); if (!e) return;
       const mode = ev.target.classList.contains('l') ? 'l' : ev.target.classList.contains('r') ? 'r' : 'm';
       const W = inner.getBoundingClientRect().width, x0 = ev.clientX, a0 = e.start, b0 = e.end; let moved = false;
       el.setPointerCapture(ev.pointerId);
@@ -917,7 +931,7 @@ function vfxDrag(inner) {
         if (mode === 'l') e.start = clamp(a0 + dt, 0, e.end - .3); if (mode === 'r') e.end = clamp(b0 + dt, e.start + .3, S.dur);
         el.style.left = (e.start / S.dur * 100) + '%'; el.style.width = ((e.end - e.start) / S.dur * 100) + '%'; };
       el.onpointerup = () => { el.onpointermove = el.onpointerup = null; e.start = +e.start.toFixed(2); e.end = +e.end.toFixed(2);
-        S.sel = e.id; main.win = null; main.v.currentTime = e.start; if (moved) vfxSave(); tlRender(); renderInsp(); };
+        if (isEl) { S.selEl = e.id; S.sel = null; } else { S.sel = e.id; S.selEl = null; } main.win = null; main.v.currentTime = e.start; if (moved) vfxSave(); tlRender(); renderInsp(); };
     };
   });
 }
@@ -925,6 +939,7 @@ function vfxDrag(inner) {
 function renderInsp() {
   const el = $('#inspbody'); if (!el || !S.clip) return;
   const pill = $('#pill'); if (pill) { pill.hidden = !S.dur; pill.textContent = `${fmt(S.dur || 0)} · ${(S.vfx || []).length} fx`; }
+  if (S.selEl && (S.els || []).some(x => x.id === S.selEl)) return elInsp(el);
   const e = (S.vfx || []).find(x => x.id === S.sel);
   if (!e) {
     const row = (k, v) => `<div><span>${k}</span><b>${esc(v)}</b></div>`;
@@ -976,12 +991,15 @@ function chatCatalog() {
   return { effects: VFX.map(f => ({ id: f[0], does: f[1], options: f[2].map(o => `${o[0]}: ${o[1]}`) })),
     grades: GRADES.map(g => [g[0], g[1]]), fonts: FONTS.map(f => [f[0], f[1]]), captions: CAPS.map(c => [c[0], c[1]]),
     caption_options: { group: 'words at a time', size: 'text size (about 4 to 15)', weight: '400 to 900', y: 'height, % from top (keep 12 to 78)', upper: 'true/false', lower: 'true/false', stroke: 'outline width 0 to 1', box: 'true/false', boxColor: 'hex', anim: ANIMS.map(a => a[0]).join('|'), hl: HLS.map(h => h[0]).join('|'), align: 'left|center|right', color: 'hex', accent: 'hex highlight', offset: 'seconds shift', linger: 'seconds to hold' },
+    animations: animLib().map(a => ({ id: a.id, name: a.name, seconds: a.dur, easing: a.ease || '' })), element_files: (ELFILES || []).map(f => f.file),
+    element_looks: LOOKS_EL.map(l => l[0]), element_loops: LOOPS_EL.map(l => l[0]),
     hooks: HOOKS.map(h => [h[0], h[1]]), whole: WHOLE.map(w => [w[0], w[1]]), sounds: SOUNDS.map(s => [s[0], s[1]]), voice: Object.keys(VOICE) };
 }
 function chatState() {
   return { clip: S.clip.name, duration: +S.dur.toFixed(2), playhead: +(main ? main.v.currentTime : 0).toFixed(2), selected_effect: S.sel,
     effects: S.vfx.map(e => ({ id: e.id, fx: e.fx, start: e.start, end: e.end, opts: e.opts })),
-    grade: S.grade, lut: S.lut ? { name: S.lut.name, amount: S.lutAmount } : null, font: S.font, captions: S.caption, caption_options: S.capEdit, hook: S.hook,
+    elements: (S.els || []).map(e => ({ id: e.id, file: e.file, start: e.start, end: e.end, x: e.x, y: e.y, w: e.w, rot: e.rot || 0, look: e.look, loop: e.loop, in: e.in, out: e.out })), selected_element: S.selEl,
+    word_animations: S.wordAnims, grade: S.grade, lut: S.lut ? { name: S.lut.name, amount: S.lutAmount } : null, font: S.font, captions: S.caption, caption_options: S.capEdit, hook: S.hook,
     whole: [...S.whole], sounds: [...S.snd], voice: S.voice, cuts: S.cuts.map(c => [c.a, c.b]),
     beats: S.beats.map(b => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text })),
     transcript: S.words.map(w => `${w.word}@${w.start.toFixed(2)}`).join(' ') };
@@ -1009,6 +1027,11 @@ function applyOps(ops) {
         case 'set_voice': if (VOICE[o.value]) { S.voice.preset = o.value; if (o.start != null) S.voice.amount = clamp(+o.start, 0, 100); applyVoice(); n++; } break;
         case 'cut': if (o.end > o.start) { addCut({ a: clamp(+o.start, 0, S.dur), b: clamp(+o.end, 0, S.dur), kind: 'manual', label: 'Cut' }, true); refreshLive(); saveCuts(); n++; } break;
         case 'restore_cuts': S.cuts = []; refreshLive(); saveCuts(); n++; break;
+        case 'animate_words': if (animById(o.value) && o.end >= o.start) { setWordAnim(+o.start, +o.end, o.value); n++; } break;
+        case 'clear_word_animations': S.wordAnims = (S.wordAnims || []).filter(r => o.start == null ? false : (r.b < +o.start || r.a > +o.end)); n++; break;
+        case 'add_element': if ((ELFILES || []).some(f => f.file === o.value)) { const e = addEl(o.value, o.start ?? undefined, o.end ?? undefined, true); if (e) { Object.assign(e, elOpts(opt(o.opts))); n++; } } break;
+        case 'update_element': { const x = S.els.find(q => q.id === (o.id || S.selEl)); if (x) { if (o.start != null) x.start = clamp(+o.start, 0, S.dur - .2); if (o.end != null) x.end = clamp(+o.end, x.start + .2, S.dur); Object.assign(x, elOpts(opt(o.opts))); S.selEl = x.id; S.sel = null; n++; } } break;
+        case 'remove_element': { const x = S.els.find(q => q.id === (o.id || S.selEl)); if (x) { S.els = S.els.filter(q => q !== x); if (S.selEl === x.id) S.selEl = null; n++; } } break;
         case 'seek': if (o.start != null) { main.win = null; main.v.currentTime = clamp(+o.start, 0, S.dur); n++; } break;
       }
     } catch (err) { console.error('Edit failed', o, err); }
@@ -1043,3 +1066,142 @@ $('#chatin').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preven
     $('#micbtn').classList.add('on'); rec.start(); };
 }
 $('#previewbtn').onclick = () => { if (!main) return; main.win = null; S.mode = 'edit'; main.v.currentTime = 0; S.sound = true; main.v.muted = false; applyVoice(); $('#snd').textContent = '🔊'; main.v.play().catch(() => {}); $('#play').textContent = '❚❚'; };
+
+/* ---------- animations: built-in + grabbed from reference reels, applied to caption words or elements ---------- */
+S.anims = ANIM_BUILTIN.slice(); S.wordAnims = []; S.els = [];
+async function loadAnims() {
+  const extra = [];
+  for (const u of ['animations.json', '/api/animations']) { try { const r = await fetch(u); if (r.ok) (await r.json()).forEach(a => a && Array.isArray(a.keys) && extra.push(a)); } catch {} }
+  S.anims = ANIM_BUILTIN.concat(extra.filter((a, i) => !ANIM_BUILTIN.some(b => b.id === a.id) && extra.findIndex(b => b.id === a.id) === i));
+}
+const usedAnims = () => { const ids = new Set([...(S.wordAnims || []).map(r => r.anim), ...(S.els || []).flatMap(e => [e.in, e.out])]); return S.anims.filter(a => ids.has(a.id) && !ANIM_BUILTIN.some(b => b.id === a.id)); };
+function setWordAnim(a, b, anim) {   // replace any animation on those words
+  S.wordAnims = (S.wordAnims || []).filter(r => r.b < a - .01 || r.a > b + .01);
+  if (anim) S.wordAnims.push({ a: +a.toFixed(2), b: +b.toFixed(2), anim }); S.wordAnims.sort((x, y) => x.a - y.a); vfxSave();
+}
+let ANIM_DEMO = [];
+(function demoLoop(ts) {   // little looping demos on the animation cards
+  ANIM_DEMO = ANIM_DEMO.filter(d => d.el.isConnected);
+  ANIM_DEMO.forEach(d => { const a = animById(d.id); if (!a) return; const cyc = a.dur + .9, p = ((ts / 1000) % cyc) / a.dur; d.el.style.cssText = 'display:inline-block;' + animCss(animAt(a, Math.min(1, p))); });
+  requestAnimationFrame(demoLoop); })(0);
+function animCards(onPick, current) {
+  return `<div class="animgrid">${animLib().map(a => `<button class="animc${a.id === current ? ' on' : ''}" data-anim="${esc(a.id)}"><div class="animstage"><span class="animdemo" data-demo="${esc(a.id)}">Aa</span></div><b>${esc(a.name)}</b><small>${a.dur.toFixed(2)} s${a.from ? ' · grabbed' : ''}</small></button>`).join('')}</div>`;
+}
+function wireAnimCards(box, onPick) {
+  box.querySelectorAll('[data-demo]').forEach(el => ANIM_DEMO.push({ el, id: el.dataset.demo }));
+  box.querySelectorAll('[data-anim]').forEach(b => b.onclick = () => onPick(b.dataset.anim));
+}
+function animPanel(body) {
+  const W = S.words || [], sel = S.wsel, inSel = i => sel && i >= Math.min(...sel) && i <= Math.max(...sel);
+  const animOf = w => wordAnimFor(w);
+  body.innerHTML = `<h3>Caption words</h3><div class="wchips">${W.map((w, i) => `<button class="wchip${inSel(i) ? ' sel' : ''}${animOf(w) ? ' anim' : ''}" data-w="${i}" title="${w.start.toFixed(2)}s${animOf(w) ? ' · ' + esc(animOf(w).anim) : ''}">${esc(w.word)}</button>`).join('') || '<p class="help">No transcript yet.</p>'}</div>
+    <div class="row">${sel ? `<span class="help">${Math.abs(sel[1] - sel[0]) + 1} word(s) picked. Tap an animation below.</span><button id="wclear">Remove their animation</button><button id="wnone">Unpick</button>` : '<span class="help">Tap a word, then another to pick a run of words.</span>'}</div>
+    ${!S.caption ? '<p class="help">Captions are off: pick a caption style on Captions so the words show.</p>' : ''}
+    <h3>Animations</h3>${animCards()}<div class="row"><button id="grabmore">Grab one from a reference reel</button></div>
+    ${(S.wordAnims || []).length ? `<h3>Animated words</h3><div class="sum">${S.wordAnims.map((r, k) => `<div><span>${esc(W.filter(w => w.start >= r.a - .01 && w.start <= r.b + .01).map(w => w.word).join(' ') || r.a + 's')}</span><b>${esc((animById(r.anim) || { name: r.anim }).name)} <button data-rm="${k}">×</button></b></div>`).join('')}</div>` : ''}`;
+  body.querySelectorAll('[data-w]').forEach(b => b.onclick = () => { const i = +b.dataset.w; S.wsel = !S.wsel || S.wsel[0] !== S.wsel[1] ? [i, i] : [S.wsel[0], i];
+    main.win = null; main.v.currentTime = W[i].start; renderStep(); });
+  wireAnimCards(body, id => {
+    const el = S.selEl && S.els.find(x => x.id === S.selEl);
+    if (S.wsel) { const [i0, i1] = [Math.min(...S.wsel), Math.max(...S.wsel)]; setWordAnim(W[i0].start, W[i1].start, id); main.win = null; main.v.currentTime = Math.max(0, W[i0].start - .3); main.v.play().catch(() => {}); $('#play').textContent = '❚❚'; toast('Animated ' + (i1 - i0 + 1) + ' word(s)'); }
+    else if (el) { el.in = id; vfxSave(); toast('Comes in with ' + animById(id).name); }
+    else return toast('Pick caption words first, or select an element');
+    renderStep(); });
+  $('#wclear') && ($('#wclear').onclick = () => { const [i0, i1] = [Math.min(...S.wsel), Math.max(...S.wsel)]; setWordAnim(W[i0].start, W[i1].start, null); renderStep(); });
+  $('#wnone') && ($('#wnone').onclick = () => { S.wsel = null; renderStep(); });
+  body.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { S.wordAnims.splice(+b.dataset.rm, 1); vfxSave(); renderStep(); });
+  $('#grabmore').onclick = () => $('#ingestbtn').click();
+}
+
+/* ---------- elements: uploaded images on the video ---------- */
+let ELFILES = [];
+async function loadEls() { try { ELFILES = await (await fetch('/api/elements')).json(); } catch { ELFILES = []; } }
+function elOpts(o) {
+  const out = {}, n = (k, a, b) => { if (o[k] != null && o[k] !== '' && !isNaN(+o[k])) out[k] = clamp(+o[k], a, b); };
+  n('x', 0, 100); n('y', 0, 100); n('w', 3, 120); n('rot', -180, 180);
+  if (LOOKS_EL.some(l => l[0] === o.look)) out.look = o.look; if (LOOPS_EL.some(l => l[0] === o.loop)) out.loop = o.loop;
+  ['in', 'out'].forEach(k => { if (o[k] === 'none') out[k] = null; else if (o[k] && animById(o[k])) out[k] = o[k]; });
+  return out;
+}
+function addEl(file, start, end, quiet) {
+  if (!S.dur) return null; let a = start ?? (main ? main.v.currentTime : 0); a = clamp(a, 0, Math.max(0, S.dur - .5));
+  const e = { id: vfxId(), file, start: +a.toFixed(2), end: +clamp(end ?? a + 3, a + .3, S.dur).toFixed(2), x: 50, y: 38, w: 44, rot: 0, look: 'shadow', loop: 'none', in: 'pop', out: 'fade' };
+  S.els.push(e); S.selEl = e.id; S.sel = null; vfxSave(); if (!quiet) { toast('Element added. Drag it on the video to place it.'); renderStep(); } return e;
+}
+function elPanel(body) {
+  body.innerHTML = `<div class="row"><input type="file" id="elfile" accept="image/*" multiple hidden><button class="primary" id="elup">Upload images</button></div>
+    <div id="elmsg" class="help"></div><div class="elgrid">${ELFILES.map(f => `<button class="elt" data-file="${esc(f.file)}" style="background-image:url('/shots/${encodeURIComponent(f.file)}')"><b>${esc(f.file.replace(/^el-/, ''))}</b></button>`).join('') || '<p class="help">Nothing uploaded yet.</p>'}</div>
+    ${(S.els || []).length ? `<h3>On this video</h3><div class="sum">${S.els.map(e => `<div><span>${esc(e.file.replace(/^el-/, ''))}</span><b>${e.start.toFixed(1)}–${e.end.toFixed(1)}s <button data-pick="${e.id}">Edit</button></b></div>`).join('')}</div>` : ''}`;
+  $('#elup').onclick = () => $('#elfile').click();
+  $('#elfile').onchange = async ev => { const files = [...ev.target.files]; for (const f of files) { $('#elmsg').textContent = 'Uploading ' + f.name + '...';
+      try { const named = new File([f], 'el-' + f.name, { type: f.type }); const r = await sendAsset(named); if (r.error) throw new Error(r.error); } catch (e) { $('#elmsg').textContent = 'Upload failed: ' + (e.message || e); return; } }
+    await loadEls(); toast(files.length + ' uploaded'); renderStep(); };
+  body.querySelectorAll('[data-file]').forEach(b => b.onclick = () => addEl(b.dataset.file));
+  body.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => { S.selEl = b.dataset.pick; S.sel = null; renderStep(); });
+}
+function elInsp(box) {
+  const e = S.els.find(x => x.id === S.selEl), opt = (list, v) => list.map(([k, n]) => `<option value="${k}"${k === v ? ' selected' : ''}>${esc(n)}</option>`).join('');
+  const anims = v => `<option value="none">None</option>` + animLib().map(a => `<option value="${esc(a.id)}"${a.id === v ? ' selected' : ''}>${esc(a.name)}</option>`).join('');
+  box.innerHTML = `<h2>${esc(e.file.replace(/^el-/, ''))}</h2><p class="help">Drag on the video to move it.</p><div class="props">
+    <div><span>Start</span><input type="number" step="0.1" data-n="start" value="${e.start}"></div><div><span>End</span><input type="number" step="0.1" data-n="end" value="${e.end}"></div>
+    <div><span>Size</span><input type="range" min="5" max="110" data-n="w" value="${e.w}"></div><div><span>Rotate</span><input type="range" min="-45" max="45" data-n="rot" value="${e.rot || 0}"></div>
+    <div><span>Look</span><select data-s="look">${opt(LOOKS_EL, e.look)}</select></div><div><span>Motion</span><select data-s="loop">${opt(LOOPS_EL, e.loop)}</select></div>
+    <div><span>Comes in</span><select data-s="in">${anims(e.in)}</select></div><div><span>Goes out</span><select data-s="out">${anims(e.out)}</select></div></div>
+    <div class="inspbtns"><button id="eplay">▶ Play it</button><button id="edel">Delete</button><button id="edone">Done</button></div>`;
+  box.querySelectorAll('[data-n]').forEach(i => i.oninput = () => { const k = i.dataset.n, v = +i.value; if (!Number.isFinite(v)) return;
+    if (k === 'start') e.start = clamp(v, 0, e.end - .2); else if (k === 'end') e.end = clamp(v, e.start + .2, S.dur); else e[k] = v; vfxSave(); if (k === 'start' || k === 'end') tlRender(); });
+  box.querySelectorAll('[data-s]').forEach(i => i.onchange = () => { e[i.dataset.s] = i.value === 'none' ? null : i.value; vfxSave(); });
+  $('#eplay').onclick = () => { main.win = null; main.v.currentTime = e.start; main.v.play().catch(() => {}); $('#play').textContent = '❚❚'; };
+  $('#edel').onclick = () => { S.els = S.els.filter(x => x !== e); S.selEl = null; vfxSave(); renderStep(); };
+  $('#edone').onclick = () => { S.selEl = null; tlRender(); renderInsp(); };
+}
+// drag the selected element on the preview
+$('#main').addEventListener('pointerdown', ev => {
+  const e = S.selEl && (S.els || []).find(x => x.id === S.selEl); if (!e) return;
+  const r = $('#main').getBoundingClientRect(), mv = m => { e.x = +clamp((m.clientX - r.left) / r.width * 100, 0, 100).toFixed(1); e.y = +clamp((m.clientY - r.top) / r.height * 100, 0, 100).toFixed(1); };
+  const t = main.v.currentTime; if (t < e.start || t > e.end) { main.v.currentTime = Math.min(e.end - .05, e.start + 1); }
+  mv(ev); $('#main').setPointerCapture(ev.pointerId); ev.preventDefault();
+  $('#main').onpointermove = mv; $('#main').onpointerup = () => { $('#main').onpointermove = $('#main').onpointerup = null; vfxSave(); };
+});
+
+/* ---------- grab an animation from a reference reel (ingest screen) ---------- */
+function openGrab(r, card) {
+  card.querySelector('.grab')?.remove();
+  const g = document.createElement('div'); g.className = 'grab'; card.appendChild(g);
+  g.innerHTML = `<h4>Grab an animation</h4><p class="help">Play to the move, set start just before it and end after it settles, then drag a box around the thing that moves (leave some background around it).</p>
+    <div class="gwrap"><video playsinline muted preload="auto" crossorigin="anonymous" src="${esc(r.src)}"></video><div class="gbox" hidden></div></div>
+    <div class="row"><button data-g="play">▶</button><input type="range" data-g="scrub" min="0" max="1000" value="0"><span class="help" data-g="t">0.00s</span></div>
+    <div class="row"><button data-g="a">Start here</button><button data-g="b">End here</button><span class="help" data-g="ab">Start –, end –</span></div>
+    <div class="row"><input type="text" data-g="name" placeholder="Name, e.g. red word pop"><select data-g="kind"><option value="auto">Guess</option><option value="in">It appears</option><option value="out">It leaves</option></select><button class="primary" data-g="go">Grab</button></div>
+    <div class="help" data-g="msg"></div>`;
+  const v = g.querySelector('video'), wrap = g.querySelector('.gwrap'), bx = g.querySelector('.gbox'), q = k => g.querySelector(`[data-g="${k}"]`);
+  let A = null, B = null, box = null;
+  v.onloadedmetadata = () => { wrap.style.aspectRatio = v.videoWidth + '/' + v.videoHeight; };
+  v.ontimeupdate = () => { q('t').textContent = v.currentTime.toFixed(2) + 's'; q('scrub').value = 1000 * v.currentTime / (v.duration || 1); };
+  q('play').onclick = () => { v.paused ? v.play() : v.pause(); q('play').textContent = v.paused ? '▶' : '❚❚'; };
+  q('scrub').oninput = e => { v.currentTime = e.target.value / 1000 * (v.duration || 0); };
+  const ab = () => q('ab').textContent = `Start ${A == null ? '–' : A.toFixed(2) + 's'}, end ${B == null ? '–' : B.toFixed(2) + 's'}${A != null && B != null ? ` (${(B - A).toFixed(2)} s)` : ''}`;
+  q('a').onclick = () => { A = v.currentTime; ab(); }; q('b').onclick = () => { B = v.currentTime; ab(); };
+  wrap.onpointerdown = ev => { ev.preventDefault(); const rc = wrap.getBoundingClientRect(), p0 = [(ev.clientX - rc.left) / rc.width, (ev.clientY - rc.top) / rc.height];
+    wrap.setPointerCapture(ev.pointerId);
+    wrap.onpointermove = m => { const p1 = [clamp((m.clientX - rc.left) / rc.width, 0, 1), clamp((m.clientY - rc.top) / rc.height, 0, 1)];
+      box = [Math.min(p0[0], p1[0]), Math.min(p0[1], p1[1]), Math.abs(p1[0] - p0[0]), Math.abs(p1[1] - p0[1])];
+      Object.assign(bx.style, { left: box[0] * 100 + '%', top: box[1] * 100 + '%', width: box[2] * 100 + '%', height: box[3] * 100 + '%' }); bx.hidden = false; };
+    wrap.onpointerup = () => { wrap.onpointermove = wrap.onpointerup = null; }; };
+  q('go').onclick = async () => {
+    if (A == null || B == null || B <= A) return q('msg').textContent = 'Set the start and the end first.';
+    if (!box || box[2] < .02 || box[3] < .02) return q('msg').textContent = 'Drag a box around the thing that moves.';
+    q('go').disabled = true; q('msg').innerHTML = '<span class="spin"></span> Grabbing... about a minute.';
+    try {
+      const d = await (await fetch('/api/anim-grab', { method: 'POST', body: JSON.stringify({ source: r.name, ref: r.id, name: q('name').value.trim() || 'grabbed', start: A, end: B, box, kind: q('kind').value }) })).json();
+      if (d.error) throw new Error(d.error);
+      for (let i = 0; i < 90; i++) { await new Promise(res => setTimeout(res, 3000));
+        const j = await (await fetch('/api/job?id=' + encodeURIComponent(d.job))).json();
+        if (j.status === 'error') throw new Error(j.message);
+        if (j.status === 'done') { await loadAnims(); const a = animById(d.id);
+          q('msg').innerHTML = `Saved <b>${esc(a ? a.name : d.id)}</b>${a ? ` · ${a.dur.toFixed(2)} s · ${esc(a.ease || '')}` : ''}. It's in Animate now.<br><img class="sheet" src="/shots/anim-${encodeURIComponent(d.id)}.jpg">`; break; }
+        q('msg').innerHTML = `<span class="spin"></span> Grabbing... ${(i + 1) * 3}s`; }
+    } catch (e) { q('msg').textContent = 'Grab failed: ' + (e.message || e); }
+    q('go').disabled = false; };
+}
+loadAnims(); loadEls();
