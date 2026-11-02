@@ -143,7 +143,7 @@ function renderStep() {
   const w0 = [0, Math.min(3, S.dur)]; main.win = null;
   const grid = () => body.insertAdjacentHTML('beforeend', '<div class="grid"></div>');
   if (id === 'colours') { grid(); GRADES.forEach((g, i) => card(i, g[1], () => { S.grade = g[0]; S.done.add(0); toast('Grade: ' + g[1]); renderStep(); }, () => ({ ...baseCfg(), grade: g[0] }), w0, S.grade === g[0])); lutSection(body); }
-  if (id === 'fonts') { grid(); FONTS.forEach((f, i) => card(i, f[1], () => { S.font = f[0]; S.done.add(1); toast('Font: ' + f[1]); renderStep(); }, () => ({ ...baseCfg(), font: f[0], caption: S.caption || 'groups' }), w0, S.font === f[0])); }
+  if (id === 'fonts') { fontUploads(body); grid(); FONTS.forEach((f, i) => card(i, f[1], () => { S.font = f[0]; S.done.add(1); toast('Font: ' + f[1]); renderStep(); }, () => ({ ...baseCfg(), font: f[0], caption: S.caption || 'groups' }), w0, S.font === f[0])); }
   if (id === 'captions') { txEditor(body); grid(); CAPS.forEach((c, i) => card(i, c[1], () => { S.caption = c[0]; S.capEdit = {}; S.done.add(2); toast(`Synced captions to ${S.words.length} words`); renderStep(); }, () => ({ ...baseCfg(), caption: c[0], capOpts: {} }), w0, S.caption === c[0])); capEditor(body); }
   if (id === 'beats') renderBeats(body);
   if (id === 'sound') { voiceSection(body); body.insertAdjacentHTML('beforeend', '<h3>Sound effects and music</h3><div class="sounds"></div>'); SOUNDS.forEach(s => { const b = document.createElement('button'); b.textContent = s[1]; b.className = S.snd.has(s[0]) ? 'on' : '';
@@ -180,7 +180,7 @@ function renderBeats(body) {
     cards.push(new Stage(d, { cfg: () => ({ ...baseCfg(), whole: new Set([w[0]]) }), win: [b.t0, Math.min(b.t1, b.t0 + 4)] })); });
 }
 function styleObj(name) { return { name, clip: S.clip.name, grade: S.grade, font: S.font, caption: S.caption, hook: S.hook, lut: S.lut ? S.lut.id : null, lutAmount: S.lut ? S.lutAmount : null, voice: { ...S.voice }, capOpts: S.capEdit, cuts: S.cuts.map(c => [+c.a.toFixed(3), +c.b.toFixed(3)]), dur: +S.dur.toFixed(2),
-  beats: S.beats.map((b, i) => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text, effects: S.fx[i], shot: b.shot || null, shotUrl: b.shotUrl || null, scene: b.scene || 'aroll', sceneOpts: b.sceneOpts || {}, image: b.image || null, note: b.note || '' })), whole: [...S.whole], sounds: [...S.snd], vfx: vfxOut(), els: (S.els || []).map(({ id, ...e }) => e), wordAnims: S.wordAnims || [], anims: usedAnims() }; }
+  beats: S.beats.map((b, i) => ({ start: +b.t0.toFixed(2), end: +b.t1.toFixed(2), text: b.text, effects: S.fx[i], shot: b.shot || null, shotUrl: b.shotUrl || null, scene: b.scene || 'aroll', sceneOpts: b.sceneOpts || {}, image: b.image || null, note: b.note || '' })), whole: [...S.whole], sounds: [...S.snd], vfx: vfxOut(), fonts: usedFonts(), els: (S.els || []).map(({ id, ...e }) => e), wordAnims: S.wordAnims || [], anims: usedAnims() }; }
 const renderName = () => S.clip.name.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'render';
 const dlUrl = u => CFG.blob ? u + (u.includes('?') ? '&' : '?') + 'download=1' : u;   // Blob serves ?download=1 as a file download
 async function showRenders(name) {
@@ -1213,3 +1213,45 @@ function openGrab(r, card) {
     q('go').disabled = false; };
 }
 loadAnims(); loadEls();
+
+/* ---------- your fonts: uploaded .ttf/.otf/.woff/.woff2, usable as the font pair and in the caption editor ---------- */
+let MYFONTS = [];
+const fontFamilyFromFile = n => n.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').replace(/["'\\<>;{}]/g, '').trim().slice(0, 60) || 'My font';
+function addFontFace(f) {   // one face covering every weight, so bold captions use the real font instead of a faked bold
+  if (document.fonts && ![...document.fonts].some(x => x.family.replace(/"/g, '') === f.family)) {
+    const ff = new FontFace(f.family, `url(/fontfiles/${encodeURIComponent(f.file)})`, { weight: '100 900' });
+    document.fonts.add(ff); ff.load().catch(() => toast(`Font "${f.family}" did not load`)); }
+  const id = 'up:' + f.id;
+  if (!FONTS.some(x => x[0] === id)) FONTS.push([id, f.family + ' (yours)', `"${f.family}"`, `"${f.family}"`]);
+  if (!CAP_FONTS.includes(f.family)) CAP_FONTS.push(f.family);
+}
+async function loadFonts() { try { MYFONTS = await (await fetch('/api/fonts')).json(); } catch { MYFONTS = []; } MYFONTS.forEach(addFontFace); }
+const usedFonts = () => MYFONTS.filter(f => S.font === 'up:' + f.id || (S.capEdit && S.capEdit.font === f.family));
+async function sendFont(file) {
+  const name = cleanName(file.name);
+  if (CFG.blob) { const { upload } = await import('https://esm.sh/@vercel/blob@0.27.3/client');
+    await upload('fonts/' + name, file, { access: 'public', handleUploadUrl: '/api/blob-token', contentType: file.type || 'font/' + name.split('.').pop().toLowerCase() }); return { file: name }; }
+  return (await fetch('/api/font-upload?name=' + encodeURIComponent(name), { method: 'POST', body: file })).json();
+}
+function fontUploads(body) {
+  body.insertAdjacentHTML('beforeend', `<h3>Your fonts</h3><div class="myfonts">${MYFONTS.map(f => `<div class="myfont"><span style="font-family:'${esc(f.family)}'">${esc(f.family)}</span><button data-use="${esc(f.id)}">Use</button><button data-del="${esc(f.id)}">×</button></div>`).join('') || '<p class="help">None yet. Upload .ttf, .otf, .woff or .woff2 files you have the rights to use.</p>'}</div>
+    <div class="row"><input type="file" id="fontfile" accept=".ttf,.otf,.woff,.woff2" multiple hidden><button id="fontup">Upload fonts</button><span class="help" id="fontmsg"></span></div><h3>Font pairs</h3>`);
+  $('#fontup').onclick = () => $('#fontfile').click();
+  $('#fontfile').onchange = async ev => {
+    for (const file of [...ev.target.files]) {
+      const msg = m => $('#fontmsg') && ($('#fontmsg').textContent = m), family = fontFamilyFromFile(file.name);
+      if (!/\.(ttf|otf|woff2?)$/i.test(file.name)) { msg(file.name + ' is not a font file'); continue; }
+      try { await new FontFace('check-' + Date.now(), await file.arrayBuffer()).load(); } catch { msg(file.name + ' could not be read as a font'); continue; }
+      msg('Uploading ' + file.name + '...');
+      try { const r = await sendFont(file); if (r.error) throw new Error(r.error);
+        const reg = await (await fetch('/api/font-register', { method: 'POST', body: JSON.stringify({ file: r.file || cleanName(file.name), family }) })).json(); if (reg.error) throw new Error(reg.error);
+        msg('Added ' + family);
+      } catch (e) { msg('Upload failed: ' + (e.message || e)); return; }
+    }
+    await loadFonts(); renderStep(); };
+  body.querySelectorAll('[data-use]').forEach(b => b.onclick = () => { S.font = 'up:' + b.dataset.use; S.done.add(1); toast('Font: ' + F(S.font)[1]); renderStep(); });
+  body.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { if (!confirm('Remove this font from the list?')) return;
+    await fetch('/api/font-delete', { method: 'POST', body: JSON.stringify({ id: b.dataset.del }) }); const id = 'up:' + b.dataset.del;
+    const i = FONTS.findIndex(x => x[0] === id); if (i >= 0) FONTS.splice(i, 1); if (S.font === id) S.font = 'inter'; await loadFonts(); renderStep(); });
+}
+loadFonts();

@@ -82,7 +82,7 @@ def workspace():
         if f.suffix in (".py", ".js", ".html"):
             shutil.copy(f, w / "tools" / f.name)
     (w / "studio").mkdir(); shutil.copy(EDIT / "studio" / "engine.js", w / "studio" / "engine.js")
-    for d in ("clips", "references", "styles", "shots", "luts", "projects"):
+    for d in ("clips", "references", "styles", "shots", "luts", "projects", "fonts"):
         (w / d).mkdir()
     return w
 
@@ -155,6 +155,8 @@ def j_render(a, w):
     for b in style.get("beats", []):
         for key in ("shot", "image"):
             if b.get(key): get(f"shots/{safe(b[key])}", w / "shots" / safe(b[key]))
+    for f in style.get("fonts") or []:
+        if f.get("file"): get(f"fonts/{safe(f['file'])}", w / "fonts" / safe(f["file"]))
     for e in style.get("els") or []:
         if e.get("file"): get(f"shots/{safe(e['file'])}", w / "shots" / safe(e["file"]))
     if style.get("lut"): get(f"luts/{slug(style['lut'])}.cube", w / "luts" / f"{slug(style['lut'])}.cube")

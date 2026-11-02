@@ -188,6 +188,13 @@ def build_project(name, style, clip, words, proj):
         for key in ("shot", "image"):
             if b.get(key) and (ROOT / "shots" / b[key]).exists():
                 shutil.copy(ROOT / "shots" / b[key], proj / "shots" / b[key])
+    (proj / "fonts").mkdir(exist_ok=True)
+    font_css = ""
+    for f in style.get("fonts") or []:   # uploaded fonts: one face covering every weight, as in the Studio
+        fam = re.sub(r"[\"'\\<>;{}]", "", str(f.get("family", "")))[:60]
+        if fam and f.get("file") and (ROOT / "fonts" / f["file"]).exists():
+            shutil.copy(ROOT / "fonts" / f["file"], proj / "fonts" / f["file"])
+            font_css += f"@font-face {{ font-family: '{fam}'; src: url('fonts/{f['file']}'); font-weight: 100 900; font-display: block; }}\n"
     for e in style.get("els") or []:   # uploaded elements live with the screenshots
         if e.get("file") and (ROOT / "shots" / e["file"]).exists():
             shutil.copy(ROOT / "shots" / e["file"], proj / "shots" / e["file"])
@@ -223,7 +230,7 @@ def build_project(name, style, clip, words, proj):
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family={FONTS}&display=swap" rel="stylesheet">
 <style>
-  * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+{font_css}  * {{ margin: 0; padding: 0; box-sizing: border-box; }}
   html, body {{ width: 1080px; height: 1920px; overflow: hidden; background: #000; }}
   #root {{ position: relative; width: 1080px; height: 1920px; overflow: hidden; container-type: size; }}
   #v {{ position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }}
@@ -241,6 +248,7 @@ def build_project(name, style, clip, words, proj):
   window.SHOT_BASE = 'shots/';
   const CFG = {json.dumps(cfg)};
   const st = CFG.style;
+  (st.fonts || []).forEach(f => {{ if (!FONTS.some(x => x[0] === 'up:' + f.id)) FONTS.push(['up:' + f.id, f.family, '"' + f.family + '"', '"' + f.family + '"']); }});
   S.words = CFG.words; S.dur = st.dur; S.wordAnims = st.wordAnims || []; S.anims = (st.anims || []).length ? ANIM_BUILTIN.concat(st.anims.filter(a => !ANIM_BUILTIN.some(b => b.id === a.id))) : []; S.cuts = (st.cuts || []).map(c => ({{ a: c[0], b: c[1] }})); refreshLive();
   // output time -> source time: the overlay is drawn in source time, the video has the cuts joined up
   const KEEP = CFG.keep; let acc = 0; const SEG = KEEP.map(([a, b]) => {{ const s0 = {{ a, b, o: acc }}; acc += b - a; return s0; }});

@@ -36,7 +36,7 @@ const STEPS = [
 /* ---------- state ---------- */
 const S = { clips: [], clip: null, words: [], dur: 0, step: 0, beat: 0, mode: 'edit',
   grade: 'raw', font: 'inter', caption: null, hook: null, fx: {}, whole: new Set(), snd: new Set(), done: new Set(), sound: false, capEdit: {}, lutAmount: 100, cuts: [], wordsLive: null, voice: { preset: 'off', amount: 100, nr: null } };
-const G = id => GRADES.find(g => g[0] === id), F = id => FONTS.find(f => f[0] === id);
+const G = id => GRADES.find(g => g[0] === id), F = id => FONTS.find(f => f[0] === id) || FONTS[0];   // an uploaded font that isn't loaded falls back to the first pair
 
 /* ---------- beats from the transcript ---------- */
 function makeBeats(words, dur) {

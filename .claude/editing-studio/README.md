@@ -106,3 +106,10 @@ The box under the right panel takes plain requests ("add a backdrop word CLAUDE 
 - **Elements** (rail): upload images (stored as `shots/el-*`), tap one to put it on the video at the playhead, drag it on the preview to place it. Per element: start/end, size, rotation, look (plain, rounded, shadow, white card, glass frame, sticker outline, circle), motion (float, pulse, wobble, slow spin), and an in and out animation from the same library. They sit above the effects and under the captions.
 - Presets saved as JSON in `.claude/editing-studio/animations/` ship with the app. For complex moves (several parts, a website) use `/reanimate` in a Claude session; keep its runs in `.claude/reanimate/<name>/`.
 - The chat can do all of this too ("make 'hours' drop and bounce", "put the smiley top right from 2 to 5 seconds with a sticker outline").
+
+## Your fonts
+On the Fonts step, **Upload fonts** takes .ttf, .otf, .woff and .woff2 files (only upload fonts you have the rights to use). Each is checked in the browser first, stored in `fonts/` (Blob, or the local data folder), and named from its file (`MyBrand-Bold.otf` becomes "My Brand Bold").
+- It shows under **Your fonts** (tap Use to make it the font pair), at the end of the font pair cards, and in the caption editor's Font menu, so captions can use it on their own.
+- One face covers every weight, so bold captions use the real font instead of a faked bold. Upload the weight you want to see.
+- The render copies the files of the uploaded fonts in use and loads them in the HyperFrames page, so the video matches the preview. Saved styles remember them.
+- × removes a font from the list (the file stays in storage).
