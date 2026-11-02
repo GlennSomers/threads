@@ -59,6 +59,10 @@ Whenever one of these skills creates or changes a file there, commit it and push
 
 Exception: `agent-reach` keeps its settings, cookies and API keys in `~/.agent-reach/`. Never copy that folder into the repo or commit any of its contents. Its temporary output stays in `/tmp/`.
 
+## Effects Skill
+
+`.claude/skills/effects` is Vibha Ramprakash's 45-effect pack (github.com/Vibha-Ramprakash/claude-video-effects), installed in the repo instead of `~/.claude/skills/effects` so it survives cloud sessions. Its `.venv/` is not committed: run `bash .claude/skills/effects/scripts/setup.sh` once per session before using it (on Linux mediapipe also needs `apt-get install libegl1`). The Editing Studio uses it for its Effects library and renders.
+
 ## Reel Drafts App
 
 - The web app lives in `web/` (Next.js, hosted on Vercel with `web` as the root directory). Its setup steps are in `web/README.md`.

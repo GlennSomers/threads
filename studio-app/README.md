@@ -26,6 +26,7 @@ What runs where
    - `STUDIO_PASSWORD`: the shared password. **Set this**, or anyone with the URL can use the app and your GitHub minutes.
    - `STUDIO_SECRET`: a long random string for the login cookie.
    - `GH_DISPATCH_TOKEN`: a fine-grained GitHub token for this repo with **Actions: Read and write**.
+   - `ANTHROPIC_API_KEY`: a Claude API key for the edit chat on the right ("say what to change"). Without it the chat says it isn't set up; everything else works.
    - `GH_REPO` (default `GlennSomers/threads`) and `GH_REF` (default `main`) if different.
 5. **GitHub repo secrets** (Settings > Secrets and variables > Actions): `BLOB_READ_WRITE_TOKEN` (same value as Vercel) and `GROQ_API_KEY`.
 6. Deploy, open the URL, log in.

@@ -1,6 +1,7 @@
 // One handler for every endpoint, so the hosted app and the local dev server behave the same.
 import { FS, putText, putBuffer, getJSON, getText, list, urlOf } from './store.js';
 import { dispatch, jobStatus } from './jobs.js';
+import { chat } from './chat.js';
 import { authOn, checkPassword, cookieFor, isAuthed } from './auth.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -117,6 +118,18 @@ export async function handle(req, res) {
       await dispatch('shot', { url, file }, `shot-${file}`); return send(res, 200, { file, pending: true });
     }
     if (route === '/api/ingests') return send(res, 200, await ingests());
+    if (route === '/api/chat' && M === 'POST') {
+      try { const r = await chat(await body(req)); return send(res, r.error ? 400 : 200, r); }
+      catch (e) { return send(res, 502, { error: 'Claude did not answer: ' + String(e.message || e).slice(0, 200) }); }
+    }
+    if (route === '/api/fxcheck' && M === 'POST') {   // three check frames of one effect, drawn by the effects skill in Actions
+      const { clip, effect } = await body(req);
+      if (!clip || !effect || !/^[a-z-]+$/.test(String(effect.fx || '')) || !(+effect.end > +effect.start)) return send(res, 400, { error: 'Bad effect check request' });
+      const file = `fxcheck-${slug(stemOf(safe(clip)))}-${slug(effect.fx)}-${Date.now().toString(36)}.jpg`;
+      const id = await dispatch('fxcheck', { clip: safe(clip), effect: { fx: effect.fx, start: +effect.start, end: +effect.end, opts: effect.opts || {} }, file });
+      return send(res, 200, { file, job: id });
+    }
+    if (route === '/api/job') return send(res, 200, (await jobStatus(String(q.get('id') || '').replace(/[^A-Za-z0-9._-]/g, ''))) || { status: 'unknown' });
     if (route === '/api/preset' && M === 'POST') {
       const d = await body(req), n = slug(d.name || 'preset'); d.name = n; await putText(`styles/captions/${n}.json`, JSON.stringify(d, null, 1)); return send(res, 200, { saved: `styles/captions/${n}.json` });
     }

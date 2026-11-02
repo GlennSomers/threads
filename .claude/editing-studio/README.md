@@ -88,3 +88,14 @@ It builds a HyperFrames project in `projects/<style-name>/hf/` (regenerated each
 The overlay uses the same drawing code as the Studio preview (`studio/engine.js`), driven by a seekable GSAP timeline, so what you pick is what you get.
 Sound effects sit on the moves they belong to. Captions and cards stay out of Instagram's top 220 px and bottom 420 px.
 Faces are not detected: check stills for overlaps.
+
+## Effects (from the effects skill)
+The 45 effects from `.claude/skills/effects` (Vibha Ramprakash's pack, MIT) are in the Studio's **Effects** library.
+- Tap one to add it at the playhead (3 s, or 6 s for over-the-shoulder-zoom). It lands on the **Effects** track: drag it to move it, drag its edges to change the length, click it to edit its options in the right panel.
+- The browser can't draw them (they track your face and cut you out of the room), so the preview shows a red frame and the effect's name while one is active. **Check frames** in the right panel draws three real frames (35%, 60% and 90% in) in the background (about a minute).
+- The render runs `fx.py` on the footage after the grade and LUT, before captions and titles go on top. Effect times follow your cuts.
+- Effects you add are kept per clip in the browser, and saved with a style.
+- Hosted: the Actions job installs the skill's packages (mediapipe, opencv) for renders and checks. Locally: run `bash .claude/skills/effects/scripts/setup.sh` once (mediapipe also needs `libegl1` on Linux).
+
+## Edit by saying it
+The box under the right panel takes plain requests ("add a backdrop word CLAUDE when I say Claude", "make the captions bigger", "cut the first two seconds", "warmer look"). The mic button dictates (Safari and Chrome). Claude (claude-opus-5-5) gets the current edit, the transcript with word times and the list of options, and sends back edits that the app applies as if you'd clicked them. Needs `ANTHROPIC_API_KEY` in the Vercel project (hosted app only; the Python `studio/server.py` doesn't have the chat).

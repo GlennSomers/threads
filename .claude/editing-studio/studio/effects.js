@@ -1,0 +1,56 @@
+'use strict';
+/* The 45 effects from the effects skill (.claude/skills/effects, by @vibha.in.progress).
+   They are drawn by fx.py in the render (face tracking, cut-outs), so the browser preview only marks where they sit.
+   Each entry: id, what it does, options [key, hint], default options. */
+const VFX = [
+  ['noise', 'Reels pile up behind your head, one every quarter second', [['size', 'card size']]],
+  ['lineup', 'Numbered tiles fan out in an arc above your head', [['text', 'tile names, split with |']]],
+  ['locked-on', 'Corner brackets snap onto your face and the camera follows you', [['zoom', '1.35'], ['text', 'tag']]],
+  ['orbit', 'Your reels circle your head, in front at the bottom and behind at the top', [['count', 'number of reels'], ['speed', 'speed'], ['size', 'card size']]],
+  ['lean-in', 'A fast punch-in on one word', [['zoom', '1.45 (max 2)'], ['speed', 'speed']]],
+  ['backdrop-word', 'A giant word drops in behind you', [['text', 'the word'], ['color', 'hex colour'], ['font', 'bold or serif']], { text: 'CLAUDE' }],
+  ['spotlight', 'Kills the lights and keeps you lit', [['text', 'glowing word behind you'], ['color', 'hex colour'], ['push', 'push-in']]],
+  ['glitter-spotlight', 'Spotlight with golden rays, a gold word with a shine sweep and sparkles', [['text', 'the word'], ['color', 'hex colour'], ['push', 'push-in']], { text: 'EFFECTS' }],
+  ['the-bill', 'Prints your instructions like a receipt into the wall above your head', [['text', 'lines, split with |']]],
+  ['moody', 'A moody colour grade', [['grade', 'moody, bw, warm, cool or pop']]],
+  ['swipe', 'A before and after slider sweeps across you', [['grade', 'the after look: moody, bw, warm, cool, pop']]],
+  ['todo', 'A checklist card beside your head ticks off as you talk', [['text', 'items, split with |'], ['ticks', 'seconds, split with |'], ['title', 'card title']]],
+  ['comment-box', 'An Instagram comment bar types a word and posts it', [['text', 'the comment']], { text: 'EFFECTS' }],
+  ['tap', 'A Follow button pops up and flips to Following', [['at', 'second of the flip'], ['x', '0 to 1'], ['y', '0 to 1'], ['color', 'hex colour']]],
+  ['pause-point', 'Freezes the frame and points at you with a hand-drawn arrow', [['text', 'label'], ['color', 'hex colour'], ['label_x', '0 to 1']]],
+  ['uninstall', 'A glitchy uninstall bar breaks the frame apart', [['text', 'the app name']]],
+  ['reel-frame', 'Your video shrinks into an Instagram reel card', [['text', 'handle']]],
+  ['shortcut-rain', 'Keyboard keys rain down behind you', [['text', 'keys, split with |'], ['count', 'how many']]],
+  ['reject-stamp', 'A big red stamp slams onto the screen', [['text', 'stamp word'], ['color', 'hex colour'], ['angle', 'degrees'], ['y', '0 to 1']], { text: 'NOPE' }],
+  ['countdown-flip', 'A 3, 2, 1 flip clock above your head', [['from', 'start number']]],
+  ['rabbit-hole', 'The frame tunnels into itself, spinning', [['ratio', 'tunnel ratio'], ['speed', 'speed'], ['spin', 'spin']]],
+  ['cover-star', 'You become a magazine cover, title behind your head (look=editorial for the classic one)', [['text', 'title'], ['lines', 'cover lines, split with |'], ['issue', 'issue line'], ['color', 'hex colour'], ['look', 'editorial or blank']]],
+  ['scribble', 'Marker doodles draw themselves around you', [['text', 'label'], ['color', 'hex colour']]],
+  ['glass-widgets', 'Frosted glass widgets float around your head, plus an Edited by Claude pill', [['text', 'big number'], ['name', 'name'], ['handle', 'handle'], ['look', 'simple for 3 widgets']]],
+  ['red-collage', 'Black and white you, a giant red word behind, three lines slam in', [['text', 'red word'], ['lines', 'lines, split with |'], ['tag', 'tag']]],
+  ['split-headline', 'A headline card slides down and pushes you to the bottom half', [['text', 'lines, split with |'], ['hl', 'highlighted word'], ['pill', 'pill text']]],
+  ['pastel-word', 'Lavender room, giant word behind you, a profile card gets followed', [['text', 'the word'], ['name', 'name'], ['handle', 'handle']]],
+  ['check-pills', 'Grid-paper room, reel boards behind you, a cursor clicks blue pills', [['text', 'pills, split with |']]],
+  ['timeline', 'Dark red film grade with an editing timeline, REC timecode and glowing playhead', [['text', 'title'], ['sub', 'subtitle'], ['tc', 'timecode']]],
+  ['headline-box', 'A punch-in with a two-line headline, the second line in a white box', [['text', 'two lines, split with |'], ['zoom', 'zoom']]],
+  ['profile-wall', 'Your reels grid fills the wall behind you while a counter ticks up', [['count', 'the number'], ['label', 'label']]],
+  ['tier-list', 'A tier list drops in and Claude flies into S tier', [['title', 'question'], ['item', 'the winner'], ['others', 'others, split with |']]],
+  ['broll-split', 'B-roll on top with a price-tag sticker, you below', [['text', 'tag']]],
+  ['phone-fan', 'Your reels fan out like a hand of phones under a headline', [['text', 'headline lines, split with |']]],
+  ['dot-reveal', 'Your shot builds out of glowing dots, then snaps to the full picture', [['color', 'hex colour'], ['cell', 'dot size']]],
+  ['headline-wall', 'Your headlines pile up behind your head, then a total pops in front', [['text', 'headline::meta, split with |'], ['total', 'total'], ['label', 'label']]],
+  ['checklist', 'A Claude task list under your chin: each step spins, then ticks green', [['text', 'step::meta, split with |'], ['title', 'title']]],
+  ['liquid-glass-graph', 'A liquid glass card under your chin: a graph climbs while the number counts up (look=bento for a glass dashboard)', [['text', 'label'], ['from', 'start number'], ['to', 'end number, e.g. 197K'], ['color', 'hex colour'], ['look', 'bento or blank']]],
+  ['carousel-spin', 'Your reels spin around you in a 3D carousel, then slow to a stop', [['count', 'number of reels'], ['size', 'card size'], ['turns', 'turns']]],
+  ['match-cut', 'News pages cut on one word, locked in a red box behind your head', [['text', 'the word'], ['color', 'hex colour']], { text: 'Claude' }],
+  ['apple-toggles', 'An iPhone settings card flips its switches on, one line at a time', [['text', 'rows, split with |'], ['ticks', 'seconds, split with |'], ['color', 'hex colour'], ['pos', 'below for under the chin']]],
+  ['led-sign', 'The lights drop and a glowing LED sign types itself out behind you', [['text', 'lines, split with |'], ['color', 'hex colour'], ['push', 'push-in']]],
+  ['slow-push', 'A slow cinematic push-in while the room melts out of focus', [['zoom', '1.6'], ['blur', 'blur']]],
+  ['over-the-shoulder-zoom', 'Pushes into one top corner, a liquid glass graph pops beside your head, then the other corner with a second graph. Your head stays in front', [['text', 'two labels, split with |'], ['to', 'two numbers, split with |, e.g. 197K|672K'], ['zoom', '2.0']]],
+  ['messages', 'iMessage notifications pop in one after another with a soft glow', [['text', 'messages, split with |'], ['title', 'title'], ['y', '0 to 1']]],
+  ['place-in-grid', 'You shrink into the centre tile of your 3x3 profile grid, 8 reels pop in around you with view counts', [['views', '9 counts, split with |']]],
+];
+const VFXN = id => VFX.find(f => f[0] === id);
+const vfxThumb = id => 'fx/' + id + '.jpg';
+// effects that zoom or move the camera: fx.py wants these first when they overlap others
+const VFX_CAMERA = new Set(['locked-on', 'lean-in', 'spotlight', 'glitter-spotlight', 'slow-push', 'over-the-shoulder-zoom', 'headline-box']);

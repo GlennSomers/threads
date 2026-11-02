@@ -105,6 +105,42 @@ def voice_filter(v):
     return ",".join(f)
 
 
+def fx_tool():
+    """The effects skill (.claude/skills/effects): its fx.py and a Python that has its packages (mediapipe, opencv)."""
+    d = Path(os.environ.get("FX_DIR") or ROOT.parent / "skills" / "effects")
+    py = os.environ.get("FX_PYTHON") or (str(d / ".venv" / "bin" / "python") if (d / ".venv" / "bin" / "python").exists() else sys.executable)
+    return d / "scripts" / "fx.py", py
+
+
+def fx_plan(vfx, keep=None):
+    """Studio effects (source seconds) -> an fx.py plan (output seconds). Camera effects go first, as fx.py asks."""
+    plan = []
+    for e in vfx or []:
+        a, b = float(e["start"]), float(e["end"])
+        if keep:   # clip the effect to the parts that survive the cuts
+            parts = [(max(a, s), min(b, t)) for s, t in keep if min(b, t) > max(a, s) + 0.05]
+            if not parts: continue
+            a, b = src_to_out(parts[0][0], keep), src_to_out(parts[-1][1], keep)
+        d = {"fx": e["fx"], "start": round(a, 3), "end": round(b, 3)}
+        for k, v in (e.get("opts") or {}).items():
+            if str(v).strip() != "": d[k] = str(v)
+        plan.append(d)
+    cam = {"locked-on", "lean-in", "spotlight", "glitter-spotlight", "slow-push", "over-the-shoulder-zoom", "headline-box"}
+    return sorted(plan, key=lambda d: (d["fx"] not in cam, d["start"]))
+
+
+def apply_vfx(style, keep, proj):
+    """Burn the effects skill's effects into clip.mp4 (after the grade, before captions and titles go on top)."""
+    plan = fx_plan(style.get("vfx"), keep)
+    if not plan: return
+    fx, py = fx_tool()
+    if not fx.exists(): sys.exit(f"The effects skill is missing ({fx}).")
+    (proj / "fx-plan.json").write_text(json.dumps({"effects": plan}, indent=1))
+    print(f"   adding {len(plan)} effect{'s' * (len(plan) > 1)}: " + ", ".join(d["fx"] for d in plan), flush=True)
+    run(py, fx, "--plan", proj / "fx-plan.json", proj / "clip.mp4", proj / "clip-fx.mp4")
+    (proj / "clip-fx.mp4").replace(proj / "clip.mp4")
+
+
 def build_project(name, style, clip, words, proj):
     """Write the HyperFrames composition: the clip, the sound effects and a seekable overlay."""
     if not (proj / "hyperframes.json").exists():
@@ -141,6 +177,7 @@ def build_project(name, style, clip, words, proj):
             "-color_trc", "bt709", "-color_range", "tv", "-c:a", "copy", proj / "clip.mp4", cwd=proj)
     else:
         shutil.copy(clip, proj / "clip.mp4")
+    apply_vfx(style, keep, proj)
     vf = voice_filter(style.get("voice"))
     if vf:   # clean up the voice on the clip itself, so sound effects and music are not processed
         run("ffmpeg", "-y", "-loglevel", "error", "-i", proj / "clip.mp4", "-map", "0:v", "-map", "0:a?", "-c:v", "copy", "-af", vf,
