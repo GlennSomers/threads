@@ -1046,7 +1046,15 @@ async function sendChat(text) {
   S.chat.push({ role: 'user', text }); renderChat(); $('#chatin').value = '';
   try {
     const r = await fetch('/api/chat', { method: 'POST', body: JSON.stringify({ message: text, state: chatState(), catalog: chatCatalog(), history }) });
-    const d = await r.json(); if (d.error) throw new Error(d.error);
+    let d = await r.json(); if (d.error) throw new Error(d.error);
+    if (d.pending) {   // no API key: Claude Code answers in GitHub Actions with the Claude login, so wait for it
+      const t0 = Date.now();
+      for (let i = 0; i < 100; i++) {
+        await new Promise(res => setTimeout(res, 2500)); $('#chatsend').textContent = `Thinking ${Math.round((Date.now() - t0) / 1000)}s`;
+        d = await (await fetch('/api/chat-result?id=' + encodeURIComponent(d.pending))).json();
+        if (d.error) throw new Error(d.error); if (!d.pending) break; }
+      if (d.pending) throw new Error('No answer after 4 minutes. Check the Actions tab on GitHub.');
+    }
     const n = applyOps(d.ops);
     S.chat.push({ role: 'assistant', text: d.reply || (n ? `Done (${n} change${n > 1 ? 's' : ''}).` : 'No changes.') });
   } catch (e) { S.chat.push({ role: 'assistant', err: true, text: String(e.message || e) }); }

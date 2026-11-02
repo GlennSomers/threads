@@ -16,7 +16,7 @@ on:
         required: true
         type: string
       job:
-        description: "prepare, ingest, import, shot, render, fxcheck or anim"
+        description: "prepare, ingest, import, shot, render, fxcheck, anim or chat"
         required: true
         type: string
       args:
@@ -43,7 +43,7 @@ jobs:
     steps:
       - name: Check the job name
         run: |
-          case "$JOB" in prepare|ingest|import|shot|render|fxcheck|anim) ;; *) echo "::error::Unknown job: $JOB"; exit 1;; esac
+          case "$JOB" in prepare|ingest|import|shot|render|fxcheck|anim|chat) ;; *) echo "::error::Unknown job: $JOB"; exit 1;; esac
           if [ -z "$BLOB_READ_WRITE_TOKEN" ]; then echo "::error::Missing repo secret BLOB_READ_WRITE_TOKEN"; exit 1; fi
 
       - uses: actions/checkout@v4
@@ -57,6 +57,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install ffmpeg and Python packages
+        if: ${{ inputs.job != 'chat' }}
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg libegl1 libgles2
           pip install --quiet pillow numpy
@@ -73,11 +74,17 @@ jobs:
         working-directory: studio-app
         run: npm install --no-audit --no-fund
 
+      - name: Install Claude Code (the edit chat, logged in with Glenn's Claude account)
+        if: ${{ inputs.job == 'chat' }}
+        run: npm install -g @anthropic-ai/claude-code --no-audit --no-fund
+
       - name: Install a browser for screenshots
         if: ${{ inputs.job == 'shot' }}
         run: npm install -g playwright && npx playwright install --with-deps chromium
 
       - name: Run the job
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ inputs.job == 'chat' && secrets.CLAUDE_CODE_OAUTH_TOKEN || '' }}
         run: |
           export NODE_PATH="$(npm root -g)"
           python3 .claude/editing-studio/tools/studio_job.py "$JOB" "$ARGS"

@@ -26,9 +26,9 @@ What runs where
    - `STUDIO_PASSWORD`: the shared password. **Set this**, or anyone with the URL can use the app and your GitHub minutes.
    - `STUDIO_SECRET`: a long random string for the login cookie.
    - `GH_DISPATCH_TOKEN`: a fine-grained GitHub token for this repo with **Actions: Read and write**.
-   - `ANTHROPIC_API_KEY`: a Claude API key for the edit chat on the right ("say what to change"). Without it the chat says it isn't set up; everything else works.
+   - Edit chat ("say what to change"): nothing to set in Vercel. It runs Claude Code in GitHub Actions with your Claude login, from the repo secret `CLAUDE_CODE_OAUTH_TOKEN` (the one the Reel Drafts Refine button uses; make it with `claude setup-token`). Optional: `ANTHROPIC_API_KEY` makes it answer directly and faster, billed as API usage.
    - `GH_REPO` (default `GlennSomers/threads`) and `GH_REF` (default `main`) if different.
-5. **GitHub repo secrets** (Settings > Secrets and variables > Actions): `BLOB_READ_WRITE_TOKEN` (same value as Vercel) and `GROQ_API_KEY`.
+5. **GitHub repo secrets** (Settings > Secrets and variables > Actions): `BLOB_READ_WRITE_TOKEN` (same value as Vercel), `GROQ_API_KEY`, and `CLAUDE_CODE_OAUTH_TOKEN` for the edit chat.
 6. Deploy, open the URL, log in.
 
 ## Behaviour to expect

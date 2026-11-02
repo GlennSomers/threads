@@ -43,8 +43,22 @@ Ops
 
 "This effect", "it" or "that" means the selected effect or element when there is one. Times in the state are seconds. Effects are drawn in the render, after the colour grade; captions and titles go on top of them. Effects never cover the face: they sit behind the head or beside it. Zoom never goes past 2.`;
 
+export const hasApiKey = () => !!(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
+export { SCHEMA };
+
+// The same request as plain text, for Claude Code running with Glenn's Claude login in GitHub Actions (no API key needed).
+export function chatJobRequest({ message, state, catalog, history }) {
+  const past = (Array.isArray(history) ? history : []).slice(-12).filter(h => h && h.text && ['user', 'assistant'].includes(h.role))
+    .map(h => `${h.role === 'user' ? 'Person' : 'You'}: ${String(h.text).slice(0, 2000)}`).join('\n');
+  return {
+    system: RULES + '\n\nWhat the editor offers\n' + JSON.stringify(catalog || {}) + '\n\nAnswer with the JSON object only.',
+    user: (past ? `<earlier_messages>\n${past}\n</earlier_messages>\n\n` : '') + `<editor_state>\n${JSON.stringify(state).slice(0, 60000)}\n</editor_state>\n\n${String(message).slice(0, 2000)}`,
+    schema: SCHEMA,
+  };
+}
+
 export async function chat({ message, state, catalog, history }) {
-  if (!process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) return { error: 'Set ANTHROPIC_API_KEY in the Vercel project to use the edit chat.' };
+  if (!hasApiKey()) return { error: 'No API key set.' };
   if (!String(message || '').trim()) return { error: 'Say what to change.' };
   const client = new Anthropic({ timeout: 55_000, maxRetries: 1 });
   const msgs = [];

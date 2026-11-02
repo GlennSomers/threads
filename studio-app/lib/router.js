@@ -1,7 +1,7 @@
 // One handler for every endpoint, so the hosted app and the local dev server behave the same.
 import { FS, putText, putBuffer, getJSON, getText, list, urlOf } from './store.js';
 import { dispatch, jobStatus } from './jobs.js';
-import { chat } from './chat.js';
+import { chat, hasApiKey, chatJobRequest } from './chat.js';
 import { authOn, checkPassword, cookieFor, isAuthed } from './auth.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -120,8 +120,20 @@ export async function handle(req, res) {
     }
     if (route === '/api/ingests') return send(res, 200, await ingests());
     if (route === '/api/chat' && M === 'POST') {
-      try { const r = await chat(await body(req)); return send(res, r.error ? 400 : 200, r); }
+      const d = await body(req);
+      if (!String(d.message || '').trim()) return send(res, 400, { error: 'Say what to change.' });
+      if (!hasApiKey()) {   // no API key: Claude Code answers in GitHub Actions with the Claude login (CLAUDE_CODE_OAUTH_TOKEN)
+        const id = 'chat-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        await putText(`chat/${id}-in.json`, JSON.stringify(chatJobRequest(d)));
+        await dispatch('chat', { id }, id); return send(res, 200, { pending: id });
+      }
+      try { const r = await chat(d); return send(res, r.error ? 400 : 200, r); }
       catch (e) { return send(res, 502, { error: 'Claude did not answer: ' + String(e.message || e).slice(0, 200) }); }
+    }
+    if (route === '/api/chat-result') {
+      const id = String(q.get('id') || '').replace(/[^a-z0-9-]/g, ''), out = await getJSON(`chat/${id}.json`);
+      if (out) return send(res, 200, out);
+      const j = await jobStatus(id); return send(res, 200, j && j.status === 'error' ? { error: j.message } : { pending: id, status: j ? j.status : 'queued' });
     }
     if (route === '/api/fxcheck' && M === 'POST') {   // three check frames of one effect, drawn by the effects skill in Actions
       const { clip, effect } = await body(req);
