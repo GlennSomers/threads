@@ -1,6 +1,6 @@
 # Book Recs From Reels (Nov 8, 2026)
 
-Pulled from 9 reels (one link was sent twice). Books come from each reel's audio, caption and on-screen covers.
+Pulled from 10 reels (one link was sent twice). Books come from each reel's audio, caption and on-screen covers.
 Audible links are the US store (audible.com). "No Audible" means no audiobook edition turned up.
 
 ## 1. @seanguderian: books for creatives
@@ -85,3 +85,11 @@ Reel: https://www.instagram.com/reel/Db9Oql2Iiqv/
 Reel: https://www.instagram.com/reel/Ddr_JiCJ8Te/
 
 - **How Fiction Works** by James Wood. A critic breaks down the craft of fiction: point of view, detail, character, voice. Makes you a better reader and writer. [Audible](https://www.audible.com/pd/How-Fiction-Works-Audiobook/B002V0K9NU)
+
+## 10. @_ethanbricker: four books for writers
+Reel: https://www.instagram.com/reel/DfHuZfgxc9n/
+
+- **Steal Like an Artist** by Austin Kleon. Nothing is fully original. How to take what inspires you and make it your own without copying. Short, easy to flip through. No standalone audiobook. It's in Kleon's own reading of [The Steal Like an Artist Audio Trilogy](https://www.audible.com/pd/The-Steal-Like-an-Artist-Audio-Trilogy-Audiobook/B0B6QGTNVS), with Show Your Work and Keep Going.
+- **On Writing Well** by William Zinsser. The Yale writing course in a book. What to do and avoid, with chapters for each type of writing: memoir, sports, science and more. [Audible](https://www.audible.com/pd/On-Writing-Well-Audio-Collection-Audiobook/B002V8KQLC) (abridged, read by Zinsser)
+- **Poems That Touch the Heart** compiled by A.L. Alexander. A collection of popular inspirational poems. He says thinking like a poet made him a better writer. No Audible.
+- **A Rulebook for Arguments** by Anthony Weston. Short rules for building strong arguments and spotting fallacies and weak reasoning. [Audible](https://www.audible.com/pd/A-Rulebook-for-Arguments-Audiobook/B0DD9L9MJ6)
