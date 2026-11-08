@@ -1,6 +1,6 @@
 # Book Recs From Reels (Nov 8, 2026)
 
-Pulled from 10 reels (one link was sent twice). Books come from each reel's audio, caption and on-screen covers.
+Pulled from 11 reels (one link was sent twice). Books come from each reel's audio, caption and on-screen covers.
 Audible links are the US store (audible.com). "No Audible" means no audiobook edition turned up.
 
 ## 1. @seanguderian: books for creatives
@@ -93,3 +93,18 @@ Reel: https://www.instagram.com/reel/DfHuZfgxc9n/
 - **On Writing Well** by William Zinsser. The Yale writing course in a book. What to do and avoid, with chapters for each type of writing: memoir, sports, science and more. [Audible](https://www.audible.com/pd/On-Writing-Well-Audio-Collection-Audiobook/B002V8KQLC) (abridged, read by Zinsser)
 - **Poems That Touch the Heart** compiled by A.L. Alexander. A collection of popular inspirational poems. He says thinking like a poet made him a better writer. No Audible.
 - **A Rulebook for Arguments** by Anthony Weston. Short rules for building strong arguments and spotting fallacies and weak reasoning. [Audible](https://www.audible.com/pd/A-Rulebook-for-Arguments-Audiobook/B0DD9L9MJ6)
+
+## 11. @noahfleming: systems books, ranked by tier
+Reel: https://www.instagram.com/reel/De4MevIlP4W/
+
+His pick if you read only one: Thinking in Systems.
+
+- **Thinking in Systems** by Donella Meadows. S tier. Everything works like a bathtub, with water in and water out. Stop watching what comes in and look at what leaks out. [Audible](https://www.audible.com/pd/Thinking-in-Systems-Audiobook/B07FWBN4Q5)
+- **The Checklist Manifesto** by Atul Gawande. A tier. Simple checklists cut deaths and mistakes in surgery. Only list the steps people skip. [Audible](https://www.audible.com/pd/The-Checklist-Manifesto-Audiobook/B0030ZYDD2)
+- **Buy Back Your Time** by Dan Martell. A tier. Write down what drains you, then hand it off one piece at a time. [Audible](https://www.audible.com/pd/Buy-Back-Your-Time-Audiobook/B09YMMFV2G)
+- **High Output Management** by Andy Grove. A tier. A manager's output is what the team gets done. [Audible](https://www.audible.com/pd/High-Output-Management-Audiobook/0593459326)
+- **Winning** by Jack Welch. B tier. Tell people straight where they stand. Strong on leading people, lighter on systems. [Audible](https://www.audible.com/pd/Winning-Audiobook/B002V5D60S)
+- **Scaling Up** by Verne Harnish. C tier. Good tools, but too many forms for a small company. [Audible](https://www.audible.com/pd/Scaling-Up-Audiobook/B00PKHUL2U)
+- **Good to Great** by Jim Collins. C tier. The flywheel: small pushes in one direction until it runs on its own. [Audible](https://www.audible.com/pd/Good-to-Great-Audiobook/B003UDDK7O)
+- **Getting Things Done** by David Allen. D tier. Good for clearing your head, but hard to get through. [Audible](https://www.audible.com/pd/Getting-Things-Done-Audiobook/B0DSK1YKYZ)
+- **Who Not How** by Dan Sullivan and Benjamin Hardy. D tier. Find a "who" to do the work. His problem with it: if nobody writes the process down, it leaves when they do. [Audible](https://www.audible.com/pd/Who-Not-How-Audiobook/1401960774)
