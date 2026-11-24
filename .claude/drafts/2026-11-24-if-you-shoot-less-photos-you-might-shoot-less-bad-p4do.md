@@ -1,8 +1,8 @@
 ---
 title: "If you shoot less photos, you might shoot less bad photos…"
-status: idea
+status: refining
 created: 2026-11-24T19:45:06Z
-updated: 2026-11-24T19:45:06Z
+updated: 2026-11-24T19:45:12Z
 ---
 
 ## Idea
